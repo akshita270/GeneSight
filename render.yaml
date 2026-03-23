@@ -2,6 +2,7 @@ services:
   - type: web
     name: genomics-ai-api
     runtime: python
+    pythonVersion: "3.11.9"
     buildCommand: >
       pip install --upgrade pip &&
       pip install spacy==3.7.2 &&
