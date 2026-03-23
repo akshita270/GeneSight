@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import time
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://838f-119-252-194-71.ngrok-free.app"
 
 st.set_page_config(page_title="Genomics AI", page_icon="🧬", layout="wide")
 
