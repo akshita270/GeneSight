@@ -17,6 +17,7 @@ biopython>=1.83
 # NLP / NER
 scispacy>=0.5.4
 spacy>=3.7.0,<3.8.0
+https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
 
 # Knowledge Graph
 neo4j>=5.20.0

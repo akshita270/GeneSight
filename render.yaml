@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: genomics-ai-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ENTREZ_EMAIL
+        sync: false
+      - key: ENTREZ_API_KEY
+        sync: false
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USER
+        sync: false
+      - key: NEO4J_PASSWORD
+        sync: false
+      - key: PUBMED_MAX_RESULTS
+        value: 50
+      - key: HYPOTHESIS_MAX
+        value: 5
