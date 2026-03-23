@@ -97,7 +97,12 @@ st.markdown('</div>', unsafe_allow_html=True)
 # ── Pipeline Runner ───────────────────────────────────────
 def run_pipeline(query):
     try:
-        r = requests.post(f"{API_URL}/query", json={"query": query}, timeout=30)
+        r = requests.post(
+            f"{API_URL}/query",
+            json={"query": query},
+            timeout=30,
+            headers={"ngrok-skip-browser-warning": "true"}
+        )
         r.raise_for_status()
         job_id = r.json()["job_id"]
     except Exception as e:
@@ -113,7 +118,11 @@ def run_pipeline(query):
 
     while True:
         try:
-            s = requests.get(f"{API_URL}/status/{job_id}", timeout=10).json()
+            s = requests.get(
+                f"{API_URL}/status/{job_id}",
+                timeout=10,
+                headers={"ngrok-skip-browser-warning": "true"}
+            ).json()
             agent  = s.get("current_agent", "")
             status = s.get("status", "")
             idx    = AGENTS.index(agent) if agent in AGENTS else 0
@@ -142,7 +151,11 @@ def run_pipeline(query):
             return None
 
     try:
-        res = requests.get(f"{API_URL}/result/{job_id}", timeout=30)
+        res = requests.get(
+            f"{API_URL}/result/{job_id}",
+            timeout=30,
+            headers={"ngrok-skip-browser-warning": "true"}
+        )
         res.raise_for_status()
         return res.json()
     except Exception as e:
