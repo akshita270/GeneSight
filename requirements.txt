@@ -14,16 +14,13 @@ openai>=1.30.0
 # PubMed / NCBI
 biopython>=1.83
 
-# NLP / NER
-scispacy>=0.5.4
-spacy>=3.7.0,<3.8.0
+# NLP / NER — pinned to pre-built wheel versions for Linux
+spacy==3.7.2
+scispacy==0.5.4
 https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
 
 # Knowledge Graph
 neo4j>=5.20.0
-
-# Vector store
-faiss-cpu>=1.8.0
 
 # Utilities
 httpx>=0.27.0
