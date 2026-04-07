@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>GeneSight · Results</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff; --bg2:#f8f9fb; --bg3:#f1f4f8;
+  --border:#e2e8f0; --border2:#edf0f5;
+  --blue:#2563eb; --blue-light:#eff4ff; --blue-mid:#dbeafe; --blue-dark:#1d4ed8;
+  --text:#0f172a; --text2:#475569; --text3:#94a3b8;
+  --green:#16a34a; --green-light:#f0fdf4;
+  --amber:#d97706; --amber-light:#fffbeb;
+  --red:#dc2626; --red-light:#fef2f2;
+  --purple:#7c3aed; --purple-light:#f5f3ff;
+  --sans:'Inter',sans-serif; --radius:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 16px 40px rgba(0,0,0,0.1),0 4px 12px rgba(0,0,0,0.05);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:900px;margin:0 auto;padding:0 28px}
+
+/* ── Navbar ── */
+nav{
+  background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+}
+.nav-inner{display:flex;align-items:center;gap:16px;padding:0 28px;height:64px;max-width:900px;margin:0 auto}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:var(--text);letter-spacing:-0.3px;cursor:pointer}
+.nav-logo:hover{color:var(--blue)}
+.nav-logo-icon{font-size:24px;line-height:1}
+.nav-back{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:500;color:var(--text3);
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:6px 14px;cursor:pointer;
+  transition:all .15s;margin-right:4px;
+}
+.nav-back:hover{color:var(--text);border-color:var(--blue-mid);background:var(--blue-light)}
+.nav-new-btn{
+  margin-left:auto;padding:9px 20px;font-size:13px;font-weight:600;
+  background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer;
+  font-family:var(--sans);transition:background .15s;
+  box-shadow:0 1px 3px rgba(37,99,235,0.3);
+}
+.nav-new-btn:hover{background:var(--blue-dark)}
+
+/* ── Query header ── */
+.query-header{
+  padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px;
+}
+.query-header-eyebrow{
+  font-size:11px;font-weight:600;color:var(--blue);
+  text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;
+}
+.query-header-text{
+  font-size:22px;font-weight:800;color:var(--text);
+  letter-spacing:-0.5px;line-height:1.3;margin-bottom:8px;
+}
+.query-header-sub{font-size:13px;color:var(--text3)}
+
+/* ── Search bar on results page ── */
+.results-search{
+  display:flex;gap:10px;align-items:center;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:10px 16px;margin-bottom:32px;
+}
+.results-search-icon{font-size:18px;color:var(--text3);flex-shrink:0}
+.results-search-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-size:15px;color:var(--text);font-family:var(--sans);
+}
+.results-search-input::placeholder{color:var(--text3)}
+.results-search-btn{
+  padding:8px 20px;font-size:13px;font-weight:600;
+  background:var(--blue);color:#fff;border:none;border-radius:8px;
+  cursor:pointer;font-family:var(--sans);transition:background .15s;flex-shrink:0;
+}
+.results-search-btn:hover{background:var(--blue-dark)}
+
+/* ── Pipeline card ── */
+.pipeline-wrap{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:16px;padding:28px 32px;margin-bottom:28px;
+  box-shadow:var(--shadow);
+}
+.pl-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
+.pl-sub{font-size:13px;color:var(--text3);margin-bottom:20px}
+.progress-track{width:100%;height:6px;background:var(--bg3);border-radius:6px;margin-bottom:12px;overflow:hidden}
+.progress-fill{height:100%;background:var(--blue);border-radius:6px;transition:width .4s ease}
+.status-txt{font-size:13px;color:var(--text2);margin-bottom:16px;min-height:20px}
+.status-txt .s-active{color:var(--blue);font-weight:600}
+.agent-grid{display:flex;flex-wrap:wrap;gap:8px}
+.agent-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid;transition:all .2s;
+}
+.chip-done{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.chip-active{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);animation:pulse 1.4s ease-in-out infinite}
+.chip-pending{background:var(--bg2);color:var(--text3);border-color:var(--border)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── Done banner ── */
+.done-banner{
+  background:var(--green-light);border:1px solid #bbf7d0;
+  border-radius:12px;padding:16px 20px;margin-top:20px;
+  display:flex;align-items:center;gap:14px;display:none;
+}
+.done-banner.visible{display:flex}
+.done-banner-icon{font-size:24px}
+.done-banner-title{font-size:15px;font-weight:700;color:var(--green)}
+.done-banner-sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* ── Error box ── */
+.error-box{
+  background:var(--red-light);border:1px solid #fecaca;
+  border-radius:8px;padding:12px 16px;color:var(--red);
+  font-size:13px;margin-top:16px;display:none;
+}
+.error-box.visible{display:block}
+
+/* ── Summary ── */
+.summary-card{
+  background:var(--blue-light);border:1px solid var(--blue-mid);
+  border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;
+  display:none;border-left:3px solid var(--blue);
+}
+.summary-card.visible{display:block}
+.summary-lbl{font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.summary-text{font-size:14px;color:var(--text);line-height:1.75}
+
+/* ── Metrics ── */
+.metric-row{display:none;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.metric-row.visible{display:grid}
+.metric-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;text-align:center;box-shadow:var(--shadow);
+}
+.metric-icon{font-size:22px;margin-bottom:6px}
+.metric-num{font-size:30px;font-weight:700;color:var(--blue);line-height:1}
+.metric-lbl{font-size:11px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:0.3px}
+
+/* ── Tabs ── */
+.tabs-wrap{display:none}
+.tabs-wrap.visible{display:block}
+.tab-bar{
+  display:flex;border:1px solid var(--border);border-bottom:none;
+  border-radius:var(--radius) var(--radius) 0 0;overflow:hidden;background:var(--bg2);
+}
+.tab-btn{
+  flex:1;padding:12px 16px;background:transparent;border:none;
+  color:var(--text3);font-size:13px;font-weight:500;cursor:pointer;
+  font-family:var(--sans);border-bottom:2px solid transparent;transition:all .15s;
+}
+.tab-btn:hover{color:var(--text2);background:var(--bg3)}
+.tab-btn.active{background:var(--bg);color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.tab-panel{
+  background:var(--bg);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 var(--radius) var(--radius);padding:24px;display:none;
+}
+.tab-panel.active{display:block}
+
+/* ── Paper cards ── */
+.paper-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 20px;margin-bottom:10px;transition:box-shadow .15s,border-color .15s;
+}
+.paper-card:hover{border-color:#bfdbfe;box-shadow:var(--shadow-md)}
+.paper-journal{
+  display:inline-block;background:var(--blue-light);border:1px solid var(--blue-mid);
+  border-radius:5px;padding:2px 9px;font-size:10px;font-weight:600;color:var(--blue);margin-bottom:8px;
+}
+.paper-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:6px}
+.paper-meta{font-size:11px;color:var(--text3);margin-bottom:10px;font-family:monospace}
+.paper-abs{font-size:13px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border2);padding-top:10px}
+.rel-row{display:flex;align-items:center;gap:10px;margin-top:12px}
+.rel-label{font-size:10px;color:var(--text3);white-space:nowrap;font-weight:500}
+.rel-track{flex:1;height:3px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.rel-fill{height:100%;background:var(--blue);border-radius:3px}
+
+/* ── Knowledge graph ── */
+.kg-grid{display:grid;grid-template-columns:200px 1fr;gap:16px}
+.kg-stat{
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);
+}
+.kg-stat-icon{font-size:18px}
+.kg-stat-val{font-size:20px;font-weight:700;color:var(--blue)}
+.kg-stat-lbl{font-size:11px;color:var(--text3)}
+.node-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 11px;border-radius:20px;font-size:11px;font-weight:500;margin:3px;border:1px solid;
+}
+.nc-gene{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.nc-disease{background:var(--red-light);color:var(--red);border-color:#fecaca}
+.nc-protein{background:var(--purple-light);color:var(--purple);border-color:#ddd6fe}
+.edge-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2);font-size:13px}
+.edge-row:last-child{border-bottom:none}
+.edge-arrow{color:var(--text3);font-size:11px;white-space:nowrap;font-family:monospace}
+.edge-conf{margin-left:auto;font-size:10px;color:var(--text3);font-family:monospace}
+
+/* ── Hypothesis cards ── */
+.hyp-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:14px;padding:22px 24px;margin-bottom:12px;transition:box-shadow .15s,border-color .15s;
+}
+.hyp-card:hover{border-color:#bfdbfe;box-shadow:var(--shadow-md)}
+.hyp-rank{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:10px}
+.hyp-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;border:1px solid}
+.b-str{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.b-mod{background:var(--amber-light);color:var(--amber);border-color:#fde68a}
+.b-exp{background:var(--purple-light);color:var(--purple);border-color:#ddd6fe}
+.conf-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid}
+.cp-high{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.cp-mid{background:var(--amber-light);color:var(--amber);border-color:#fde68a}
+.cp-low{background:var(--red-light);color:var(--red);border-color:#fecaca}
+.hyp-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.4}
+.hyp-stmt{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:14px}
+.conf-track{height:4px;background:var(--bg3);border-radius:4px;margin-bottom:14px;overflow:hidden}
+.conf-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid}
+.tag-g{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.tag-p{background:var(--purple-light);color:var(--purple);border-color:#ddd6fe}
+.tag-e{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
+.section-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px}
+
+/* ── PMID Tooltip ── */
+.pmid-tag{position:relative;cursor:pointer}
+.pmid-tag:hover .pmid-tooltip{display:block}
+.pmid-tooltip{
+  display:none;position:absolute;bottom:calc(100% + 8px);left:0;
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:10px;min-width:320px;max-width:400px;z-index:999;box-shadow:var(--shadow-lg);
+}
+.pmid-tooltip::after{content:'';position:absolute;top:100%;left:16px;border:6px solid transparent;border-top-color:var(--border)}
+.pmid-tooltip-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.pmid-tooltip-item{padding:7px 0;border-bottom:1px solid var(--border2)}
+.pmid-tooltip-item:last-child{border-bottom:none}
+.pmid-tooltip-item a{color:var(--text);font-size:12px;line-height:1.5;text-decoration:none;display:block}
+.pmid-tooltip-item a:hover{color:var(--blue)}
+.pmid-tooltip-item .pmid-meta{font-size:10px;color:var(--text3);font-family:monospace;margin-top:2px}
+
+/* ── Footer ── */
+.site-footer{border-top:1px solid var(--border);padding:28px 0;margin-top:40px;text-align:center}
+.footer-text{font-size:12px;color:var(--text3)}
+
+@media(max-width:768px){
+  .wrap{padding:0 16px}
+  .nav-inner{padding:0 16px}
+  .metric-row{grid-template-columns:repeat(2,1fr)}
+  .kg-grid{grid-template-columns:1fr}
+  .pipeline-wrap{padding:20px}
+  .tab-btn{font-size:11px;padding:10px 8px}
+}
+@media(max-width:480px){
+  .metric-row{grid-template-columns:repeat(2,1fr)}
+  .pmid-tooltip{min-width:260px;max-width:calc(100vw - 40px)}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo" onclick="window.location.href='index.html'">
+      <div class="nav-logo-icon">🧬</div>
+      <span>GeneSight</span>
+    </div>
+    <button class="nav-back" onclick="window.location.href='index.html'">← Back</button>
+    <button class="nav-new-btn" onclick="newQuery()">New Query →</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ── Query Header ── -->
+  <div class="query-header">
+    <div class="query-header-eyebrow">🔬 Research Query</div>
+    <div class="query-header-text" id="queryHeaderText">Loading…</div>
+    <div class="query-header-sub" id="queryHeaderSub">Starting pipeline…</div>
+  </div>
+
+  <!-- ── Search bar (run new query from results page) ── -->
+  <div class="results-search">
+    <span class="results-search-icon">🧬</span>
+    <input class="results-search-input" id="newQueryInput" type="text" placeholder="Try a different query…"/>
+    <button class="results-search-btn" onclick="runNewQuery()">Search →</button>
+  </div>
+
+  <!-- ── Pipeline card ── -->
+  <div class="pipeline-wrap" id="pipelineWrap">
+    <div class="pl-title">Pipeline running</div>
+    <div class="pl-sub">8 AI agents working in sequence — this takes 30–90 seconds</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="status-txt" id="statusTxt">Initialising…</div>
+    <div class="agent-grid" id="agentGrid"></div>
+    <div class="done-banner" id="doneBanner">
+      <div class="done-banner-icon">✅</div>
+      <div>
+        <div class="done-banner-title">Analysis complete!</div>
+        <div class="done-banner-sub">Scroll down to see your hypotheses, literature, and knowledge graph</div>
+      </div>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <!-- ── Summary ── -->
+  <div class="summary-card" id="summaryCard">
+    <div class="summary-lbl">AI Research Summary</div>
+    <div class="summary-text" id="summaryText"></div>
+  </div>
+
+  <!-- ── Metrics ── -->
+  <div class="metric-row" id="metricRow">
+    <div class="metric-card"><div class="metric-icon">📄</div><div class="metric-num" id="mPapers">0</div><div class="metric-lbl">Papers</div></div>
+    <div class="metric-card"><div class="metric-icon">💡</div><div class="metric-num" id="mHyps">0</div><div class="metric-lbl">Hypotheses</div></div>
+    <div class="metric-card"><div class="metric-icon">🕸</div><div class="metric-num" id="mNodes">0</div><div class="metric-lbl">Graph Nodes</div></div>
+    <div class="metric-card"><div class="metric-icon">🔗</div><div class="metric-num" id="mEdges">0</div><div class="metric-lbl">Relationships</div></div>
+  </div>
+
+  <!-- ── Tabs ── -->
+  <div class="tabs-wrap" id="tabsWrap">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(0)">📄 Literature</button>
+      <button class="tab-btn" onclick="switchTab(1)">🕸 Knowledge Graph</button>
+      <button class="tab-btn" onclick="switchTab(2)">💡 Hypotheses</button>
+    </div>
+    <div class="tab-panel active" id="tabLit"></div>
+    <div class="tab-panel" id="tabKG"></div>
+    <div class="tab-panel" id="tabHyp"></div>
+  </div>
+
+  <div style="height:48px"></div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-text">GeneSight · AI-Powered Genomics Research · Built with GPT-4o, PubMed, Neo4j</div>
+</footer>
+
+<script>
+const API_URL = 'https://genesight.onrender.com';
+
+const AGENTS = [
+  ['🗂','Task Planner'],['📚','Literature Retrieval'],['🔬','Info Extraction'],
+  ['🧬','Genomics DB'],  ['🕸','Knowledge Graph'],  ['💡','Hypothesis Generation'],
+  ['✅','Evidence Validation'],['📋','Report Generation']
+];
+
+function qs(sel){ return document.querySelector(sel) }
+function show(el){ el.classList.add('visible') }
+function hide(el){ el.classList.remove('visible') }
+function switchTab(idx){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx))
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx))
+}
+function esc(str){
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+function newQuery(){ window.location.href = 'index.html' }
+function runNewQuery(){
+  const q = qs('#newQueryInput').value.trim()
+  if(!q) return
+  window.location.href = 'results.html?q=' + encodeURIComponent(q)
+}
+qs('#newQueryInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runNewQuery() })
+
+// ── Render Agents ──
+function renderAgents(currentName){
+  const idx = AGENTS.findIndex(a=>a[1]===currentName)
+  qs('#agentGrid').innerHTML = AGENTS.map(([icon,name],i)=>{
+    let cls='chip-pending', dot=''
+    if(i<idx){cls='chip-done';dot='✓ '}
+    else if(i===idx){cls='chip-active';dot='▶ '}
+    return `<span class="agent-chip ${cls}">${dot}${icon} ${name}</span>`
+  }).join('')
+}
+
+// ── Main ──
+async function main(){
+  const params = new URLSearchParams(window.location.search)
+  const query = params.get('q') || ''
+
+  if(!query){
+    // No query — show search bar, hide pipeline
+    qs('#queryHeaderText').textContent = 'Enter a query to get started'
+    qs('#queryHeaderSub').textContent = 'Type a gene, disease or pathway above'
+    qs('#pipelineWrap').style.display = 'none'
+    return
+  }
+
+  qs('#queryHeaderText').textContent = query
+  qs('#queryHeaderSub').textContent = 'Pipeline running…'
+  qs('#newQueryInput').value = query
+  document.title = `GeneSight · ${query}`
+  renderAgents('')
+
+  // Submit query
+  let job_id
+  try{
+    const r = await fetch(`${API_URL}/query`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query})
+    })
+    if(!r.ok) throw new Error(`HTTP ${r.status}`)
+    job_id = (await r.json()).job_id
+  }catch(e){
+    showError(`Could not reach backend: ${e.message}`)
+    return
+  }
+
+  // Poll status
+  while(true){
+    await new Promise(r=>setTimeout(r,2000))
+    let s
+    try{
+      s = await (await fetch(`${API_URL}/status/${job_id}`)).json()
+    }catch(e){ showError(`Polling error: ${e.message}`); break }
+
+    const {status, current_agent, error} = s
+    const agentIdx = AGENTS.findIndex(a=>a[1]===current_agent)
+    qs('#progressFill').style.width = `${Math.round(((agentIdx>=0?agentIdx:0)+1)/AGENTS.length*100)}%`
+    qs('#statusTxt').innerHTML = `Running: <span class="s-active">${current_agent||'…'}</span>`
+    renderAgents(current_agent||'')
+
+    if(status==='done'){
+      qs('#progressFill').style.width='100%'
+      qs('#statusTxt').innerHTML='<span class="s-active">✓ All 8 agents complete!</span>'
+      qs('#agentGrid').innerHTML = AGENTS.map(([icon,name])=>
+        `<span class="agent-chip chip-done">✓ ${icon} ${name}</span>`
+      ).join('')
+      qs('#queryHeaderSub').textContent = 'Analysis complete · Scroll down for results'
+      qs('#doneBanner').classList.add('visible')
+      break
+    }
+    if(status==='error'){
+      showError(error||'Unknown pipeline error')
+      return
+    }
+  }
+
+  // Fetch & render results
+  try{
+    const res = await fetch(`${API_URL}/result/${job_id}`)
+    if(!res.ok) throw new Error(`Server returned ${res.status}`)
+    const result = await res.json()
+    if(!result || typeof result !== 'object') throw new Error('Empty response')
+    renderResults(result)
+  }catch(e){
+    showError(`Failed to fetch results: ${e.message}`)
+  }
+}
+
+function showError(msg){
+  const el = qs('#errorBox')
+  el.textContent = '⚠ ' + msg
+  el.style.display = 'block'
+  qs('#queryHeaderSub').textContent = 'Error — see below'
+}
+
+function renderResults(r){
+  const papers = r.papers||[], hyps = r.hypotheses||[]
+  const nodes = (r.graph?.nodes)||[], edges = (r.graph?.edges)||[]
+
+  if(r.summary){ qs('#summaryText').textContent = r.summary; show(qs('#summaryCard')) }
+
+  qs('#mPapers').textContent = papers.length
+  qs('#mHyps').textContent = hyps.length
+  qs('#mNodes').textContent = nodes.length
+  qs('#mEdges').textContent = edges.length
+  show(qs('#metricRow'))
+
+  document.querySelectorAll('.tab-btn')[0].textContent=`📄 Literature (${papers.length})`
+  document.querySelectorAll('.tab-btn')[1].textContent=`🕸 Knowledge Graph (${nodes.length} nodes)`
+  document.querySelectorAll('.tab-btn')[2].textContent=`💡 Hypotheses (${hyps.length})`
+  switchTab(2) // default to hypotheses tab
+
+  renderLiterature(papers)
+  renderGraph(nodes, edges)
+  renderHypotheses(hyps, papers)
+  show(qs('#tabsWrap'))
+
+  // Scroll smoothly to results
+  setTimeout(()=>qs('#metricRow').scrollIntoView({behavior:'smooth',block:'start'}), 200)
+}
+
+function renderLiterature(papers){
+  if(!papers.length){ qs('#tabLit').innerHTML='<p style="color:var(--text3)">No papers retrieved.</p>'; return }
+  qs('#tabLit').innerHTML = `
+    <div class="section-lbl">${papers.length} PubMed papers analysed</div>
+    ${papers.map(p=>{
+      const authors = (p.authors||[]).slice(0,2).join(', ')+(p.authors?.length>2?` +${p.authors.length-2}`:'')
+      const rel = Math.round((p.relevance_score||0.9)*100)
+      return `
+      <div class="paper-card">
+        <div class="paper-journal">${esc(p.journal||'').substring(0,50)}</div>
+        <div class="paper-title">${esc(p.title||'N/A')}</div>
+        <div class="paper-meta">${esc(authors)} · ${esc(p.year||'')} · <a href="https://pubmed.ncbi.nlm.nih.gov/${esc(p.pmid)}/" target="_blank">PMID ${esc(p.pmid)} ↗</a></div>
+        <div class="paper-abs">${esc(String(p.abstract||'').substring(0,380))}…</div>
+        <div class="rel-row">
+          <span class="rel-label">Relevance</span>
+          <div class="rel-track"><div class="rel-fill" style="width:${rel}%"></div></div>
+          <span class="rel-label">${rel}%</span>
+        </div>
+      </div>`
+    }).join('')}`
+}
+
+function renderGraph(nodes, edges){
+  if(!nodes.length){ qs('#tabKG').innerHTML='<p style="color:var(--text3)">No graph data.</p>'; return }
+  const genes = nodes.filter(n=>n.type==='gene')
+  const diseases = nodes.filter(n=>n.type==='disease')
+  const proteins = nodes.filter(n=>n.type==='protein')
+  qs('#tabKG').innerHTML = `
+  <div class="kg-grid">
+    <div>
+      <div class="section-lbl">Statistics</div>
+      ${[['🧬','Gene nodes',genes.length],['🦠','Disease nodes',diseases.length],
+         ['🔩','Protein nodes',proteins.length],['🔗','Edges',edges.length]].map(([ic,lb,ct])=>`
+      <div class="kg-stat"><span class="kg-stat-icon">${ic}</span>
+        <div><div class="kg-stat-val">${ct}</div><div class="kg-stat-lbl">${lb}</div></div>
+      </div>`).join('')}
+    </div>
+    <div>
+      ${genes.length?`<div class="section-lbl">Gene Nodes</div><div style="margin-bottom:16px">${genes.map(n=>`<span class="node-chip nc-gene">🧬 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
+      ${diseases.length?`<div class="section-lbl">Disease Nodes</div><div style="margin-bottom:16px">${diseases.map(n=>`<span class="node-chip nc-disease">🦠 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
+      ${proteins.length?`<div class="section-lbl">Protein Nodes</div><div style="margin-bottom:16px">${proteins.map(n=>`<span class="node-chip nc-protein">🔩 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
+      ${edges.length?`<div class="section-lbl">Relationships</div>
+        ${edges.slice(0,15).map(e=>`
+        <div class="edge-row">
+          <span class="node-chip nc-gene" style="margin:0">🧬 ${esc(e.source)}</span>
+          <span class="edge-arrow">── ${esc(e.relation||'ASSOCIATED_WITH')} ──▶</span>
+          <span class="node-chip nc-disease" style="margin:0">🦠 ${esc(e.target)}</span>
+          <span class="edge-conf">conf ${Math.round((e.confidence||0.7)*100)}%</span>
+        </div>`).join('')}`:''}
+    </div>
+  </div>`
+}
+
+function renderHypotheses(hyps, papers){
+  if(!hyps.length){ qs('#tabHyp').innerHTML='<p style="color:var(--text3)">No hypotheses generated.</p>'; return }
+  const paperMap = {}
+  ;(papers||[]).forEach(p=>{ if(p.pmid) paperMap[String(p.pmid)] = p })
+  qs('#tabHyp').innerHTML = `
+    <div class="section-lbl">${hyps.length} hypotheses · ranked by confidence</div>
+    ${hyps.map((h,i)=>{
+      const status = h.status||'Exploratory'
+      const badgeCls = {Strong:'b-str',Moderate:'b-mod',Exploratory:'b-exp'}[status]||'b-exp'
+      const conf = Math.round(h.confidence||50)
+      const cpCls = conf>=75?'cp-high':conf>=55?'cp-mid':'cp-low'
+      const cfill = conf>=75?'var(--green)':conf>=55?'var(--amber)':'var(--red)'
+      const gTags = (h.genes||[]).map(g=>`<span class="tag tag-g">🧬 ${esc(g)}</span>`).join('')
+      const pTag = h.pathway?`<span class="tag tag-p">🔬 ${esc(h.pathway)}</span>`:''
+      const eTags = `<span class="tag tag-e">📄 ${h.evidence_count||0} supporting papers</span>`
+      const pmidList = h.supporting_pmids||[]
+      let mTag = ''
+      if(pmidList.length){
+        const tooltipItems = pmidList.map(pid=>{
+          const paper = paperMap[String(pid)]
+          const title = paper?esc(paper.title||'').substring(0,90)+(paper.title?.length>90?'…':''):`PMID ${esc(pid)}`
+          const meta = paper?`${(paper.authors||[])[0]||''} · ${paper.year||''} · ${paper.journal||''}`:''
+          return `<div class="pmid-tooltip-item">
+            <a href="https://pubmed.ncbi.nlm.nih.gov/${esc(pid)}/" target="_blank">${title} ↗</a>
+            ${meta?`<div class="pmid-meta">${esc(meta)}</div>`:''}
+          </div>`
+        }).join('')
+        mTag = `<span class="tag tag-e pmid-tag">🔗 ${pmidList.length} PMIDs
+          <div class="pmid-tooltip">
+            <div class="pmid-tooltip-title">Supporting Papers — click to open in PubMed</div>
+            ${tooltipItems}
+          </div></span>`
+      }
+      return `
+      <div class="hyp-card">
+        <div class="hyp-rank">#${i+1} of ${hyps.length}</div>
+        <div class="hyp-header">
+          <span class="badge ${badgeCls}">${status}</span>
+          <span class="conf-pill ${cpCls}">${conf}% confidence</span>
+        </div>
+        <div class="hyp-title">${esc(h.title||'')}</div>
+        <div class="hyp-stmt">${esc(h.statement||'')}</div>
+        <div class="conf-track"><div class="conf-fill" style="width:${conf}%;background:${cfill}"></div></div>
+        <div class="tag-row">${gTags}${pTag}${eTags}${mTag}</div>
+      </div>`
+    }).join('')}`
+}
+
+main()
+</script>
+</body>
+</html>
