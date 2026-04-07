@@ -68,6 +68,68 @@ nav{
 }
 .query-header-sub{font-size:13px;color:var(--text3)}
 
+/* ── Empty state ── */
+.empty-state{
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  min-height:60vh;text-align:center;padding:40px 20px;
+}
+.empty-state.visible{display:flex}
+.empty-state-icon{font-size:56px;margin-bottom:20px;line-height:1}
+.empty-state h2{
+  font-size:28px;font-weight:800;color:var(--text);
+  letter-spacing:-0.8px;margin-bottom:10px;
+}
+.empty-state p{
+  font-size:15px;color:var(--text2);max-width:480px;
+  line-height:1.7;margin-bottom:32px;
+}
+.empty-search-box{
+  width:100%;max-width:560px;
+  background:var(--bg);border:2px solid var(--border);
+  border-radius:16px;padding:6px 6px 6px 20px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:var(--shadow-md);transition:border-color .15s,box-shadow .15s;
+  margin-bottom:28px;
+}
+.empty-search-box:focus-within{
+  border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,0.1),var(--shadow-md);
+}
+.empty-search-icon{font-size:20px;flex-shrink:0}
+.empty-search-input{
+  flex:1;border:none;outline:none;background:transparent;
+  font-size:16px;color:var(--text);font-family:var(--sans);padding:10px 0;
+}
+.empty-search-input::placeholder{color:var(--text3)}
+.empty-search-btn{
+  flex-shrink:0;padding:12px 24px;font-size:14px;font-weight:600;
+  background:var(--blue);color:#fff;border:none;border-radius:10px;
+  cursor:pointer;font-family:var(--sans);transition:background .15s;
+}
+.empty-search-btn:hover{background:var(--blue-dark)}
+.empty-examples{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:40px}
+.empty-ex-btn{
+  padding:7px 16px;border-radius:20px;font-size:13px;font-weight:500;
+  background:var(--bg2);color:var(--text2);border:1px solid var(--border);
+  cursor:pointer;font-family:var(--sans);transition:all .15s;
+}
+.empty-ex-btn:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
+.empty-features{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  width:100%;max-width:600px;
+}
+.empty-feature{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:16px;text-align:center;
+}
+.empty-feature-icon{font-size:22px;margin-bottom:8px}
+.empty-feature-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.empty-feature-desc{font-size:11px;color:var(--text3);line-height:1.5}
+@media(max-width:600px){
+  .empty-features{grid-template-columns:1fr}
+  .empty-state h2{font-size:22px}
+}
+
 /* ── Search bar on results page ── */
 .results-search{
   display:flex;gap:10px;align-items:center;
@@ -283,7 +345,44 @@ nav{
   </div>
 </nav>
 
-<div class="wrap">
+<!-- ── Empty State (shown when no query) ── -->
+<div class="empty-state" id="emptyState">
+  <div class="empty-state-icon">🧬</div>
+  <h2>What do you want to discover?</h2>
+  <p>Enter a gene, disease, or biological pathway — GeneSight will mine thousands of papers and surface novel hypotheses in under 90 seconds.</p>
+  <div class="empty-search-box">
+    <span class="empty-search-icon">🔬</span>
+    <input class="empty-search-input" id="emptySearchInput" type="text"
+      placeholder="e.g. BRCA1 breast cancer pathways…" autofocus/>
+    <button class="empty-search-btn" onclick="runEmptySearch()">Search →</button>
+  </div>
+  <div class="empty-examples">
+    <button class="empty-ex-btn" onclick="fillEmpty(this)">Alzheimer's gene networks</button>
+    <button class="empty-ex-btn" onclick="fillEmpty(this)">BRCA1 breast cancer</button>
+    <button class="empty-ex-btn" onclick="fillEmpty(this)">Parkinson's neuroinflammation</button>
+    <button class="empty-ex-btn" onclick="fillEmpty(this)">Type 2 diabetes immune genes</button>
+    <button class="empty-ex-btn" onclick="fillEmpty(this)">ALS motor neuron associations</button>
+  </div>
+  <div class="empty-features">
+    <div class="empty-feature">
+      <div class="empty-feature-icon">📚</div>
+      <div class="empty-feature-title">33M+ Papers</div>
+      <div class="empty-feature-desc">Searches PubMed in real time</div>
+    </div>
+    <div class="empty-feature">
+      <div class="empty-feature-icon">🕸</div>
+      <div class="empty-feature-title">Knowledge Graph</div>
+      <div class="empty-feature-desc">Maps gene–disease relationships</div>
+    </div>
+    <div class="empty-feature">
+      <div class="empty-feature-icon">💡</div>
+      <div class="empty-feature-title">AI Hypotheses</div>
+      <div class="empty-feature-desc">GPT-4o ranks novel discoveries</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="resultsWrap" style="display:none">
 
   <!-- ── Query Header ── -->
   <div class="query-header">
@@ -343,7 +442,7 @@ nav{
   </div>
 
   <div style="height:48px"></div>
-</div>
+</div><!-- /resultsWrap -->
 
 <footer class="site-footer">
   <div class="footer-text">GeneSight · AI-Powered Genomics Research · Built with GPT-4o, PubMed, Neo4j</div>
@@ -374,6 +473,16 @@ function runNewQuery(){
   if(!q) return
   window.location.href = 'results.html?q=' + encodeURIComponent(q)
 }
+function runEmptySearch(){
+  const q = qs('#emptySearchInput').value.trim()
+  if(!q) return
+  window.location.href = 'results.html?q=' + encodeURIComponent(q)
+}
+function fillEmpty(btn){
+  qs('#emptySearchInput').value = btn.textContent.trim()
+  qs('#emptySearchInput').focus()
+}
+qs('#emptySearchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runEmptySearch() })
 qs('#newQueryInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runNewQuery() })
 
 // ── Render Agents ──
@@ -393,12 +502,16 @@ async function main(){
   const query = params.get('q') || ''
 
   if(!query){
-    // No query — show search bar, hide pipeline
-    qs('#queryHeaderText').textContent = 'Enter a query to get started'
-    qs('#queryHeaderSub').textContent = 'Type a gene, disease or pathway above'
-    qs('#pipelineWrap').style.display = 'none'
+    // No query — show beautiful empty state
+    qs('#emptyState').classList.add('visible')
+    qs('#resultsWrap').style.display = 'none'
+    qs('#emptySearchInput').focus()
     return
   }
+
+  // Has query — show results wrap, hide empty state
+  qs('#emptyState').style.display = 'none'
+  qs('#resultsWrap').style.display = 'block'
 
   qs('#queryHeaderText').textContent = query
   qs('#queryHeaderSub').textContent = 'Pipeline running…'
