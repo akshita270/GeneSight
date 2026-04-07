@@ -56,12 +56,13 @@ class ValidatorAgent:
         provide genuine positive evidence for this hypothesis.
         Returns (list_of_supporting_pmids, count).
         """
-        # Build paper list for the prompt (title + first 400 chars of abstract)
+        # Build paper list for the prompt (title + first 250 chars of abstract)
+        # Keep abstracts short so 30 papers fit within context efficiently
         paper_entries = []
         for p in papers:
             pmid     = p.get("pmid", "")
             title    = p.get("title", "")
-            abstract = str(p.get("abstract", ""))[:400]
+            abstract = str(p.get("abstract", ""))[:250]
             paper_entries.append(f'PMID:{pmid} | {title} | {abstract}')
 
         papers_block = "\n".join(paper_entries)
@@ -98,7 +99,7 @@ PAPERS:
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
-            max_tokens=300,
+            max_tokens=600,
         )
 
         raw = resp.choices[0].message.content.strip()
