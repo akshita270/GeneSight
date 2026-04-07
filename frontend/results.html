@@ -317,6 +317,72 @@ nav{
 .site-footer{border-top:1px solid var(--border);padding:28px 0;margin-top:40px;text-align:center}
 .footer-text{font-size:12px;color:var(--text3)}
 
+/* ── Download button ── */
+.download-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;font-size:13px;font-weight:600;
+  background:var(--green-light);color:var(--green);
+  border:1px solid #bbf7d0;border-radius:8px;cursor:pointer;
+  font-family:var(--sans);transition:all .15s;
+}
+.download-btn:hover{background:#dcfce7;border-color:#86efac}
+
+/* ── History button & panel ── */
+.history-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;font-size:13px;font-weight:600;
+  background:var(--bg2);color:var(--text2);
+  border:1px solid var(--border);border-radius:8px;cursor:pointer;
+  font-family:var(--sans);transition:all .15s;position:relative;
+}
+.history-btn:hover{background:var(--bg3);color:var(--text)}
+.history-panel{
+  display:none;position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:12px;box-shadow:var(--shadow-lg);
+  min-width:320px;max-width:400px;z-index:200;overflow:hidden;
+}
+.history-panel.open{display:block}
+.history-panel-hdr{
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.history-panel-title{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.4px}
+.history-clear{font-size:11px;color:var(--red);cursor:pointer;background:none;border:none;font-family:var(--sans);font-weight:500}
+.history-clear:hover{text-decoration:underline}
+.history-list{max-height:280px;overflow-y:auto}
+.history-item{
+  display:flex;align-items:center;gap:10px;padding:11px 16px;
+  border-bottom:1px solid var(--border2);cursor:pointer;transition:background .12s;
+}
+.history-item:last-child{border-bottom:none}
+.history-item:hover{background:var(--bg2)}
+.history-item-icon{font-size:14px;flex-shrink:0}
+.history-item-text{flex:1;min-width:0}
+.history-item-q{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-item-meta{font-size:10px;color:var(--text3);margin-top:1px}
+.history-item-arrow{font-size:11px;color:var(--text3);flex-shrink:0}
+.history-empty{padding:24px 16px;text-align:center;font-size:13px;color:var(--text3)}
+.nav-actions{display:flex;align-items:center;gap:8px;margin-left:auto;position:relative}
+
+/* ── Print styles ── */
+@media print{
+  nav,.results-search,.pipeline-wrap,.empty-state,
+  .download-btn,.history-btn,.nav-actions,
+  .pmid-tooltip,.site-footer,#doneBanner{display:none!important}
+  body{font-size:12px;color:#000;background:#fff}
+  .wrap{max-width:100%;padding:0 16px}
+  .summary-card,.metric-row,.tabs-wrap{display:block!important}
+  .metric-row{display:grid!important;grid-template-columns:repeat(4,1fr)}
+  .tab-panel{display:block!important;border:none;padding:0}
+  .tab-bar{display:none}
+  .hyp-card,.paper-card{break-inside:avoid;border:1px solid #ddd;margin-bottom:10px}
+  .query-header{padding:16px 0 12px;border-bottom:1px solid #ddd}
+  .query-header-text{font-size:18px}
+  @page{margin:20mm}
+  h2{page-break-before:always}
+}
+
 @media(max-width:768px){
   .wrap{padding:0 16px}
   .nav-inner{padding:0 16px}
@@ -341,7 +407,20 @@ nav{
       <span>GeneSight</span>
     </div>
     <button class="nav-back" onclick="window.location.href='index.html'">← Back</button>
-    <button class="nav-new-btn" onclick="newQuery()">New Query →</button>
+    <div class="nav-actions">
+      <button class="download-btn" id="downloadBtn" onclick="downloadReport()" style="display:none">⬇ Download Report</button>
+      <div style="position:relative">
+        <button class="history-btn" onclick="toggleHistory()">🕐 History <span id="historyCount"></span></button>
+        <div class="history-panel" id="historyPanel">
+          <div class="history-panel-hdr">
+            <span class="history-panel-title">Recent Searches</span>
+            <button class="history-clear" onclick="clearHistory()">Clear all</button>
+          </div>
+          <div class="history-list" id="historyList"></div>
+        </div>
+      </div>
+      <button class="nav-new-btn" onclick="newQuery()">New Query →</button>
+    </div>
   </div>
 </nav>
 
@@ -501,6 +580,9 @@ async function main(){
   const params = new URLSearchParams(window.location.search)
   const query = params.get('q') || ''
 
+  // Always init history badge
+  renderHistoryPanel()
+
   if(!query){
     // No query — show beautiful empty state
     qs('#emptyState').classList.add('visible')
@@ -518,6 +600,10 @@ async function main(){
   qs('#newQueryInput').value = query
   document.title = `GeneSight · ${query}`
   renderAgents('')
+
+  // Save to history immediately when query starts
+  saveToHistory(query)
+  renderHistoryPanel()
 
   // Submit query
   let job_id
@@ -584,8 +670,13 @@ function showError(msg){
 }
 
 function renderResults(r){
+  _lastResult = r  // store for download
   const papers = r.papers||[], hyps = r.hypotheses||[]
   const nodes = (r.graph?.nodes)||[], edges = (r.graph?.edges)||[]
+
+  // Show download button now that we have results
+  const dlBtn = qs('#downloadBtn')
+  if(dlBtn) dlBtn.style.display = 'inline-flex'
 
   if(r.summary){ qs('#summaryText').textContent = r.summary; show(qs('#summaryCard')) }
 
@@ -708,6 +799,165 @@ function renderHypotheses(hyps, papers){
         <div class="tag-row">${gTags}${pTag}${eTags}${mTag}</div>
       </div>`
     }).join('')}`
+}
+
+// ── History (localStorage) ──────────────────────────────────────────────────
+const HISTORY_KEY = 'genesight_history'
+const MAX_HISTORY = 20
+
+function getHistory(){
+  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]') }
+  catch{ return [] }
+}
+function saveToHistory(query){
+  let h = getHistory().filter(i=>i.query.toLowerCase()!==query.toLowerCase())
+  h.unshift({ query, ts: Date.now() })
+  h = h.slice(0, MAX_HISTORY)
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h))
+  renderHistoryPanel()
+}
+function clearHistory(){
+  localStorage.removeItem(HISTORY_KEY)
+  renderHistoryPanel()
+}
+function renderHistoryPanel(){
+  const h = getHistory()
+  const badge = qs('#historyCount')
+  if(badge) badge.textContent = h.length ? `(${h.length})` : ''
+  const list = qs('#historyList')
+  if(!list) return
+  if(!h.length){
+    list.innerHTML = '<div class="history-empty">No searches yet</div>'
+    return
+  }
+  list.innerHTML = h.map(item=>{
+    const ago = timeAgo(item.ts)
+    return `<div class="history-item" onclick="goHistory('${encodeURIComponent(item.query)}')">
+      <span class="history-item-icon">🔬</span>
+      <div class="history-item-text">
+        <div class="history-item-q">${esc(item.query)}</div>
+        <div class="history-item-meta">${ago}</div>
+      </div>
+      <span class="history-item-arrow">→</span>
+    </div>`
+  }).join('')
+}
+function goHistory(encodedQ){
+  window.location.href = 'results.html?q=' + encodedQ
+}
+function toggleHistory(){
+  const panel = qs('#historyPanel')
+  panel.classList.toggle('open')
+  renderHistoryPanel()
+}
+function timeAgo(ts){
+  const s = Math.floor((Date.now()-ts)/1000)
+  if(s<60) return 'Just now'
+  if(s<3600) return `${Math.floor(s/60)}m ago`
+  if(s<86400) return `${Math.floor(s/3600)}h ago`
+  return `${Math.floor(s/86400)}d ago`
+}
+// Close history panel when clicking outside
+document.addEventListener('click', e=>{
+  const panel = qs('#historyPanel')
+  if(panel && !panel.closest('div').contains(e.target)) panel.classList.remove('open')
+})
+
+// ── Download Report ──────────────────────────────────────────────────────────
+let _lastResult = null  // store result for download
+
+function downloadReport(){
+  if(!_lastResult) return
+  const r = _lastResult
+  const query = qs('#queryHeaderText')?.textContent || 'GeneSight Report'
+  const date  = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
+
+  const hypsHtml = (r.hypotheses||[]).map((h,i)=>{
+    const conf   = Math.round(h.confidence||0)
+    const status = h.status||'Exploratory'
+    const color  = status==='Strong'?'#16a34a':status==='Moderate'?'#d97706':'#7c3aed'
+    const genes  = (h.genes||[]).join(', ')
+    return `
+    <div style="border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:12px;break-inside:avoid">
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:6px">#${i+1} of ${r.hypotheses.length}</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+        <span style="background:${color}22;color:${color};border:1px solid ${color}44;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">${status.toUpperCase()}</span>
+        <span style="background:#eff4ff;color:#2563eb;border:1px solid #dbeafe;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600">${conf}% confidence</span>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:6px">${esc(h.title||'')}</div>
+      <div style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:10px">${esc(h.statement||'')}</div>
+      <div style="font-size:11px;color:#64748b">
+        🧬 <b>Genes:</b> ${esc(genes)} &nbsp;|&nbsp;
+        🔬 <b>Pathway:</b> ${esc(h.pathway||'')} &nbsp;|&nbsp;
+        📄 <b>Supporting papers:</b> ${h.evidence_count||0}
+      </div>
+    </div>`
+  }).join('')
+
+  const papersHtml = (r.papers||[]).slice(0,15).map((p,i)=>{
+    const authors = (p.authors||[]).slice(0,3).join(', ')
+    const abs = String(p.abstract||'').substring(0,300)
+    return `
+    <div style="border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin-bottom:8px;break-inside:avoid">
+      <div style="font-size:10px;color:#2563eb;font-weight:600;margin-bottom:4px">${esc(p.journal||'')}</div>
+      <div style="font-size:13px;font-weight:600;color:#0f172a;margin-bottom:4px">${esc(p.title||'')}</div>
+      <div style="font-size:10px;color:#94a3b8;margin-bottom:8px;font-family:monospace">${esc(authors)} · ${p.year||''} · PMID ${esc(p.pmid||'')}</div>
+      <div style="font-size:12px;color:#475569;line-height:1.6">${esc(abs)}${abs.length>=300?'…':''}</div>
+    </div>`
+  }).join('')
+
+  const summaryHtml = r.summary
+    ? `<div style="background:#eff4ff;border:1px solid #dbeafe;border-left:3px solid #2563eb;border-radius:8px;padding:16px 20px;margin-bottom:24px">
+        <div style="font-size:10px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">AI Research Summary</div>
+        <div style="font-size:13px;color:#0f172a;line-height:1.75">${esc(r.summary)}</div>
+       </div>` : ''
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>GeneSight Report — ${esc(query)}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Helvetica Neue',Arial,sans-serif;color:#0f172a;background:#fff;padding:40px;max-width:900px;margin:0 auto}
+  h1{font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;margin-bottom:4px}
+  h2{font-size:16px;font-weight:700;color:#0f172a;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #e2e8f0}
+  .meta{font-size:12px;color:#94a3b8;margin-bottom:24px}
+  .metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .metric{background:#f8f9fb;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center}
+  .metric-num{font-size:24px;font-weight:700;color:#2563eb}
+  .metric-lbl{font-size:10px;color:#94a3b8;margin-top:2px;text-transform:uppercase;letter-spacing:0.3px}
+  @media print{@page{margin:15mm}body{padding:0}}
+</style>
+</head>
+<body>
+  <h1>🧬 GeneSight Research Report</h1>
+  <div class="meta">Query: <b>${esc(query)}</b> &nbsp;·&nbsp; Generated: ${date} &nbsp;·&nbsp; Powered by GPT-4o &amp; PubMed</div>
+  ${summaryHtml}
+  <div class="metric-row">
+    <div class="metric"><div class="metric-num">${(r.papers||[]).length}</div><div class="metric-lbl">Papers Analysed</div></div>
+    <div class="metric"><div class="metric-num">${(r.hypotheses||[]).length}</div><div class="metric-lbl">Hypotheses</div></div>
+    <div class="metric"><div class="metric-num">${(r.graph?.nodes||[]).length}</div><div class="metric-lbl">Graph Nodes</div></div>
+    <div class="metric"><div class="metric-num">${(r.graph?.edges||[]).length}</div><div class="metric-lbl">Relationships</div></div>
+  </div>
+  <h2>💡 Hypotheses (ranked by confidence)</h2>
+  ${hypsHtml}
+  <h2>📄 Literature (top 15 papers)</h2>
+  ${papersHtml}
+  <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;text-align:center">
+    Generated by GeneSight AI · genesight.vercel.app · ${date}
+  </div>
+</body>
+</html>`
+
+  // Open in new tab → user can Ctrl+P / Cmd+P to save as PDF
+  const blob = new Blob([html], {type:'text/html'})
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `genesight-${query.replace(/[^a-z0-9]/gi,'-').toLowerCase().slice(0,40)}-${Date.now()}.html`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 main()
