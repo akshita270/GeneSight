@@ -1,3 +1,4 @@
+from __future__ import annotations
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 import os
@@ -11,14 +12,16 @@ class Neo4jClient:
         password = os.getenv("NEO4J_PASSWORD")
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
 
-    def merge_node(self, label: str, name: str, props: dict = {}):
+    def merge_node(self, label: str, name: str, props: dict = None):
+        props = props or {}
         with self.driver.session() as s:
             s.run(
                 f"MERGE (n:{label} {{name: $name}}) SET n += $props",
                 name=name, props=props
             )
 
-    def merge_edge(self, src: str, tgt: str, relation: str, props: dict = {}):
+    def merge_edge(self, src: str, tgt: str, relation: str, props: dict = None):
+        props = props or {}
         with self.driver.session() as s:
             s.run(f"""
                 MATCH (a {{name: $src}}), (b {{name: $tgt}})

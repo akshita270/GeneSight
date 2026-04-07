@@ -4,24 +4,28 @@ pydantic>=2.7.0
 pydantic-settings>=2.2.1
 python-dotenv>=1.0.1
 
-# Agents & LLM
-langchain>=0.2.0,<0.3.0
-langchain-openai>=0.1.7,<0.2.0
-langchain-community>=0.2.0,<0.3.0
-langgraph>=0.1.1,<0.2.0
+# LLM / Agents
+
+langchain>=0.2.0,<0.4.0
+langchain-openai>=0.1.7,<0.3.0
+langchain-community>=0.2.0,<0.4.0
+langgraph>=0.1.1,<0.3.0
 openai>=1.30.0
 
-# PubMed / NCBI
+# Biomedical / PubMed
+
 biopython>=1.83
 
-# NLP / NER — pinned to pre-built wheel versions for Linux
+# NLP (Biomedical NER)
+
 spacy==3.7.4
 scispacy==0.5.4
-https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
 
 # Knowledge Graph
+
 neo4j>=5.20.0
 
 # Utilities
+
 httpx>=0.27.0
 tenacity>=8.3.0

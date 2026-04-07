@@ -1,3 +1,4 @@
+from __future__ import annotations
 import httpx
 import asyncio
 from tenacity import retry, stop_after_attempt, wait_exponential

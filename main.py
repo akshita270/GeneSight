@@ -1,7 +1,9 @@
+from __future__ import annotations
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uuid
+import os
 import traceback
 
 from models.schemas import QueryRequest, PipelineStatus, PipelineResult
@@ -24,12 +26,24 @@ async def lifespan(app: FastAPI):
     # Runs on shutdown
     print("Shutting down...")
 
-app = FastAPI(title="Genomics AI API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="GeneSight API", version="1.0.0", lifespan=lifespan)
+
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:8080",
+    "http://localhost:8001",
+    # Vercel deployments — set FRONTEND_ORIGIN env var to your Vercel URL
+    # e.g. https://genomics-ai.vercel.app
+    *([os.environ["FRONTEND_ORIGIN"]] if os.environ.get("FRONTEND_ORIGIN") else []),
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -93,6 +107,8 @@ async def run_pipeline(job_id: str, query: str):
 
 @app.post("/query", response_model=dict)
 async def start_query(req: QueryRequest, bg: BackgroundTasks):
+    if not req.query or not req.query.strip():
+        raise HTTPException(400, "Query must not be empty")
     job_id = str(uuid.uuid4())
     jobs[job_id] = {"status": "queued", "agent": None, "result": None, "error": None}
     bg.add_task(run_pipeline, job_id, req.query)

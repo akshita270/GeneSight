@@ -1,3 +1,4 @@
+from __future__ import annotations
 from models.schemas import Hypothesis
 
 NEGATIVE_CONTEXT = [
@@ -34,7 +35,7 @@ class ValidatorAgent:
             for p in papers:
                 text = (p.get("title", "") + " " + p.get("abstract", "")).lower()
                 score = self._score_paper(text, hyp_genes, disease_kws, hyp_pathway)
-                if score >= 1:   # lowered threshold from 2 to 1
+                if score >= 2:   # gene + disease/pathway must both match
                     count += 1
                     pmids.append(p["pmid"])
 
@@ -43,10 +44,10 @@ class ValidatorAgent:
             hyp.evidence_count = count
             hyp.supporting_pmids = pmids
 
-            if count >= 8:
+            if count >= 5:
                 hyp.status = "Strong"
                 hyp.confidence = min(hyp.confidence + 10, 99)
-            elif count >= 3:
+            elif count >= 2:
                 hyp.status = "Moderate"
                 hyp.confidence = min(hyp.confidence + 5, 95)
             else:
