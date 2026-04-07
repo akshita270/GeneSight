@@ -22,21 +22,28 @@ class ValidatorAgent:
             count = 0
             pmids = []
 
-            hyp_genes   = [g.lower() for g in hyp.genes]
+            all_genes  = [g.lower() for g in hyp.genes]
             hyp_pathway = hyp.pathway.lower()
+
+            # Split genes: primary (first) vs secondary (rest)
+            # A paper must mention at least one secondary gene to be truly specific
+            primary_gene   = all_genes[:1]   # e.g. ["brca1"]
+            secondary_genes = all_genes[1:]  # e.g. ["palb2", "dsb"]
 
             # Extract disease keywords from hypothesis statement
             disease_kws = self._extract_disease_keywords(hyp.statement)
 
             print(f"\nValidating: {hyp.title}")
-            print(f"  Genes: {hyp_genes}")
+            print(f"  Primary gene: {primary_gene}, Secondary: {secondary_genes}")
             print(f"  Disease keywords: {disease_kws}")
             print(f"  Pathway: {hyp_pathway}")
 
             for p in papers:
                 text = (p.get("title", "") + " " + p.get("abstract", "")).lower()
-                score = self._score_paper(text, hyp_genes, disease_kws, hyp_pathway)
-                if score >= 2:   # gene + disease/pathway must both match
+                score = self._score_paper(
+                    text, primary_gene, secondary_genes, disease_kws, hyp_pathway
+                )
+                if score >= 2:
                     count += 1
                     pmids.append(p["pmid"])
 
@@ -85,32 +92,49 @@ class ValidatorAgent:
 
         return list(set(found)) if found else []
 
-    def _score_paper(self, text: str, genes: list[str],
+    def _score_paper(self, text: str, primary_genes: list[str],
+                     secondary_genes: list[str],
                      disease_kws: list[str], pathway: str) -> int:
         """
-        Score a paper 0–4 based on relevance to the hypothesis.
+        Score a paper for relevance to a specific hypothesis.
 
-        +1  gene mentioned
-        +1  disease or pathway mentioned
-        +1  relationship keyword found
-        -1  negative context found
-        Threshold: score >= 1 to count as evidence
+        Rules:
+        - If hypothesis has secondary genes: paper MUST mention at least one
+          secondary gene (makes each hypothesis distinct)
+        - If hypothesis has only one gene: fall back to disease+pathway match
+        - +1 primary gene found
+        - +1 secondary gene found (or pathway if no secondary genes)
+        - +1 relationship keyword found
+        - -1 negative context penalty
+        Threshold: >= 2 to count as supporting evidence
         """
         score = 0
 
-        # Check 1 — gene must be present as a whole word
-        gene_found = any(re.search(r'\b' + re.escape(g) + r'\b', text) for g in genes)
-        if not gene_found:
+        # Check 1 — primary gene must appear as whole word
+        primary_found = any(
+            re.search(r'\b' + re.escape(g) + r'\b', text) for g in primary_genes
+        ) if primary_genes else True
+        if not primary_found:
             return 0
         score += 1
 
-        # Check 2 — disease keyword must match (pathway alone not enough)
-        disease_found = any(d in text for d in disease_kws) if disease_kws else False
-
-        if disease_found:
+        # Check 2 — secondary gene must appear (this is what differentiates hypotheses)
+        if secondary_genes:
+            secondary_found = any(
+                re.search(r'\b' + re.escape(g) + r'\b', text) for g in secondary_genes
+            )
+            if not secondary_found:
+                return 0   # hard requirement — paper must mention the specific secondary gene
             score += 1
+        else:
+            # No secondary gene — fall back to disease keyword match
+            disease_found = any(d in text for d in disease_kws) if disease_kws else False
+            pathway_words = [w for w in pathway.split() if len(w) > 5]
+            pathway_found = any(w in text for w in pathway_words)
+            if disease_found or pathway_found:
+                score += 1
 
-        # Check 3 — relationship keyword
+        # Check 3 — relationship keyword (bonus)
         if any(kw in text for kw in RELATIONSHIP_KEYWORDS):
             score += 1
 
