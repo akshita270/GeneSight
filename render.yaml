@@ -5,8 +5,7 @@ services:
     pythonVersion: "3.11.9"
     buildCommand: >
       pip install --upgrade pip &&
-      pip install -r requirements.txt &&
-      pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
+      pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: OPENAI_API_KEY

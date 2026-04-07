@@ -16,11 +16,6 @@ openai>=1.30.0
 
 biopython>=1.83
 
-# NLP (Biomedical NER)
-
-spacy==3.7.4
-scispacy==0.5.4
-
 # Knowledge Graph
 
 neo4j>=5.20.0

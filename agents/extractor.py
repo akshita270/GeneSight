@@ -1,6 +1,7 @@
 from __future__ import annotations
-import spacy
 import re
+
+# ── No spaCy — pure regex extraction to stay within Render free memory ──
 
 NON_GENE_CHEMICALS = {
     "iron", "calcium", "zinc", "copper", "magnesium", "sodium", "potassium",
@@ -10,105 +11,136 @@ NON_GENE_CHEMICALS = {
     "norepinephrine", "melatonin", "adrenaline", "histamine", "cytokine",
     "interleukin", "fibrin", "collagen", "albumin", "hemoglobin", "ferritin",
     "vitamin", "steroid", "hormone", "enzyme", "antibody", "antigen",
+    "mrna", "rrna", "trna", "cdna", "dna", "rna", "atp", "adp", "amp",
+    "nadh", "nadph", "camp", "cgmp", "ros", "no", "co2", "h2o2",
 }
 
-NON_DISEASE_TERMS = {
-    "inflammation", "neuroinflammation", "oxidative stress", "apoptosis",
-    "autophagy", "mitophagy", "aggregation", "phosphorylation", "methylation",
-    "dysfunction", "degeneration", "toxicity", "clearance",
-    "fibrillation", "oligomerization", "neurodegeneration", "excitotoxicity",
+KNOWN_DISEASES = [
+    "alzheimer's disease", "alzheimer disease", "parkinson's disease",
+    "parkinson disease", "huntington's disease", "huntington disease",
+    "amyotrophic lateral sclerosis", "multiple sclerosis", "epilepsy",
+    "schizophrenia", "breast cancer", "lung cancer", "colorectal cancer",
+    "colon cancer", "prostate cancer", "ovarian cancer", "pancreatic cancer",
+    "liver cancer", "gastric cancer", "bladder cancer", "melanoma",
+    "glioblastoma", "glioma", "leukemia", "lymphoma", "myeloma",
+    "diabetes", "type 2 diabetes", "type 1 diabetes", "obesity",
+    "rheumatoid arthritis", "osteoarthritis", "crohn's disease", "lupus",
+    "stroke", "heart failure", "hypertension", "atherosclerosis",
+    "cystic fibrosis", "autism", "autism spectrum disorder",
+    "depression", "bipolar disorder", "als", "dementia", "myopathy",
+    "cardiomyopathy", "neuropathy", "retinopathy", "nephropathy",
+    "inflammatory bowel disease", "ulcerative colitis", "psoriasis",
+    "asthma", "copd", "fibrosis", "cirrhosis", "hepatitis",
+    "covid-19", "sars-cov-2", "hiv", "aids", "tuberculosis", "malaria",
+]
+
+# Regex: gene symbols are 2-10 uppercase letters optionally followed by digits/dashes
+GENE_PATTERN = re.compile(r'\b([A-Z][A-Z0-9]{1,9}(?:-[A-Z0-9]+)?)\b')
+
+# Common gene suffixes/prefixes that help validate
+GENE_INDICATORS = re.compile(
+    r'\b(gene|mutation|variant|expression|protein|kinase|receptor|'
+    r'transcription factor|pathway|signaling|deficiency|knockout|'
+    r'overexpression|methylation|phosphorylation|deletion|amplification)\b',
+    re.IGNORECASE
+)
+
+NON_GENE_WORDS = {
+    "DNA", "RNA", "PCR", "MRI", "CT", "USA", "FDA", "WHO", "NIH", "ATP",
+    "ADP", "AMP", "NAD", "FAD", "GTP", "GDP", "CTP", "UTP", "CAMP",
+    "ROS", "NO", "CO", "NF", "IL", "TNF", "IFN", "TGF", "EGF", "FGF",
+    "IGF", "VEGF", "HIF", "NF", "AP", "SP", "YY", "MYC", "ERK", "JNK",
+    "STAT", "MAPK", "PI3K", "AKT", "JAK", "SRC", "ABL", "BCR",
+    "IC50", "EC50", "LD50", "IC", "EC", "OR", "HR", "RR", "CI",
+    "COVID", "SARS", "HIV", "AIDS", "TB", "COPD", "IBD",
 }
 
 DISEASE_STOPWORDS = {
     "microglia", "neurons", "cells", "pathway", "signaling", "expression",
     "activity", "function", "response", "mechanism", "study", "analysis",
-    "model", "patients", "subjects", "tissue", "brain", "cortex", "hippocampus",
+    "model", "patients", "subjects", "tissue", "brain", "cortex",
+}
+
+NON_DISEASE_TERMS = {
+    "inflammation", "neuroinflammation", "oxidative stress", "apoptosis",
+    "autophagy", "mitophagy", "aggregation", "phosphorylation", "methylation",
+    "dysfunction", "degeneration", "toxicity", "clearance", "fibrillation",
+    "oligomerization", "neurodegeneration", "excitotoxicity",
 }
 
 
-def clean_disease(text):
-    text = text.strip()
-    KNOWN_DISEASES = [
-        "alzheimer's disease", "parkinson's disease", "huntington's disease",
-        "amyotrophic lateral sclerosis", "multiple sclerosis", "epilepsy",
-        "schizophrenia", "breast cancer", "lung cancer", "colorectal cancer",
-        "ovarian cancer", "leukemia", "lymphoma", "diabetes", "type 2 diabetes",
-        "rheumatoid arthritis", "crohn's disease", "lupus", "stroke",
-        "heart failure", "hypertension", "cystic fibrosis", "autism",
-        "depression", "bipolar disorder", "als", "dementia",
-    ]
-    for d in KNOWN_DISEASES:
-        if d in text.lower():
-            return d.title().replace("'S", "'s").replace(" Als", " ALS")
-    words = text.split()
-    while words and words[-1].lower() in DISEASE_STOPWORDS:
-        words.pop()
-    while words and words[0].lower() in {"idiopathic", "sporadic", "familial", "late-onset", "early-onset"}:
-        words.pop(0)
-    cleaned = " ".join(words).strip()
-    return cleaned if cleaned else text
+def extract_genes(text: str) -> set[str]:
+    """Extract gene symbols using regex patterns."""
+    genes = set()
+    for match in GENE_PATTERN.finditer(text):
+        symbol = match.group(1)
+        # Skip if in known non-gene words
+        if symbol in NON_GENE_WORDS:
+            continue
+        # Skip if lowercase version is a chemical
+        if symbol.lower() in NON_GENE_CHEMICALS:
+            continue
+        # Must be 2-10 chars, start with letter, contain at least one more letter
+        if len(symbol) < 2 or len(symbol) > 12:
+            continue
+        # Prefer symbols with mixed letters+digits (e.g. BRCA1, TP53, LRRK2)
+        # or pure uppercase short names (e.g. APOE, CDK5)
+        if re.match(r'^[A-Z]{2,}[0-9]*(-[A-Z0-9]+)?$', symbol):
+            genes.add(symbol)
+    return genes
 
 
-def is_valid_gene(text):
-    text = text.strip()
-    if text.lower() in NON_GENE_CHEMICALS:
-        return False
-    if len(text.split()) > 1:
-        return False
-    if len(text) < 2 or len(text) > 12:
-        return False
-    if not re.search(r'[A-Za-z]', text):
-        return False
-    if not re.search(r'[A-Z]', text):
-        return False
-    if re.match(r'^\d+$', text):
-        return False
-    if not re.match(r'^[A-Za-z0-9\-]+$', text):
-        return False
-    return True
+def extract_diseases(text: str) -> set[str]:
+    """Extract disease names using known disease list + pattern matching."""
+    diseases = set()
+    text_lower = text.lower()
 
+    # Match known diseases first
+    for disease in KNOWN_DISEASES:
+        if disease in text_lower:
+            diseases.add(disease.title().replace("'S", "'s"))
 
-# Lazy-load model — only when first query runs (saves memory on startup)
-_NLP = None
+    # Also catch patterns like "X disease", "X disorder", "X syndrome", "X cancer"
+    pattern = re.compile(
+        r'\b([A-Z][a-z]+(?:\s+[A-Za-z]+){0,3})\s+'
+        r'(disease|disorder|syndrome|cancer|carcinoma|tumor|tumour|'
+        r'deficiency|insufficiency|failure|injury)\b',
+        re.IGNORECASE
+    )
+    for match in pattern.finditer(text):
+        full = match.group(0).strip()
+        if full.lower() not in NON_DISEASE_TERMS:
+            words = full.split()
+            # Filter trailing stopwords
+            while words and words[-1].lower() in DISEASE_STOPWORDS:
+                words.pop()
+            cleaned = " ".join(words).strip()
+            if cleaned and len(cleaned) > 4:
+                diseases.add(cleaned.title())
 
-def _get_nlp():
-    global _NLP
-    if _NLP is None:
-        print("Loading spaCy biomedical NER model...")
-        _NLP = spacy.load("en_ner_bc5cdr_md")
-        print("spaCy model loaded.")
-    return _NLP
+    return diseases
 
 
 class ExtractionAgent:
     def __init__(self):
-        pass  # don't load model here — load on first use
+        pass
 
     async def run(self, papers):
-        nlp = _get_nlp()
-        genes, diseases, proteins = set(), set(), set()
+        genes: set[str] = set()
+        diseases: set[str] = set()
 
         for p in papers:
             text = p.get("title", "") + " " + p.get("abstract", "")
-            doc = nlp(text)
+            genes.update(extract_genes(text))
+            diseases.update(extract_diseases(text))
 
-            for ent in doc.ents:
-                val = ent.text.strip()
+        # Remove genes that are actually disease names
+        disease_words = {w for d in diseases for w in d.upper().split()}
+        genes = {g for g in genes if g not in disease_words}
 
-                if ent.label_ == "CHEMICAL":
-                    if is_valid_gene(val):
-                        genes.add(val)
-
-                elif ent.label_ == "DISEASE":
-                    if val.lower() in NON_DISEASE_TERMS:
-                        continue
-                    if len(val.split()) < 2 and val.lower() not in {"als", "hiv", "ad", "pd"}:
-                        continue
-                    cleaned = clean_disease(val)
-                    if cleaned:
-                        diseases.add(cleaned)
-
-        genes = {g for g in genes if g not in diseases}
+        # Limit to top hits to keep downstream processing fast
+        genes = set(list(genes)[:30])
+        diseases = set(list(diseases)[:20])
 
         print(f"Extracted genes:    {genes}")
         print(f"Extracted diseases: {diseases}")
@@ -116,5 +148,5 @@ class ExtractionAgent:
         return {
             "genes":    list(genes),
             "diseases": list(diseases),
-            "proteins": list(proteins),
+            "proteins": [],
         }
