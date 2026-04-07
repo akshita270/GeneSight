@@ -15,15 +15,15 @@ from agents.knowledge_graph import KnowledgeGraphAgent
 from agents.hypothesis import HypothesisAgent
 from agents.validator import ValidatorAgent
 from agents.reporter import ReporterAgent
+from config import settings
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Runs on startup — preload heavy models
     print("Preloading agents...")
     ExtractionAgent()  # triggers spaCy model load
     print("All agents ready!")
     yield
-    # Runs on shutdown
     print("Shutting down...")
 
 app = FastAPI(title="GeneSight API", version="1.0.0", lifespan=lifespan)
@@ -34,8 +34,6 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
     "http://localhost:8080",
     "http://localhost:8001",
-    # Vercel deployments — set FRONTEND_ORIGIN env var to your Vercel URL
-    # e.g. https://genomics-ai.vercel.app
     *([os.environ["FRONTEND_ORIGIN"]] if os.environ.get("FRONTEND_ORIGIN") else []),
 ]
 
@@ -47,54 +45,47 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory job store (use Redis in production)
+# In-memory job store
 jobs: dict = {}
 
 
 async def run_pipeline(job_id: str, query: str):
     jobs[job_id]["status"] = "running"
     try:
-        # 1. Task Planner
         jobs[job_id]["agent"] = "Task Planner"
         planner = TaskPlannerAgent()
         subtasks = await planner.run(query)
 
-        # 2. Literature Retrieval
         jobs[job_id]["agent"] = "Literature Retrieval"
         lit = LiteratureAgent()
         papers = await lit.run(subtasks["search_terms"])
 
-        # 3. Information Extraction
         jobs[job_id]["agent"] = "Info Extraction"
         extractor = ExtractionAgent()
         entities = await extractor.run(papers)
 
-        # 4. Genomics DB
         jobs[job_id]["agent"] = "Genomics DB"
         db_agent = GenomicsDBAgent()
         db_data = await db_agent.run(entities["genes"])
 
-        # 5. Knowledge Graph
         jobs[job_id]["agent"] = "Knowledge Graph"
         kg = KnowledgeGraphAgent()
         graph = await kg.run(entities, db_data)
 
-        # 6. Hypothesis Generation
         jobs[job_id]["agent"] = "Hypothesis Generation"
         hyp = HypothesisAgent()
         hypotheses = await hyp.run(query, graph, papers)
 
-        # 7. Evidence Validation
         jobs[job_id]["agent"] = "Evidence Validation"
         validator = ValidatorAgent()
         validated = await validator.run(hypotheses, papers)
 
-        # 8. Report
         jobs[job_id]["agent"] = "Report Generation"
         reporter = ReporterAgent()
         report = await reporter.run(query, validated, graph, papers)
 
         jobs[job_id].update({"status": "done", "result": report})
+        print(f"✓ Pipeline complete for job {job_id}")
 
     except Exception as e:
         error_msg = traceback.format_exc()
@@ -135,7 +126,6 @@ async def get_result(job_id: str):
         raise HTTPException(404, "Job not found")
     if job["status"] != "done":
         raise HTTPException(400, f"Job not complete — status: {job['status']}")
-    # Serialize result to dict to avoid Pydantic validation errors
     result = job["result"]
     if hasattr(result, "model_dump"):
         return result.model_dump()

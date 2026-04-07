@@ -6,684 +6,688 @@
 <title>GeneSight · Hypothesis Engine</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 /* ── Reset & Base ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#07090f; --bg2:#0d1117; --bg3:#111827;
-  --border:#1e3a5f; --border2:#1e293b;
-  --cyan:#38bdf8; --cyan-dim:rgba(56,189,248,0.12);
-  --blue:#2563eb; --blue-dim:rgba(37,99,235,0.2);
-  --green:#34d399; --green-dim:rgba(16,185,129,0.12);
-  --red:#f87171; --red-dim:rgba(239,68,68,0.1);
-  --purple:#c084fc; --purple-dim:rgba(168,85,247,0.1);
-  --amber:#fbbf24; --amber-dim:rgba(245,158,11,0.12);
-  --pink:#f472b6; --pink-dim:rgba(244,114,182,0.1);
-  --teal:#2dd4bf; --teal-dim:rgba(45,212,191,0.1);
-  --text:#e2e8f0; --text2:#94a3b8; --text3:#64748b; --text4:#475569;
-  --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  --bg:#ffffff;
+  --bg2:#f8f9fb;
+  --bg3:#f1f4f8;
+  --border:#e2e8f0;
+  --border2:#edf0f5;
+  --blue:#2563eb;
+  --blue-light:#eff4ff;
+  --blue-mid:#dbeafe;
+  --blue-dark:#1d4ed8;
+  --text:#0f172a;
+  --text2:#475569;
+  --text3:#94a3b8;
+  --text4:#cbd5e1;
+  --green:#16a34a;
+  --green-light:#f0fdf4;
+  --amber:#d97706;
+  --amber-light:#fffbeb;
+  --red:#dc2626;
+  --red-light:#fef2f2;
+  --purple:#7c3aed;
+  --purple-light:#f5f3ff;
+  --sans:'Inter',sans-serif;
+  --radius:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 16px 40px rgba(0,0,0,0.1),0 4px 12px rgba(0,0,0,0.05);
 }
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
-a{color:var(--cyan);text-decoration:none}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+a{color:var(--blue);text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* ── Floating particle canvas ── */
-#particleCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.35}
-.wrap{position:relative;z-index:1}
-
 /* ── Layout ── */
-.wrap{max-width:1280px;margin:0 auto;padding:0 28px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;position:relative}
 
 /* ── Navbar ── */
-nav{background:rgba(13,17,23,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 1px 24px rgba(56,189,248,0.06)}
-.nav-inner{display:flex;align-items:center;gap:16px;padding:14px 28px;max-width:1280px;margin:0 auto}
-.nav-logo{font-size:20px;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.5px;font-family:var(--sans)}
-.nav-sub{font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;margin-top:1px}
-.nav-pill{margin-left:auto;background:linear-gradient(135deg,rgba(56,189,248,0.1),rgba(168,85,247,0.1));border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:4px 14px;font-size:10px;color:var(--cyan);font-family:var(--mono);animation:navpulse 3s ease-in-out infinite}
-@keyframes navpulse{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 12px rgba(56,189,248,0.2)}}
+nav{
+  background:rgba(255,255,255,0.95);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+}
+.nav-inner{display:flex;align-items:center;gap:16px;padding:0 28px;height:64px;max-width:1180px;margin:0 auto}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-size:18px;font-weight:700;color:var(--text);letter-spacing:-0.3px;
+}
+.nav-logo-icon{
+  font-size:24px;line-height:1;
+}
+.nav-badge{
+  font-size:11px;font-weight:500;color:var(--blue);
+  background:var(--blue-light);border:1px solid var(--blue-mid);
+  border-radius:20px;padding:3px 10px;letter-spacing:0.2px;
+}
+.nav-query-btn{
+  margin-left:auto;
+  padding:9px 20px;font-size:13px;font-weight:600;
+  background:var(--blue);color:#fff;
+  border:none;border-radius:8px;cursor:pointer;
+  font-family:var(--sans);transition:background .15s,box-shadow .15s;
+  box-shadow:0 1px 3px rgba(37,99,235,0.3);
+}
+.nav-query-btn:hover{background:var(--blue-dark);box-shadow:0 4px 12px rgba(37,99,235,0.35)}
 
 /* ── Hero ── */
 .hero{
-  background:linear-gradient(135deg,#060d1a 0%,#0a1628 25%,#0f1f3d 50%,#120d2e 75%,#0a1220 100%);
-  border:1px solid transparent;
-  background-clip:padding-box;
-  border-radius:22px;padding:52px 56px;
-  margin:28px 0;position:relative;overflow:hidden;
-  box-shadow:0 0 80px rgba(56,189,248,0.06),0 0 40px rgba(168,85,247,0.04),inset 0 1px 0 rgba(56,189,248,0.1);
+  display:grid;grid-template-columns:1fr 300px;
+  gap:48px;align-items:center;
+  padding:72px 0 64px;
 }
-.hero::after{
-  content:'';position:absolute;inset:0;border-radius:22px;
-  background:linear-gradient(135deg,rgba(56,189,248,0.08) 0%,transparent 40%,rgba(168,85,247,0.06) 70%,rgba(52,211,153,0.04) 100%);
-  pointer-events:none;
-}
-/* DNA glow orbs */
-.hero-orb1{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);top:-80px;right:120px;animation:orb 8s ease-in-out infinite alternate;pointer-events:none}
-.hero-orb2{position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.1) 0%,transparent 70%);bottom:-40px;right:320px;animation:orb 6s ease-in-out infinite alternate-reverse;pointer-events:none}
-.hero-orb3{position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,0.08) 0%,transparent 70%);top:60px;right:480px;animation:orb 10s ease-in-out infinite alternate;pointer-events:none}
-@keyframes orb{0%{transform:translateY(0) scale(1)}100%{transform:translateY(20px) scale(1.1)}}
-/* hero layout */
-.hero-body{display:grid;grid-template-columns:1fr 340px;gap:32px;align-items:center;position:relative;z-index:1}
-.hero-badge{
+.hero-eyebrow{
   display:inline-flex;align-items:center;gap:6px;
-  background:linear-gradient(135deg,rgba(56,189,248,0.12),rgba(168,85,247,0.08));
-  border:1px solid rgba(56,189,248,0.3);
-  border-radius:20px;padding:5px 16px;font-size:10px;font-weight:600;
-  color:var(--cyan);letter-spacing:0.5px;margin-bottom:20px;font-family:var(--mono);
+  font-size:12px;font-weight:600;color:var(--blue);
+  background:var(--blue-light);border:1px solid var(--blue-mid);
+  border-radius:20px;padding:4px 14px;margin-bottom:20px;letter-spacing:0.2px;
 }
-.hero h1{font-size:44px;font-weight:800;color:#f1f5f9;letter-spacing:-2px;line-height:1.08;margin-bottom:14px}
-.hero h1 .h1-cyan{background:linear-gradient(90deg,var(--cyan),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero h1 .h1-purple{background:linear-gradient(90deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-desc{font-size:15px;color:var(--text2);max-width:520px;line-height:1.75;margin-bottom:34px}
-.hero-stats{display:flex;border:1px solid rgba(56,189,248,0.15);border-radius:14px;overflow:hidden;width:fit-content;background:rgba(0,0,0,0.4);backdrop-filter:blur(8px)}
-.hs-item{padding:14px 22px;border-right:1px solid rgba(56,189,248,0.1);text-align:center;transition:background .2s}
+.hero h1{
+  font-size:48px;font-weight:800;color:var(--text);
+  letter-spacing:-2px;line-height:1.08;margin-bottom:18px;
+}
+.hero h1 .accent{color:var(--blue)}
+.hero-desc{
+  font-size:17px;color:var(--text2);max-width:500px;
+  line-height:1.7;margin-bottom:36px;font-weight:400;
+}
+.hero-stats{
+  display:flex;gap:0;border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;width:fit-content;
+  background:var(--bg);box-shadow:var(--shadow);
+}
+.hs-item{
+  padding:14px 22px;border-right:1px solid var(--border);
+  text-align:center;
+}
 .hs-item:last-child{border-right:none}
-.hs-item:hover{background:rgba(56,189,248,0.05)}
-.hs-num{font-size:18px;font-weight:700;font-family:var(--mono)}
-.hs-num.c1{color:var(--cyan)} .hs-num.c2{color:var(--purple)} .hs-num.c3{color:var(--green)} .hs-num.c4{color:var(--amber)} .hs-num.c5{color:var(--pink)}
-.hs-lbl{font-size:9px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px}
+.hs-num{font-size:18px;font-weight:700;color:var(--blue)}
+.hs-lbl{font-size:11px;color:var(--text3);margin-top:2px;letter-spacing:0.2px}
 
-/* ── DNA Canvas panel ── */
-.dna-panel{display:flex;align-items:center;justify-content:center;position:relative}
-#dnaCanvas{filter:drop-shadow(0 0 24px rgba(56,189,248,0.25)) drop-shadow(0 0 48px rgba(168,85,247,0.15))}
+/* ── DNA Panel ── */
+.dna-panel{
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+#dnaCanvas{display:block;max-width:100%}
 
-/* ── Explainer Section ── */
-.explainer{margin:0 0 28px}
-.explainer-top{
-  text-align:center;margin-bottom:28px;
-}
-.explainer-top .exp-eyebrow{
-  display:inline-block;font-size:10px;font-family:var(--mono);
-  letter-spacing:2px;text-transform:uppercase;color:var(--green);
-  background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);
-  border-radius:20px;padding:4px 16px;margin-bottom:14px;
-}
-.explainer-top h2{
-  font-size:30px;font-weight:800;letter-spacing:-0.8px;color:#f1f5f9;
-  margin-bottom:10px;line-height:1.2;
-}
-.explainer-top h2 span{
-  background:linear-gradient(90deg,var(--cyan),var(--green));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.explainer-top p{
-  font-size:15px;color:var(--text2);max-width:620px;margin:0 auto;line-height:1.8;
+/* ── Section divider ── */
+.section-divider{
+  border:none;border-top:1px solid var(--border);margin:0 0 60px;
 }
 
-/* 3-col problem/solution/result */
-.exp-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
-.exp-card{border-radius:16px;padding:26px 24px;position:relative;overflow:hidden}
-.exp-card-problem{background:linear-gradient(135deg,#1a0a0a,#200d0d);border:1px solid rgba(248,113,113,0.2)}
-.exp-card-solution{background:linear-gradient(135deg,#071a20,#09202e);border:1px solid rgba(56,189,248,0.2)}
-.exp-card-result{background:linear-gradient(135deg,#0d1a0a,#101f0d);border:1px solid rgba(52,211,153,0.2)}
-.exp-card-icon{font-size:40px;margin-bottom:16px;display:block}
+/* ── Section header ── */
+.section-hdr{text-align:center;margin-bottom:40px}
+.section-eyebrow{
+  display:inline-block;font-size:11px;font-weight:600;
+  color:var(--blue);letter-spacing:0.5px;text-transform:uppercase;
+  margin-bottom:12px;
+}
+.section-hdr h2{
+  font-size:32px;font-weight:800;color:var(--text);
+  letter-spacing:-1px;margin-bottom:10px;line-height:1.2;
+}
+.section-hdr p{
+  font-size:16px;color:var(--text2);max-width:560px;margin:0 auto;line-height:1.7;
+}
+
+/* ── Explainer 3-col ── */
+.exp-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:56px}
+.exp-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:16px;padding:28px 24px;
+  box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s;
+}
+.exp-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
 .exp-card-tag{
-  display:inline-flex;align-items:center;
-  font-size:13px;font-family:var(--mono);font-weight:800;
-  letter-spacing:1px;text-transform:uppercase;
-  margin-bottom:14px;padding:7px 18px;border-radius:24px;
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;margin-bottom:16px;
 }
-.exp-card-problem .exp-card-tag{
-  color:#fca5a5;background:rgba(239,68,68,0.2);
-  border:1.5px solid rgba(248,113,113,0.5);
-  box-shadow:0 0 16px rgba(239,68,68,0.25);
-}
-.exp-card-solution .exp-card-tag{
-  color:#7dd3fc;background:rgba(56,189,248,0.15);
-  border:1.5px solid rgba(56,189,248,0.5);
-  box-shadow:0 0 16px rgba(56,189,248,0.25);
-}
-.exp-card-result .exp-card-tag{
-  color:#6ee7b7;background:rgba(52,211,153,0.15);
-  border:1.5px solid rgba(52,211,153,0.5);
-  box-shadow:0 0 16px rgba(52,211,153,0.25);
-}
-.exp-card h3{font-size:19px;font-weight:700;color:#f1f5f9;margin-bottom:12px;line-height:1.3}
-.exp-card p{font-size:13.5px;color:var(--text2);line-height:1.85}
-.exp-card p strong{color:#f1f5f9;font-weight:600}
+.exp-card-problem .exp-card-tag{background:var(--red-light);color:var(--red);border:1px solid #fecaca}
+.exp-card-solution .exp-card-tag{background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid)}
+.exp-card-result  .exp-card-tag{background:var(--green-light);color:var(--green);border:1px solid #bbf7d0}
+.exp-card-icon{font-size:36px;margin-bottom:14px;display:block}
+.exp-card h3{font-size:17px;font-weight:700;color:var(--text);margin-bottom:10px;line-height:1.4}
+.exp-card p{font-size:14px;color:var(--text2);line-height:1.75}
+.exp-card p strong{color:var(--text);font-weight:600}
 
-/* ── Visual Gene Explainer ── */
+/* ── VGE Flowchart ── */
 .vge-wrap{
-  background:linear-gradient(135deg,#080e1c,#0c1425,#0a1020);
-  border:1px solid var(--border);border-radius:20px;overflow:hidden;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;margin-bottom:56px;
+  box-shadow:var(--shadow);
 }
 .vge-header{
-  text-align:center;padding:28px 24px 20px;
-  border-bottom:1px solid var(--border2);
+  text-align:center;padding:28px 24px 22px;
+  border-bottom:1px solid var(--border);background:var(--bg);
 }
-.vge-header h3{font-size:22px;font-weight:800;color:#f1f5f9;margin-bottom:6px}
+.vge-header h3{font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px}
 .vge-header p{font-size:13px;color:var(--text3)}
-
-/* flowchart */
 .vge-flow{
   display:flex;align-items:stretch;padding:28px 24px;gap:0;overflow-x:auto;
 }
 .vge-node{
-  flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;
-  text-align:center;position:relative;
+  flex:1;min-width:150px;display:flex;flex-direction:column;
+  align-items:center;text-align:center;position:relative;
 }
 .vge-node-box{
-  width:100%;border-radius:16px;padding:18px 12px 16px;border:1.5px solid;
-  position:relative;cursor:default;transition:transform .2s,box-shadow .2s;
+  width:100%;border-radius:12px;padding:18px 12px 16px;
+  border:1px solid var(--border);background:var(--bg);
+  transition:box-shadow .2s,transform .2s;cursor:default;
+  box-shadow:var(--shadow);
 }
-.vge-node-box:hover{transform:translateY(-4px)}
-.vge-node.n-dna .vge-node-box{background:linear-gradient(135deg,#0c1f3a,#0f2a4f);border-color:rgba(56,189,248,0.4);box-shadow:0 0 24px rgba(56,189,248,0.12)}
-.vge-node.n-dna .vge-node-box:hover{box-shadow:0 8px 32px rgba(56,189,248,0.3)}
-.vge-node.n-gene .vge-node-box{background:linear-gradient(135deg,#1a0a30,#200d40);border-color:rgba(168,85,247,0.4);box-shadow:0 0 24px rgba(168,85,247,0.12)}
-.vge-node.n-gene .vge-node-box:hover{box-shadow:0 8px 32px rgba(168,85,247,0.3)}
-.vge-node.n-mut .vge-node-box{background:linear-gradient(135deg,#1f0a0a,#2a0d0d);border-color:rgba(248,113,113,0.4);box-shadow:0 0 24px rgba(248,113,113,0.12)}
-.vge-node.n-mut .vge-node-box:hover{box-shadow:0 8px 32px rgba(248,113,113,0.3)}
-.vge-node.n-dis .vge-node-box{background:linear-gradient(135deg,#1a0f00,#251500);border-color:rgba(251,191,36,0.4);box-shadow:0 0 24px rgba(251,191,36,0.1)}
-.vge-node.n-dis .vge-node-box:hover{box-shadow:0 8px 32px rgba(251,191,36,0.25)}
-.vge-node.n-ai .vge-node-box{background:linear-gradient(135deg,#071a14,#0a2018);border-color:rgba(52,211,153,0.4);box-shadow:0 0 24px rgba(52,211,153,0.12)}
-.vge-node.n-ai .vge-node-box:hover{box-shadow:0 8px 32px rgba(52,211,153,0.3)}
-
-.vge-icon{font-size:34px;margin-bottom:10px;display:block}
-.vge-label{font-size:13px;font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
-.n-dna .vge-label{color:var(--cyan)}
-.n-gene .vge-label{color:var(--purple)}
-.n-mut .vge-label{color:var(--red)}
-.n-dis .vge-label{color:var(--amber)}
-.n-ai .vge-label{color:var(--green)}
-.vge-desc{font-size:11.5px;color:var(--text3);line-height:1.6}
-
-/* arrow between nodes */
+.vge-node-box:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.vge-node.n-dna .vge-node-box{border-color:#bfdbfe;background:#eff6ff}
+.vge-node.n-gene .vge-node-box{border-color:#ddd6fe;background:#f5f3ff}
+.vge-node.n-mut .vge-node-box{border-color:#fecaca;background:#fef2f2}
+.vge-node.n-dis .vge-node-box{border-color:#fde68a;background:#fffbeb}
+.vge-node.n-ai .vge-node-box{border-color:#bbf7d0;background:#f0fdf4}
+.vge-icon{font-size:30px;margin-bottom:10px;display:block}
+.vge-label{font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.n-dna .vge-label{color:#1d4ed8}
+.n-gene .vge-label{color:#6d28d9}
+.n-mut .vge-label{color:#b91c1c}
+.n-dis .vge-label{color:#b45309}
+.n-ai .vge-label{color:#15803d}
+.vge-desc{font-size:11.5px;color:var(--text2);line-height:1.6}
 .vge-arrow{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:0 6px;min-width:40px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:0 6px;min-width:36px;flex-shrink:0;
 }
-.vge-arrow-line{height:2px;width:100%;position:relative}
-.n-dna~.vge-arrow .vge-arrow-line{background:linear-gradient(90deg,rgba(56,189,248,0.5),rgba(168,85,247,0.5))}
-.n-gene~.vge-arrow .vge-arrow-line{background:linear-gradient(90deg,rgba(168,85,247,0.5),rgba(248,113,113,0.5))}
-.n-mut~.vge-arrow .vge-arrow-line{background:linear-gradient(90deg,rgba(248,113,113,0.5),rgba(251,191,36,0.5))}
-.n-dis~.vge-arrow .vge-arrow-line{background:linear-gradient(90deg,rgba(251,191,36,0.5),rgba(52,211,153,0.5))}
-.vge-arrow-head{font-size:16px;color:var(--text3);margin-top:-2px}
-.vge-arrow-lbl{font-size:9px;color:var(--text4);font-family:var(--mono);margin-top:4px;white-space:nowrap}
-
-/* real-world examples strip */
+.vge-arrow-line{height:1px;width:100%;background:var(--border2)}
+.vge-arrow-head{font-size:12px;color:var(--text3);margin-top:-2px}
+.vge-arrow-lbl{font-size:9px;color:var(--text3);margin-top:4px;white-space:nowrap}
 .vge-examples{
   display:grid;grid-template-columns:repeat(3,1fr);
-  border-top:1px solid var(--border2);
+  border-top:1px solid var(--border);background:var(--bg);
 }
-.vge-ex{padding:20px 22px;border-right:1px solid var(--border2);transition:background .2s}
+.vge-ex{padding:20px 22px;border-right:1px solid var(--border);transition:background .15s}
 .vge-ex:last-child{border-right:none}
-.vge-ex:hover{background:rgba(255,255,255,0.02)}
+.vge-ex:hover{background:var(--bg2)}
 .vge-ex-gene{
-  display:inline-block;font-family:var(--mono);font-size:13px;font-weight:700;
-  padding:3px 12px;border-radius:6px;margin-bottom:10px;
+  display:inline-block;font-size:12px;font-weight:700;
+  padding:3px 10px;border-radius:6px;margin-bottom:10px;
+  font-family:monospace;
 }
-.vge-ex:nth-child(1) .vge-ex-gene{background:rgba(56,189,248,0.12);color:var(--cyan);border:1px solid rgba(56,189,248,0.3)}
-.vge-ex:nth-child(2) .vge-ex-gene{background:rgba(244,114,182,0.12);color:var(--pink);border:1px solid rgba(244,114,182,0.3)}
-.vge-ex:nth-child(3) .vge-ex-gene{background:rgba(52,211,153,0.12);color:var(--green);border:1px solid rgba(52,211,153,0.3)}
-.vge-ex-arrow{font-size:18px;margin:0 6px;color:var(--text4)}
-.vge-ex-disease{font-size:13px;font-weight:600;color:#f1f5f9;margin-bottom:6px}
-.vge-ex-desc{font-size:11.5px;color:var(--text3);line-height:1.6}
+.vge-ex:nth-child(1) .vge-ex-gene{background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid)}
+.vge-ex:nth-child(2) .vge-ex-gene{background:var(--purple-light);color:var(--purple);border:1px solid #ddd6fe}
+.vge-ex:nth-child(3) .vge-ex-gene{background:var(--green-light);color:var(--green);border:1px solid #bbf7d0}
+.vge-ex-arrow{font-size:14px;margin:0 6px;color:var(--text3)}
+.vge-ex-disease{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.vge-ex-desc{font-size:12px;color:var(--text2);line-height:1.6}
 .vge-ex-row{display:flex;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:4px}
 
-/* ── How it works strip ── */
-.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:0 0 28px}
-.how-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
-.how-card:hover{transform:translateY(-3px)}
-.how-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
-.how-card:nth-child(1)::before{background:linear-gradient(90deg,var(--cyan),var(--blue));box-shadow:0 0 12px rgba(56,189,248,0.4)}
-.how-card:nth-child(1):hover{box-shadow:0 8px 32px rgba(56,189,248,0.15)}
-.how-card:nth-child(2)::before{background:linear-gradient(90deg,var(--green),var(--teal));box-shadow:0 0 12px rgba(52,211,153,0.4)}
-.how-card:nth-child(2):hover{box-shadow:0 8px 32px rgba(52,211,153,0.15)}
-.how-card:nth-child(3)::before{background:linear-gradient(90deg,var(--purple),var(--pink));box-shadow:0 0 12px rgba(192,132,252,0.4)}
-.how-card:nth-child(3):hover{box-shadow:0 8px 32px rgba(192,132,252,0.15)}
-.how-card:nth-child(4)::before{background:linear-gradient(90deg,var(--amber),#f97316);box-shadow:0 0 12px rgba(251,191,36,0.4)}
-.how-card:nth-child(4):hover{box-shadow:0 8px 32px rgba(251,191,36,0.15)}
-.how-icon{font-size:30px;margin-bottom:12px;display:block}
-.how-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
-.how-desc{font-size:11px;color:var(--text3);line-height:1.7}
-
-/* ── Query card ── */
-/* ── Nav Query Button ── */
-.nav-query-btn{
-  margin-left:12px;padding:9px 22px;font-size:13px;font-weight:700;
-  background:linear-gradient(135deg,#0ea5e9,#6366f1,#a855f7);
-  background-size:200% 200%;animation:btnGradient 4s ease infinite;
-  color:#fff;border:none;border-radius:50px;cursor:pointer;
-  box-shadow:0 2px 16px rgba(99,102,241,0.45);transition:all .25s;
-  font-family:var(--sans);letter-spacing:0.3px;
+/* ── How it works ── */
+.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:56px}
+.how-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:14px;padding:24px 20px;text-align:center;
+  box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s;
+  position:relative;overflow:hidden;
 }
-.nav-query-btn:hover{transform:translateY(-1px) scale(1.04);box-shadow:0 4px 24px rgba(99,102,241,0.6)}
+.how-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:var(--blue);opacity:0;transition:opacity .2s;
+}
+.how-card:hover{box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.how-card:hover::after{opacity:1}
+.how-num{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--blue-light);color:var(--blue);
+  font-size:12px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;margin:0 auto 14px;border:1px solid var(--blue-mid);
+}
+.how-icon{font-size:28px;margin-bottom:12px;display:block}
+.how-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+.how-desc{font-size:12px;color:var(--text2);line-height:1.65}
 
 /* ── CTA Banner ── */
 .cta-banner{
   display:flex;align-items:center;justify-content:space-between;gap:20px;
-  background:linear-gradient(135deg,#0a0f20,#0d1530,#0f1a40);
-  border:1px solid rgba(99,102,241,0.3);border-radius:20px;
-  padding:28px 36px;margin-bottom:28px;cursor:pointer;
-  position:relative;overflow:hidden;transition:all .3s;
-  box-shadow:0 0 40px rgba(99,102,241,0.08);
+  background:var(--blue);
+  border-radius:16px;padding:32px 36px;margin-bottom:48px;
+  cursor:pointer;transition:background .15s,box-shadow .15s;
+  box-shadow:0 4px 20px rgba(37,99,235,0.25);
 }
-.cta-banner::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(56,189,248,0.04),rgba(99,102,241,0.06),rgba(168,85,247,0.04));
-  pointer-events:none;
-}
-.cta-banner:hover{border-color:rgba(99,102,241,0.6);box-shadow:0 0 60px rgba(99,102,241,0.2);transform:translateY(-2px)}
-.cta-title{font-size:20px;font-weight:800;color:#f1f5f9;margin-bottom:6px;letter-spacing:-0.3px}
-.cta-sub{font-size:13px;color:var(--text3);line-height:1.6}
+.cta-banner:hover{background:var(--blue-dark);box-shadow:0 8px 32px rgba(37,99,235,0.35)}
+.cta-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-0.3px}
+.cta-sub{font-size:13px;color:rgba(255,255,255,0.75);line-height:1.6}
 .cta-btn{
-  flex-shrink:0;padding:14px 28px;font-size:14px;font-weight:700;
-  background:linear-gradient(135deg,#0ea5e9,#6366f1,#a855f7);
-  background-size:200%;animation:btnGradient 4s ease infinite;
-  color:#fff;border-radius:50px;white-space:nowrap;
-  box-shadow:0 4px 20px rgba(99,102,241,0.5);
-  font-family:var(--sans);
+  flex-shrink:0;padding:12px 24px;font-size:13px;font-weight:600;
+  background:#fff;color:var(--blue);border-radius:8px;
+  white-space:nowrap;font-family:var(--sans);
+  box-shadow:0 1px 3px rgba(0,0,0,0.15);transition:box-shadow .15s;
 }
+.cta-btn:hover{box-shadow:0 4px 12px rgba(0,0,0,0.2)}
 
 /* ── Modal ── */
 .modal-overlay{
   display:none;position:fixed;inset:0;z-index:1000;
-  background:rgba(4,6,12,0.85);backdrop-filter:blur(12px);
+  background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);
   align-items:center;justify-content:center;padding:20px;
 }
-.modal-overlay.open{display:flex;animation:modalFadeIn .25s ease}
+.modal-overlay.open{display:flex;animation:modalFadeIn .2s ease}
 @keyframes modalFadeIn{from{opacity:0}to{opacity:1}}
 .modal-box{
-  width:100%;max-width:680px;position:relative;
-  background:linear-gradient(135deg,#090e1c,#0c1326,#0e1838);
-  border:1px solid rgba(56,189,248,0.25);border-radius:24px;
-  padding:40px 44px;
-  box-shadow:0 0 0 1px rgba(56,189,248,0.08),0 32px 80px rgba(0,0,0,0.7),0 0 80px rgba(99,102,241,0.15);
-  animation:modalSlideUp .3s cubic-bezier(.16,1,.3,1);
+  width:100%;max-width:600px;position:relative;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:20px;padding:36px 40px;
+  box-shadow:var(--shadow-lg);
+  animation:modalSlideUp .25s cubic-bezier(.16,1,.3,1);
 }
-@keyframes modalSlideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-box::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:24px 24px 0 0;
-  background:linear-gradient(90deg,transparent,var(--cyan),var(--purple),var(--green),transparent);
-  animation:shimmer 4s ease-in-out infinite;
-}
+@keyframes modalSlideUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-close{
-  position:absolute;top:16px;right:18px;
-  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
-  color:var(--text3);width:32px;height:32px;border-radius:50%;
-  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;
+  position:absolute;top:16px;right:16px;
+  background:var(--bg2);border:1px solid var(--border);
+  color:var(--text3);width:30px;height:30px;border-radius:50%;
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
 }
-.modal-close:hover{background:rgba(248,113,113,0.15);color:var(--red);border-color:rgba(248,113,113,0.3)}
-.modal-header{margin-bottom:28px}
-.modal-eyebrow{font-size:10px;font-family:var(--mono);color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
-.modal-title{font-size:26px;font-weight:800;color:#f1f5f9;letter-spacing:-0.5px;margin-bottom:6px}
+.modal-close:hover{background:var(--bg3);color:var(--text)}
+.modal-header{margin-bottom:24px}
+.modal-eyebrow{font-size:11px;font-weight:600;color:var(--blue);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px}
+.modal-title{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:5px}
 .modal-sub{font-size:13px;color:var(--text3)}
 
-/* ── Query Card ── */
-.query-card{
-  background:linear-gradient(135deg,#0a1120,#0d1528,#0f1a35);
-  border:1px solid rgba(56,189,248,0.2);border-radius:20px;padding:36px 40px;margin-bottom:20px;
-  position:relative;overflow:hidden;
-  box-shadow:0 0 60px rgba(56,189,248,0.05),inset 0 1px 0 rgba(56,189,248,0.08);
-}
-.query-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--cyan),var(--purple),var(--green),transparent);
-  animation:shimmer 4s ease-in-out infinite;
-}
-@keyframes shimmer{0%,100%{opacity:0.5}50%{opacity:1}}
-
-.query-heading{
-  font-size:28px;font-weight:800;letter-spacing:-0.8px;
-  background:linear-gradient(90deg,#f1f5f9,var(--cyan));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  margin-bottom:6px;line-height:1.2;
-}
-.query-subheading{
-  font-size:13px;color:var(--text3);margin-bottom:24px;font-family:var(--mono);
-}
-.query-subheading span{color:var(--green)}
-
-.section-label{font-size:10px;font-weight:600;color:var(--cyan);text-transform:uppercase;letter-spacing:2px;font-family:var(--mono);margin-bottom:10px}
-
-/* input wrapper with glow border */
-.input-wrap{position:relative;margin-bottom:20px}
-.input-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:18px;pointer-events:none}
+/* ── Query Input ── */
+.input-wrap{position:relative;margin-bottom:16px}
+.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
 .query-input{
-  width:100%;background:rgba(0,0,0,0.4);
-  border:1.5px solid rgba(56,189,248,0.25);border-radius:14px;
-  color:var(--text);font-size:16px;padding:18px 18px 18px 50px;font-family:var(--sans);
-  outline:none;transition:all .3s;
-  backdrop-filter:blur(8px);
+  width:100%;background:var(--bg);
+  border:1.5px solid var(--border);border-radius:10px;
+  color:var(--text);font-size:15px;padding:14px 14px 14px 44px;
+  font-family:var(--sans);outline:none;transition:border-color .15s,box-shadow .15s;
 }
-.query-input:focus{
-  border-color:var(--cyan);
-  box-shadow:0 0 0 4px rgba(56,189,248,0.12),0 0 30px rgba(56,189,248,0.15);
-  background:rgba(56,189,248,0.04);
-}
-.query-input::placeholder{color:var(--text4);font-size:14px}
+.query-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.query-input::placeholder{color:var(--text3)}
 
-/* Example query pills — each a different color */
-.ex-label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
-.ex-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+/* Example pills */
+.ex-label{font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.3px;margin-bottom:10px}
+.ex-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
 .ex-btn{
-  border-radius:24px;padding:8px 18px;font-size:12px;font-weight:500;
-  cursor:pointer;transition:all .2s;font-family:var(--sans);border:1px solid;
+  border-radius:20px;padding:6px 14px;font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .15s;font-family:var(--sans);
+  background:var(--bg2);color:var(--text2);border:1px solid var(--border);
 }
-.ex-btn:nth-child(1){background:rgba(56,189,248,0.08);color:var(--cyan);border-color:rgba(56,189,248,0.25)}
-.ex-btn:nth-child(1):hover{background:rgba(56,189,248,0.18);box-shadow:0 0 16px rgba(56,189,248,0.25);transform:translateY(-1px)}
-.ex-btn:nth-child(2){background:rgba(244,114,182,0.08);color:var(--pink);border-color:rgba(244,114,182,0.25)}
-.ex-btn:nth-child(2):hover{background:rgba(244,114,182,0.18);box-shadow:0 0 16px rgba(244,114,182,0.25);transform:translateY(-1px)}
-.ex-btn:nth-child(3){background:rgba(52,211,153,0.08);color:var(--green);border-color:rgba(52,211,153,0.25)}
-.ex-btn:nth-child(3):hover{background:rgba(52,211,153,0.18);box-shadow:0 0 16px rgba(52,211,153,0.25);transform:translateY(-1px)}
-.ex-btn:nth-child(4){background:rgba(192,132,252,0.08);color:var(--purple);border-color:rgba(192,132,252,0.25)}
-.ex-btn:nth-child(4):hover{background:rgba(192,132,252,0.18);box-shadow:0 0 16px rgba(192,132,252,0.25);transform:translateY(-1px)}
-.ex-btn:nth-child(5){background:rgba(251,191,36,0.08);color:var(--amber);border-color:rgba(251,191,36,0.25)}
-.ex-btn:nth-child(5):hover{background:rgba(251,191,36,0.18);box-shadow:0 0 16px rgba(251,191,36,0.25);transform:translateY(-1px)}
+.ex-btn:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
 
-/* ── Run Button ── */
-.run-btn-wrap{display:flex;justify-content:center;margin-top:8px}
+/* Run Button */
+.run-btn-wrap{display:flex;justify-content:center}
 .run-btn{
-  position:relative;overflow:hidden;
-  padding:16px 56px;font-size:16px;font-weight:700;letter-spacing:0.5px;
-  color:#fff;border:none;border-radius:50px;cursor:pointer;
-  background:linear-gradient(135deg,#0ea5e9,#6366f1,#a855f7);
-  background-size:200% 200%;
-  box-shadow:0 4px 24px rgba(99,102,241,0.5),0 0 60px rgba(56,189,248,0.2);
-  transition:all .3s;font-family:var(--sans);
-  animation:btnGradient 4s ease infinite;
+  padding:13px 48px;font-size:15px;font-weight:600;
+  color:#fff;border:none;border-radius:10px;cursor:pointer;
+  background:var(--blue);font-family:var(--sans);
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);transition:all .15s;
 }
-@keyframes btnGradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-.run-btn::before{
-  content:'';position:absolute;inset:-2px;border-radius:52px;
-  background:linear-gradient(135deg,#38bdf8,#6366f1,#a855f7,#34d399);
-  z-index:-1;opacity:0;transition:opacity .3s;filter:blur(8px);
-}
-.run-btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 40px rgba(99,102,241,0.6),0 0 80px rgba(56,189,248,0.25)}
-.run-btn:hover::before{opacity:0.7}
-.run-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;animation:none}
+.run-btn:hover{background:var(--blue-dark);box-shadow:0 4px 16px rgba(37,99,235,0.4);transform:translateY(-1px)}
+.run-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
 
 /* ── Pipeline tracker ── */
-.pipeline-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin-bottom:20px;display:none}
+.pipeline-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px 28px;margin-bottom:20px;
+  display:none;box-shadow:var(--shadow);
+}
 .pipeline-card.visible{display:block}
-.progress-track{width:100%;height:5px;background:var(--border2);border-radius:5px;margin:12px 0 16px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--blue));border-radius:5px;transition:width .4s ease}
-.status-txt{font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:14px}
-.status-txt span{color:#60a5fa}
+.pl-header{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+.progress-track{width:100%;height:4px;background:var(--bg3);border-radius:4px;margin-bottom:14px;overflow:hidden}
+.progress-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .4s ease}
+.status-txt{font-size:13px;color:var(--text2);margin-bottom:16px}
+.status-txt .s-active{color:var(--blue);font-weight:500}
 .agent-grid{display:flex;flex-wrap:wrap;gap:8px}
 .agent-chip{
   display:inline-flex;align-items:center;gap:6px;
-  padding:6px 14px;border-radius:24px;font-size:12px;font-weight:500;border:1px solid;
-  transition:all .3s;font-family:var(--sans);
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;
+  border:1px solid;transition:all .2s;
 }
-.chip-done{background:var(--green-dim);color:var(--green);border-color:rgba(52,211,153,0.3)}
-.chip-active{background:var(--blue-dim);color:#60a5fa;border-color:rgba(96,165,250,0.5);box-shadow:0 0 14px rgba(96,165,250,0.2)}
-.chip-pending{background:rgba(255,255,255,0.02);color:var(--text4);border-color:var(--border2)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.chip-done{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.chip-active{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
+.chip-pending{background:var(--bg2);color:var(--text3);border-color:var(--border)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .chip-active{animation:pulse 1.4s ease-in-out infinite}
 
 /* ── Summary ── */
 .summary-card{
-  background:linear-gradient(135deg,#071a2e,#0a1f3d);border:1px solid #1e4a8a;
-  border-radius:16px;padding:24px 28px;margin-bottom:24px;position:relative;display:none;
+  background:var(--blue-light);border:1px solid var(--blue-mid);
+  border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;
+  display:none;border-left:3px solid var(--blue);
 }
 .summary-card.visible{display:block}
-.summary-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--cyan),var(--blue));border-radius:3px 0 0 3px}
-.summary-lbl{font-size:10px;font-weight:600;color:var(--cyan);text-transform:uppercase;letter-spacing:2px;font-family:var(--mono);margin-bottom:10px}
-.summary-text{font-size:14px;color:#cbd5e1;line-height:1.8}
+.summary-lbl{font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.summary-text{font-size:14px;color:var(--text);line-height:1.75}
 
 /* ── Metrics ── */
-.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;display:none}
+.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;display:none}
 .metric-row.visible{display:grid}
-.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center;position:relative;overflow:hidden;transition:transform .2s}
-.metric-card:hover{transform:translateY(-2px)}
-.metric-card::after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px}
-.metric-card:nth-child(1)::after{background:linear-gradient(90deg,var(--cyan),var(--blue));box-shadow:0 0 10px rgba(56,189,248,0.5)}
-.metric-card:nth-child(2)::after{background:linear-gradient(90deg,var(--amber),#f97316);box-shadow:0 0 10px rgba(251,191,36,0.5)}
-.metric-card:nth-child(3)::after{background:linear-gradient(90deg,var(--purple),var(--pink));box-shadow:0 0 10px rgba(192,132,252,0.5)}
-.metric-card:nth-child(4)::after{background:linear-gradient(90deg,var(--green),var(--teal));box-shadow:0 0 10px rgba(52,211,153,0.5)}
-.metric-icon{font-size:24px;margin-bottom:8px}
-.metric-num{font-size:34px;font-weight:700;font-family:var(--mono);line-height:1}
-.metric-card:nth-child(1) .metric-num{color:var(--cyan)}
-.metric-card:nth-child(2) .metric-num{color:var(--amber)}
-.metric-card:nth-child(3) .metric-num{color:var(--purple)}
-.metric-card:nth-child(4) .metric-num{color:var(--green)}
-.metric-lbl{font-size:11px;color:var(--text3);margin-top:6px;text-transform:uppercase;letter-spacing:0.5px}
+.metric-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;text-align:center;
+  box-shadow:var(--shadow);transition:box-shadow .15s;
+}
+.metric-card:hover{box-shadow:var(--shadow-md)}
+.metric-icon{font-size:22px;margin-bottom:6px}
+.metric-num{font-size:30px;font-weight:700;color:var(--blue);line-height:1}
+.metric-lbl{font-size:11px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:0.3px}
 
 /* ── Tabs ── */
 .tabs-wrap{display:none}
 .tabs-wrap.visible{display:block}
-.tab-bar{display:flex;border:1px solid var(--border);border-bottom:none;border-radius:12px 12px 0 0;overflow:hidden;background:var(--bg2)}
-.tab-btn{flex:1;padding:12px 20px;background:transparent;border:none;color:var(--text3);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--sans);border-bottom:2px solid transparent;transition:all .2s}
-.tab-btn.active{background:var(--bg3);color:var(--cyan);border-bottom-color:var(--cyan)}
-.tab-panel{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:24px;display:none}
+.tab-bar{
+  display:flex;border:1px solid var(--border);border-bottom:none;
+  border-radius:var(--radius) var(--radius) 0 0;overflow:hidden;
+  background:var(--bg2);
+}
+.tab-btn{
+  flex:1;padding:12px 16px;background:transparent;border:none;
+  color:var(--text3);font-size:13px;font-weight:500;cursor:pointer;
+  font-family:var(--sans);border-bottom:2px solid transparent;transition:all .15s;
+}
+.tab-btn:hover{color:var(--text2);background:var(--bg3)}
+.tab-btn.active{background:var(--bg);color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.tab-panel{
+  background:var(--bg);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 var(--radius) var(--radius);padding:24px;display:none;
+}
 .tab-panel.active{display:block}
 
 /* ── Paper cards ── */
-.paper-card{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:20px 22px;margin-bottom:12px;transition:all .2s;position:relative;overflow:hidden}
-.paper-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--cyan),var(--blue));opacity:0;transition:opacity .2s}
-.paper-card:hover{border-color:rgba(56,189,248,0.3);box-shadow:0 4px 20px rgba(56,189,248,0.08)}
-.paper-card:hover::before{opacity:1}
-.paper-journal{display:inline-block;background:var(--cyan-dim);border:1px solid rgba(56,189,248,0.2);border-radius:6px;padding:2px 10px;font-size:10px;font-weight:600;color:var(--cyan);letter-spacing:0.3px;margin-bottom:8px;font-family:var(--mono)}
-.paper-title{font-size:14px;font-weight:600;color:#f1f5f9;line-height:1.5;margin-bottom:6px}
-.paper-meta{font-size:11px;color:var(--text4);margin-bottom:10px;font-family:var(--mono)}
+.paper-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 20px;margin-bottom:10px;
+  transition:box-shadow .15s,border-color .15s;
+}
+.paper-card:hover{border-color:#bfdbfe;box-shadow:var(--shadow-md)}
+.paper-journal{
+  display:inline-block;background:var(--blue-light);
+  border:1px solid var(--blue-mid);border-radius:5px;
+  padding:2px 9px;font-size:10px;font-weight:600;color:var(--blue);
+  letter-spacing:0.2px;margin-bottom:8px;
+}
+.paper-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:6px}
+.paper-meta{font-size:11px;color:var(--text3);margin-bottom:10px;font-family:monospace}
 .paper-abs{font-size:13px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border2);padding-top:10px}
 .rel-row{display:flex;align-items:center;gap:10px;margin-top:12px}
-.rel-label{font-size:10px;color:var(--text4);font-family:var(--mono);white-space:nowrap}
-.rel-track{flex:1;height:4px;background:var(--border2);border-radius:4px;overflow:hidden}
-.rel-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--blue));border-radius:4px}
+.rel-label{font-size:10px;color:var(--text3);white-space:nowrap;font-weight:500}
+.rel-track{flex:1;height:3px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.rel-fill{height:100%;background:var(--blue);border-radius:3px}
 
 /* ── Knowledge graph ── */
-.kg-grid{display:grid;grid-template-columns:220px 1fr;gap:16px}
-.kg-stat{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
-.kg-stat-icon{font-size:20px}
-.kg-stat-val{font-size:22px;font-weight:700;font-family:var(--mono)}
+.kg-grid{display:grid;grid-template-columns:200px 1fr;gap:16px}
+.kg-stat{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;margin-bottom:10px;
+  display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);
+}
+.kg-stat-icon{font-size:18px}
+.kg-stat-val{font-size:20px;font-weight:700;color:var(--blue)}
 .kg-stat-lbl{font-size:11px;color:var(--text3)}
-.node-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;margin:3px;border:1px solid}
-.nc-gene{background:var(--green-dim);color:var(--green);border-color:rgba(52,211,153,0.25)}
-.nc-disease{background:var(--red-dim);color:var(--red);border-color:rgba(248,113,113,0.25)}
-.nc-protein{background:var(--purple-dim);color:var(--purple);border-color:rgba(192,132,252,0.25)}
-.edge-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bg2);font-size:13px}
+.node-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 11px;border-radius:20px;font-size:11px;font-weight:500;margin:3px;border:1px solid;
+}
+.nc-gene{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.nc-disease{background:var(--red-light);color:var(--red);border-color:#fecaca}
+.nc-protein{background:var(--purple-light);color:var(--purple);border-color:#ddd6fe}
+.edge-row{
+  display:flex;align-items:center;gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--border2);font-size:13px;
+}
 .edge-row:last-child{border-bottom:none}
-.edge-arrow{color:var(--cyan);font-size:11px;font-family:var(--mono);white-space:nowrap}
-.edge-conf{margin-left:auto;font-size:10px;color:#334155;font-family:var(--mono)}
+.edge-arrow{color:var(--text3);font-size:11px;white-space:nowrap;font-family:monospace}
+.edge-conf{margin-left:auto;font-size:10px;color:var(--text3);font-family:monospace}
 
 /* ── Hypothesis cards ── */
-.hyp-card{background:linear-gradient(135deg,#0d1117,#111827);border:1px solid var(--border2);border-radius:16px;padding:24px 26px;margin-bottom:14px;position:relative;transition:all .25s;overflow:hidden}
-.hyp-card::after{content:'';position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,rgba(56,189,248,0.03),rgba(168,85,247,0.03));pointer-events:none}
-.hyp-card:hover{border-color:rgba(168,85,247,0.3);box-shadow:0 8px 32px rgba(168,85,247,0.1),0 0 0 1px rgba(168,85,247,0.1);transform:translateY(-2px)}
-.hyp-rank{position:absolute;top:20px;right:22px;font-size:11px;color:#334155;font-family:var(--mono)}
-.hyp-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.badge{display:inline-block;padding:4px 13px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border:1px solid}
-.b-str{background:var(--green-dim);color:var(--green);border-color:rgba(52,211,153,0.3)}
-.b-mod{background:var(--amber-dim);color:var(--amber);border-color:rgba(251,191,36,0.3)}
-.b-exp{background:var(--purple-dim);color:var(--purple);border-color:rgba(192,132,252,0.3)}
-.conf-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--mono);border:1px solid}
-.cp-high{background:var(--green-dim);color:var(--green);border-color:rgba(52,211,153,0.2)}
-.cp-mid{background:var(--amber-dim);color:var(--amber);border-color:rgba(251,191,36,0.2)}
-.cp-low{background:var(--red-dim);color:var(--red);border-color:rgba(248,113,113,0.2)}
-.hyp-title{font-size:16px;font-weight:600;color:#f1f5f9;margin-bottom:10px;line-height:1.4}
-.hyp-stmt{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:16px}
-.conf-track{height:5px;background:var(--border2);border-radius:5px;margin-bottom:16px;overflow:hidden}
-.conf-fill{height:100%;border-radius:5px;transition:width .6s ease}
+.hyp-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:14px;padding:22px 24px;margin-bottom:12px;
+  transition:box-shadow .15s,border-color .15s;
+}
+.hyp-card:hover{border-color:#bfdbfe;box-shadow:var(--shadow-md)}
+.hyp-rank{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:10px}
+.hyp-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.badge{
+  display:inline-block;padding:3px 11px;border-radius:20px;
+  font-size:11px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;border:1px solid;
+}
+.b-str{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.b-mod{background:var(--amber-light);color:var(--amber);border-color:#fde68a}
+.b-exp{background:var(--purple-light);color:var(--purple);border-color:#ddd6fe}
+.conf-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;
+}
+.cp-high{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.cp-mid{background:var(--amber-light);color:var(--amber);border-color:#fde68a}
+.cp-low{background:var(--red-light);color:var(--red);border-color:#fecaca}
+.hyp-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.4}
+.hyp-stmt{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:14px}
+.conf-track{height:4px;background:var(--bg3);border-radius:4px;margin-bottom:14px;overflow:hidden}
+.conf-fill{height:100%;border-radius:4px;transition:width .6s ease}
 .tag-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid}
-.tag-g{background:rgba(16,185,129,0.08);color:#6ee7b7;border-color:rgba(52,211,153,0.2)}
-.tag-p{background:rgba(168,85,247,0.08);color:#d8b4fe;border-color:rgba(192,132,252,0.2)}
-.tag-e{background:rgba(56,189,248,0.08);color:#7dd3fc;border-color:rgba(56,189,248,0.2)}
+.tag{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 11px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid;
+}
+.tag-g{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.tag-p{background:var(--purple-light);color:var(--purple);border-color:#ddd6fe}
+.tag-e{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
 
 /* ── PMID Tooltip ── */
 .pmid-tag{position:relative;cursor:pointer}
 .pmid-tag:hover .pmid-tooltip{display:block}
 .pmid-tooltip{
   display:none;position:absolute;bottom:calc(100% + 8px);left:0;
-  background:#0d1117;border:1px solid var(--border);border-radius:10px;
-  padding:10px;min-width:320px;max-width:420px;z-index:999;
-  box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:10px;min-width:320px;max-width:400px;z-index:999;
+  box-shadow:var(--shadow-lg);
 }
 .pmid-tooltip::after{
   content:'';position:absolute;top:100%;left:16px;
   border:6px solid transparent;border-top-color:var(--border);
 }
 .pmid-tooltip-title{
-  font-size:10px;font-family:var(--mono);color:var(--cyan);
-  text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;
+  font-size:10px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;
 }
-.pmid-tooltip-item{
-  padding:7px 0;border-bottom:1px solid var(--border2);
-}
+.pmid-tooltip-item{padding:7px 0;border-bottom:1px solid var(--border2)}
 .pmid-tooltip-item:last-child{border-bottom:none}
-.pmid-tooltip-item a{
-  color:#e2e8f0;font-size:12px;line-height:1.5;text-decoration:none;
-  display:block;
-}
-.pmid-tooltip-item a:hover{color:var(--cyan)}
-.pmid-tooltip-item .pmid-meta{
-  font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;
-}
-.dna-div{text-align:center;font-family:var(--mono);font-size:10px;color:var(--border2);letter-spacing:4px;margin:6px 0}
+.pmid-tooltip-item a{color:var(--text);font-size:12px;line-height:1.5;text-decoration:none;display:block}
+.pmid-tooltip-item a:hover{color:var(--blue)}
+.pmid-tooltip-item .pmid-meta{font-size:10px;color:var(--text3);font-family:monospace;margin-top:2px}
 
 /* ── Error ── */
-.error-box{background:rgba(239,68,68,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:10px;padding:14px 18px;color:#f87171;font-size:13px;margin:12px 0;display:none}
+.error-box{
+  background:var(--red-light);border:1px solid #fecaca;
+  border-radius:8px;padding:12px 16px;color:var(--red);
+  font-size:13px;margin:12px 0;display:none;
+}
 .error-box.visible{display:block}
 
-/* ── Responsive ── */
-/* ── Tablet (≤1000px) ── */
-@media(max-width:1000px){
-  .hero-body{grid-template-columns:1fr}
-  .dna-panel{display:none}
-  .hero{padding:40px 36px}
-  .hero h1{font-size:36px}
-  .explainer-top h2{font-size:26px}
-  .vge-flow{overflow-x:auto;padding:20px 16px}
-  .vge-node{min-width:130px}
+/* ── Footer ── */
+.site-footer{
+  border-top:1px solid var(--border);padding:28px 0;margin-top:40px;
+  text-align:center;
+}
+.footer-text{font-size:12px;color:var(--text3)}
+
+/* ── Utility ── */
+.section-lbl{
+  font-size:11px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;
 }
 
-/* ── Large Mobile / Small Tablet (≤768px) ── */
+/* ── Trusted by / Built-with logos ── */
+.logos-strip{
+  padding:28px 0 36px;text-align:center;
+}
+.logos-label{
+  font-size:11px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.8px;margin-bottom:20px;
+}
+.logos-row{
+  display:flex;align-items:center;justify-content:center;
+  flex-wrap:wrap;gap:8px 0;
+}
+.logo-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 22px;border:1px solid var(--border);border-radius:10px;
+  margin:6px 8px;background:var(--bg);box-shadow:var(--shadow);
+  transition:box-shadow .15s,border-color .15s;
+}
+.logo-chip:hover{box-shadow:var(--shadow-md);border-color:var(--blue-mid)}
+.logo-chip-icon{font-size:20px;line-height:1}
+.logo-chip-name{font-size:13px;font-weight:600;color:var(--text2)}
+.logo-chip-type{font-size:10px;color:var(--text3);margin-top:1px}
+
+/* ── Stats bar ── */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  margin-bottom:56px;
+}
+.stats-bar-item{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:14px;padding:24px 20px;text-align:center;
+  box-shadow:var(--shadow);transition:box-shadow .15s,transform .15s;
+}
+.stats-bar-item:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.stats-bar-num{font-size:30px;font-weight:800;color:var(--blue);letter-spacing:-1px;line-height:1}
+.stats-bar-lbl{font-size:12px;color:var(--text3);margin-top:6px;line-height:1.4}
+
+/* ── Demo preview ── */
+.demo-wrap{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;margin-bottom:56px;
+  box-shadow:var(--shadow);
+}
+.demo-header{
+  background:var(--bg);border-bottom:1px solid var(--border);
+  padding:20px 24px;display:flex;align-items:center;justify-content:space-between;
+}
+.demo-header-left h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px}
+.demo-header-left p{font-size:12px;color:var(--text3)}
+.demo-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;color:var(--green);
+  background:var(--green-light);border:1px solid #bbf7d0;
+  border-radius:20px;padding:4px 12px;
+}
+.demo-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block}
+.demo-body{padding:24px}
+.demo-query-bar{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;
+}
+.demo-query-icon{font-size:16px;color:var(--text3)}
+.demo-query-text{font-size:14px;color:var(--text2);font-style:italic}
+.demo-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.demo-metric{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;padding:14px 12px;text-align:center;
+}
+.demo-metric-num{font-size:22px;font-weight:700;color:var(--blue)}
+.demo-metric-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;margin-top:3px}
+.demo-hyp-card{
+  background:var(--bg);border:1px solid #bfdbfe;
+  border-radius:12px;padding:18px 20px;margin-bottom:10px;
+}
+.demo-hyp-card:last-child{margin-bottom:0}
+.demo-hyp-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.demo-hyp-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.4}
+.demo-hyp-stmt{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px}
+.demo-conf-track{height:4px;background:var(--bg3);border-radius:4px;margin-bottom:10px;overflow:hidden}
+.demo-conf-fill{height:100%;border-radius:4px;background:var(--green)}
+.demo-tags{display:flex;flex-wrap:wrap;gap:6px}
+.demo-blur-overlay{
+  text-align:center;padding:20px 24px 24px;
+  border-top:1px solid var(--border);background:var(--bg);
+}
+.demo-blur-overlay p{font-size:13px;color:var(--text3);margin-bottom:12px}
+
+/* ── FAQ ── */
+.faq-list{margin-bottom:56px}
+.faq-item{
+  border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:8px;overflow:hidden;background:var(--bg);
+  box-shadow:var(--shadow);
+}
+.faq-q{
+  width:100%;text-align:left;padding:18px 20px;background:transparent;
+  border:none;cursor:pointer;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;font-family:var(--sans);
+  transition:background .15s;
+}
+.faq-q:hover{background:var(--bg2)}
+.faq-q-text{font-size:14px;font-weight:600;color:var(--text)}
+.faq-chevron{
+  font-size:11px;color:var(--text3);transition:transform .2s;flex-shrink:0;
+}
+.faq-item.open .faq-chevron{transform:rotate(180deg)}
+.faq-a{
+  display:none;padding:0 20px 18px;font-size:14px;
+  color:var(--text2);line-height:1.75;border-top:1px solid var(--border2);
+  padding-top:14px;
+}
+.faq-item.open .faq-a{display:block}
+.faq-a a{color:var(--blue)}
+
+/* ── Responsive ── */
+@media(max-width:1000px){
+  .hero{grid-template-columns:1fr}
+  .dna-panel{display:none}
+  .hero{padding:52px 0 44px}
+  .hero h1{font-size:38px}
+}
 @media(max-width:768px){
-  /* Nav */
-  .nav-inner{padding:12px 16px;flex-wrap:wrap;gap:10px}
-  .nav-sub{display:none}
-  .nav-pill{display:none}
-  .nav-query-btn{margin-left:auto;padding:8px 16px;font-size:12px}
-
-  /* Hero */
-  .hero{padding:28px 20px;border-radius:14px;margin:16px 0}
-  .hero h1{font-size:28px;letter-spacing:-1px}
-  .hero-badge{font-size:9px;padding:4px 12px}
-  .hero-desc{font-size:13px;margin-bottom:24px}
-  .hero-stats{flex-wrap:wrap;width:100%}
+  .stats-bar{grid-template-columns:repeat(2,1fr)}
+  .demo-metrics{grid-template-columns:repeat(2,1fr)}
+  .wrap{padding:0 20px}
+  .nav-inner{padding:0 20px}
+  .hero{padding:40px 0 32px}
+  .hero h1{font-size:30px;letter-spacing:-1px}
+  .hero-desc{font-size:15px}
+  .hero-stats{flex-wrap:wrap}
   .hs-item{padding:10px 14px;flex:1;min-width:80px}
-  .hs-num{font-size:14px}
-  .hs-lbl{font-size:8px}
-
-  /* Explainer */
-  .explainer-top h2{font-size:22px}
-  .explainer-top p{font-size:13px}
   .exp-3col{grid-template-columns:1fr;gap:12px}
-  .exp-card{padding:20px 18px}
-  .exp-card h3{font-size:16px}
-
-  /* VGE flowchart — scroll horizontally */
-  .vge-header h3{font-size:18px}
-  .vge-flow{flex-direction:row;overflow-x:auto;padding:16px 12px;gap:0;
-    -webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .vge-flow::-webkit-scrollbar{display:none}
+  .vge-flow{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .vge-node{min-width:120px}
-  .vge-node-box{padding:14px 10px}
-  .vge-icon{font-size:26px;margin-bottom:8px}
-  .vge-label{font-size:11px}
-  .vge-desc{font-size:10px}
   .vge-examples{grid-template-columns:1fr}
-  .vge-ex{padding:16px 18px}
-
-  /* How cards */
-  .how-grid{grid-template-columns:repeat(2,1fr);gap:10px}
-  .how-card{padding:16px 14px}
-  .how-icon{font-size:24px;margin-bottom:8px}
-  .how-title{font-size:12px}
-  .how-desc{font-size:10px}
-
-  /* CTA banner */
-  .cta-banner{flex-direction:column;align-items:flex-start;gap:16px;padding:22px 20px;border-radius:14px}
-  .cta-title{font-size:16px}
-  .cta-sub{font-size:12px}
-  .cta-btn{width:100%;text-align:center;padding:13px 20px;font-size:13px;border-radius:50px}
-
-  /* Pipeline + results */
-  .metric-row{grid-template-columns:repeat(2,1fr);gap:10px}
-  .metric-num{font-size:26px}
+  .how-grid{grid-template-columns:repeat(2,1fr)}
+  .cta-banner{flex-direction:column;align-items:flex-start;gap:16px;padding:24px}
+  .cta-btn{width:100%;text-align:center;padding:12px 20px}
+  .metric-row{grid-template-columns:repeat(2,1fr)}
   .kg-grid{grid-template-columns:1fr}
   .tab-btn{font-size:11px;padding:10px 8px}
-  .agent-chip{font-size:11px;padding:5px 10px}
-
-  /* Modal */
-  .modal-overlay{padding:12px}
-  .modal-box{padding:28px 20px;border-radius:18px}
-  .modal-title{font-size:20px}
-  .modal-header{margin-bottom:20px}
-
-  /* Hypothesis cards */
-  .hyp-card{padding:18px 16px}
-  .hyp-title{font-size:14px}
-  .tag-row{gap:4px}
-  .tag{font-size:10px;padding:3px 9px}
-
-  /* Paper cards */
-  .paper-card{padding:14px 16px}
-  .paper-title{font-size:13px}
+  .modal-box{padding:28px 22px}
 }
-
-/* ── Mobile (≤480px) ── */
 @media(max-width:480px){
-  .wrap{padding:0 12px}
-  .nav-inner{padding:10px 12px}
-  .nav-logo{font-size:16px}
-  .nav-query-btn{font-size:11px;padding:7px 14px}
-
-  .hero{padding:22px 16px;margin:12px 0}
-  .hero h1{font-size:22px;letter-spacing:-0.5px}
-  .hero-badge{font-size:8px}
-  .hero-desc{font-size:12px;margin-bottom:20px}
-  .hs-item{padding:8px 10px}
-  .hs-num{font-size:13px}
-
-  .explainer-top h2{font-size:18px}
-  .exp-card-tag{font-size:11px;padding:5px 14px}
-  .exp-card h3{font-size:15px}
-  .exp-card p{font-size:12px}
-
-  .vge-header h3{font-size:15px}
-  .vge-node{min-width:100px}
-  .vge-icon{font-size:22px}
-  .vge-label{font-size:10px}
-  .vge-desc{font-size:9px}
-
+  .stats-bar{grid-template-columns:repeat(2,1fr);gap:10px}
+  .demo-metrics{grid-template-columns:repeat(2,1fr)}
+  .wrap{padding:0 14px}
+  .nav-inner{padding:0 14px}
+  .nav-logo span{display:none}
+  .hero h1{font-size:24px;letter-spacing:-0.5px}
+  .hero-desc{font-size:14px}
+  .exp-card{padding:20px 18px}
   .how-grid{grid-template-columns:1fr;gap:8px}
-  .how-card{padding:14px;display:flex;align-items:center;gap:12px;text-align:left}
-  .how-icon{font-size:22px;margin-bottom:0;flex-shrink:0}
-
-  .cta-banner{padding:18px 16px}
-  .cta-title{font-size:15px}
-
-  .metric-row{grid-template-columns:repeat(2,1fr);gap:8px}
-  .metric-card{padding:14px 10px}
-  .metric-num{font-size:22px}
-  .metric-lbl{font-size:9px}
-
-  .tab-bar{flex-direction:column;border-radius:10px}
-  .tab-btn{border-bottom:1px solid var(--border2);border-right:none;text-align:left;padding:10px 14px}
-  .tab-btn.active{border-bottom-color:var(--cyan)}
-  .tab-panel{border-radius:0 0 10px 10px;padding:16px}
-
+  .how-card{display:flex;align-items:center;gap:14px;text-align:left;padding:16px}
+  .how-icon{font-size:24px;margin-bottom:0;flex-shrink:0}
+  .how-num{margin:0;flex-shrink:0}
+  .metric-card{padding:14px}
+  .metric-num{font-size:24px}
+  .tab-bar{flex-direction:column;border-radius:var(--radius)}
+  .tab-btn{border-bottom:1px solid var(--border);text-align:left;padding:10px 14px}
   .modal-box{padding:22px 16px;border-radius:14px}
-  .modal-title{font-size:17px}
-  .query-input{font-size:14px;padding:14px 14px 14px 44px}
-  .input-icon{font-size:16px;left:13px}
-  .ex-row{gap:6px}
-  .ex-btn{font-size:11px;padding:6px 12px}
-  .run-btn{font-size:14px;padding:14px 32px}
-
-  .hyp-card{padding:14px 12px}
-  .conf-pill{font-size:10px}
-  .badge{font-size:10px;padding:3px 10px}
-
+  .query-input{font-size:14px;padding:13px 13px 13px 42px}
+  .run-btn{font-size:14px;padding:12px 36px}
   .pmid-tooltip{min-width:260px;max-width:calc(100vw - 40px)}
-
-  .edge-row{flex-wrap:wrap;gap:6px}
-  .edge-arrow{font-size:9px}
 }
 </style>
 </head>
@@ -692,212 +696,363 @@ nav{background:rgba(13,17,23,0.92);backdrop-filter:blur(12px);border-bottom:1px 
 <!-- ── Navbar ── -->
 <nav>
   <div class="nav-inner">
-    <div>
-      <div class="nav-logo">🧬 GeneSight</div>
-      <div class="nav-sub">HYPOTHESIS ENGINE v1.0</div>
+    <div class="nav-logo">
+      <div class="nav-logo-icon">🧬</div>
+      <span>GeneSight</span>
     </div>
-    <div class="nav-pill">● MULTI-AGENT PIPELINE</div>
-    <button class="nav-query-btn" onclick="openModal()">⚡ Research Query</button>
+    <div class="nav-badge">Hypothesis Engine</div>
+    <button class="nav-query-btn" onclick="openModal()">Start Research →</button>
   </div>
 </nav>
-
-<canvas id="particleCanvas"></canvas>
 
 <div class="wrap">
 
   <!-- ── Hero ── -->
   <div class="hero">
-    <div class="hero-orb1"></div>
-    <div class="hero-orb2"></div>
-    <div class="hero-orb3"></div>
-    <div class="hero-body">
-      <div class="hero-left">
-        <div class="hero-badge">⚡ Powered by GPT-4o · PubMed · NCBI · UniProt · Neo4j</div>
-        <h1>Discover Hidden<br><span class="h1-cyan">Gene–Disease</span><br><span class="h1-purple">Relationships</span></h1>
-        <p class="hero-desc">
-          An agentic AI pipeline that mines genomics literature, builds a live knowledge graph,
-          and surfaces novel hypotheses your lab hasn't explored yet.
-        </p>
-        <div class="hero-stats">
-          <div class="hs-item"><div class="hs-num c1">8</div><div class="hs-lbl">AI Agents</div></div>
-          <div class="hs-item"><div class="hs-num c2">4</div><div class="hs-lbl">Databases</div></div>
-          <div class="hs-item"><div class="hs-num c3">GPT-4o</div><div class="hs-lbl">LLM Backbone</div></div>
-          <div class="hs-item"><div class="hs-num c4">Neo4j</div><div class="hs-lbl">Knowledge Graph</div></div>
-          <div class="hs-item"><div class="hs-num c5">NER</div><div class="hs-lbl">Biomedical NLP</div></div>
-        </div>
+    <div class="hero-left">
+      <div class="hero-eyebrow">🔬 AI-Powered Genomics Research</div>
+      <h1>Discover Hidden<br><span class="accent">Gene–Disease</span><br>Relationships</h1>
+      <p class="hero-desc">
+        An agentic AI pipeline that mines PubMed literature, builds a live knowledge graph,
+        and surfaces novel hypotheses your lab hasn't explored yet.
+      </p>
+      <div class="hero-stats">
+        <div class="hs-item"><div class="hs-num">8</div><div class="hs-lbl">AI Agents</div></div>
+        <div class="hs-item"><div class="hs-num">4</div><div class="hs-lbl">Databases</div></div>
+        <div class="hs-item"><div class="hs-num">GPT-4o</div><div class="hs-lbl">LLM</div></div>
+        <div class="hs-item"><div class="hs-num">Neo4j</div><div class="hs-lbl">Graph DB</div></div>
       </div>
-      <!-- ── DNA Double Helix Canvas ── -->
-      <div class="dna-panel">
-        <canvas id="dnaCanvas" width="280" height="460" style="display:block;max-width:100%"></canvas>
+    </div>
+    <div class="dna-panel">
+      <canvas id="dnaCanvas" width="260" height="420" style="display:block;max-width:100%"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Trusted by / Built with ── -->
+  <div class="logos-strip">
+    <div class="logos-label">Powered by & integrated with</div>
+    <div class="logos-row">
+      <div class="logo-chip">
+        <div class="logo-chip-icon">📗</div>
+        <div><div class="logo-chip-name">PubMed</div><div class="logo-chip-type">33M+ papers</div></div>
+      </div>
+      <div class="logo-chip">
+        <div class="logo-chip-icon">🧬</div>
+        <div><div class="logo-chip-name">NCBI</div><div class="logo-chip-type">Gene database</div></div>
+      </div>
+      <div class="logo-chip">
+        <div class="logo-chip-icon">🔩</div>
+        <div><div class="logo-chip-name">UniProt</div><div class="logo-chip-type">Protein knowledgebase</div></div>
+      </div>
+      <div class="logo-chip">
+        <div class="logo-chip-icon">🕸</div>
+        <div><div class="logo-chip-name">Neo4j</div><div class="logo-chip-type">Graph database</div></div>
+      </div>
+      <div class="logo-chip">
+        <div class="logo-chip-icon">🤖</div>
+        <div><div class="logo-chip-name">GPT-4o</div><div class="logo-chip-type">OpenAI LLM</div></div>
       </div>
     </div>
   </div>
 
-  <!-- ── Explainer Section ── -->
-  <div class="explainer">
+  <hr class="section-divider"/>
 
-    <div class="explainer-top">
-      <div class="exp-eyebrow">✦ What is this &amp; why does it matter?</div>
-      <h2>Science made <span>simple</span></h2>
-      <p>Whether you're a biologist, a student, or just curious — here's everything you need to understand what GeneSight does and why it matters for human health.</p>
-    </div>
-
-    <!-- Problem / Solution / Result -->
-    <div class="exp-3col">
-      <div class="exp-card exp-card-problem">
-        <span class="exp-card-icon">😓</span>
-        <div class="exp-card-tag">The Problem</div>
-        <h3>Scientists are drowning in data</h3>
-        <p>Every day, <strong>thousands of new research papers</strong> are published about genes and diseases. No single scientist can read them all. Important connections between genes and diseases get buried and missed for years.</p>
-      </div>
-      <div class="exp-card exp-card-solution">
-        <span class="exp-card-icon">🤖</span>
-        <div class="exp-card-tag">The Solution</div>
-        <h3>GeneSight reads it all — instantly</h3>
-        <p>Our AI reads <strong>hundreds of papers in seconds</strong>, extracts every gene and disease mentioned, maps their relationships, and surfaces hypotheses that a scientist might take months to discover manually.</p>
-      </div>
-      <div class="exp-card exp-card-result">
-        <span class="exp-card-icon">💡</span>
-        <div class="exp-card-tag">The Result</div>
-        <h3>New clues for cures, faster</h3>
-        <p>Researchers get <strong>ranked, evidence-backed hypotheses</strong> they can test in the lab — accelerating the path from a genetic discovery to a potential treatment for patients.</p>
-      </div>
-    </div>
-
-    <!-- Visual Gene–Disease Relationship Explainer -->
-    <div class="vge-wrap">
-
-      <div class="vge-header">
-        <h3>🧬 How does a Gene cause a Disease?</h3>
-        <p>Follow the journey from DNA all the way to a diagnosis — and see where GeneSight steps in</p>
-      </div>
-
-      <!-- Step-by-step flowchart -->
-      <div class="vge-flow">
-
-        <div class="vge-node n-dna">
-          <div class="vge-node-box">
-            <span class="vge-icon">🔵</span>
-            <div class="vge-label">DNA</div>
-            <div class="vge-desc">Your body's master blueprint — 3 billion letters of <b style="color:#38bdf8">A T G C</b> packed into every cell</div>
-          </div>
-        </div>
-
-        <div class="vge-arrow">
-          <div class="vge-arrow-line"></div>
-          <div class="vge-arrow-head">▶</div>
-          <div class="vge-arrow-lbl">contains</div>
-        </div>
-
-        <div class="vge-node n-gene">
-          <div class="vge-node-box">
-            <span class="vge-icon">📖</span>
-            <div class="vge-label">Gene</div>
-            <div class="vge-desc">A specific "chapter" of DNA. Each gene is a recipe for building one protein in your body</div>
-          </div>
-        </div>
-
-        <div class="vge-arrow">
-          <div class="vge-arrow-line"></div>
-          <div class="vge-arrow-head">▶</div>
-          <div class="vge-arrow-lbl">typo in gene =</div>
-        </div>
-
-        <div class="vge-node n-mut">
-          <div class="vge-node-box">
-            <span class="vge-icon">⚠️</span>
-            <div class="vge-label">Mutation</div>
-            <div class="vge-desc">A "spelling mistake" in the gene. The wrong protein gets built — like a broken machine</div>
-          </div>
-        </div>
-
-        <div class="vge-arrow">
-          <div class="vge-arrow-line"></div>
-          <div class="vge-arrow-head">▶</div>
-          <div class="vge-arrow-lbl">broken protein →</div>
-        </div>
-
-        <div class="vge-node n-dis">
-          <div class="vge-node-box">
-            <span class="vge-icon">🏥</span>
-            <div class="vge-label">Disease</div>
-            <div class="vge-desc">The body malfunctions. Cancer, Alzheimer's, Parkinson's — all trace back to gene problems</div>
-          </div>
-        </div>
-
-        <div class="vge-arrow">
-          <div class="vge-arrow-line"></div>
-          <div class="vge-arrow-head">▶</div>
-          <div class="vge-arrow-lbl">GeneSight finds</div>
-        </div>
-
-        <div class="vge-node n-ai">
-          <div class="vge-node-box">
-            <span class="vge-icon">🤖</span>
-            <div class="vge-label">The Link</div>
-            <div class="vge-desc">GeneSight reads thousands of papers and discovers which genes are secretly connected to which diseases</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Real-world examples -->
-      <div class="vge-examples">
-        <div class="vge-ex">
-          <div class="vge-ex-row">
-            <span class="vge-ex-gene">BRCA1</span>
-            <span class="vge-ex-arrow">→</span>
-            <span class="vge-ex-disease">Breast Cancer</span>
-          </div>
-          <div class="vge-ex-desc">BRCA1 normally repairs broken DNA. A mutation breaks this repair system — cells divide uncontrollably, causing tumors.</div>
-        </div>
-        <div class="vge-ex">
-          <div class="vge-ex-row">
-            <span class="vge-ex-gene">APOE4</span>
-            <span class="vge-ex-arrow">→</span>
-            <span class="vge-ex-disease">Alzheimer's</span>
-          </div>
-          <div class="vge-ex-desc">APOE4 affects how the brain clears protein waste. When it fails, toxic plaques build up — damaging memory and cognition.</div>
-        </div>
-        <div class="vge-ex">
-          <div class="vge-ex-row">
-            <span class="vge-ex-gene">LRRK2</span>
-            <span class="vge-ex-arrow">→</span>
-            <span class="vge-ex-disease">Parkinson's</span>
-          </div>
-          <div class="vge-ex-desc">LRRK2 helps brain cells manage waste. Mutations cause toxic buildup in neurons — destroying movement control over time.</div>
-        </div>
-      </div>
-
-    </div>
-
+  <!-- ── Explainer ── -->
+  <div class="section-hdr">
+    <div class="section-eyebrow">What is this & why does it matter?</div>
+    <h2>Science made simple</h2>
+    <p>Whether you're a biologist, a student, or just curious — here's everything you need to understand what GeneSight does and why it matters for human health.</p>
   </div>
+
+  <div class="exp-3col">
+    <div class="exp-card exp-card-problem">
+      <span class="exp-card-icon">😓</span>
+      <div class="exp-card-tag">The Problem</div>
+      <h3>Scientists are drowning in data</h3>
+      <p>Every day, <strong>thousands of new research papers</strong> are published about genes and diseases. No single scientist can read them all — important connections get buried and missed for years.</p>
+    </div>
+    <div class="exp-card exp-card-solution">
+      <span class="exp-card-icon">🤖</span>
+      <div class="exp-card-tag">The Solution</div>
+      <h3>GeneSight reads it all — instantly</h3>
+      <p>Our AI reads <strong>hundreds of papers in seconds</strong>, extracts every gene and disease mentioned, maps their relationships, and surfaces hypotheses that a scientist might take months to discover manually.</p>
+    </div>
+    <div class="exp-card exp-card-result">
+      <span class="exp-card-icon">💡</span>
+      <div class="exp-card-tag">The Result</div>
+      <h3>New clues for cures, faster</h3>
+      <p>Researchers get <strong>ranked, evidence-backed hypotheses</strong> they can test in the lab — accelerating the path from a genetic discovery to a potential treatment for patients.</p>
+    </div>
+  </div>
+
+  <!-- ── VGE Flowchart ── -->
+  <div class="vge-wrap">
+    <div class="vge-header">
+      <h3>How does a Gene cause a Disease?</h3>
+      <p>Follow the journey from DNA to diagnosis — and see where GeneSight steps in</p>
+    </div>
+    <div class="vge-flow">
+      <div class="vge-node n-dna">
+        <div class="vge-node-box">
+          <span class="vge-icon">🔵</span>
+          <div class="vge-label">DNA</div>
+          <div class="vge-desc">Your body's master blueprint — 3 billion letters packed into every cell</div>
+        </div>
+      </div>
+      <div class="vge-arrow">
+        <div class="vge-arrow-line"></div>
+        <div class="vge-arrow-head">▶</div>
+        <div class="vge-arrow-lbl">contains</div>
+      </div>
+      <div class="vge-node n-gene">
+        <div class="vge-node-box">
+          <span class="vge-icon">📖</span>
+          <div class="vge-label">Gene</div>
+          <div class="vge-desc">A specific "chapter" of DNA — a recipe for building one protein</div>
+        </div>
+      </div>
+      <div class="vge-arrow">
+        <div class="vge-arrow-line"></div>
+        <div class="vge-arrow-head">▶</div>
+        <div class="vge-arrow-lbl">typo in gene</div>
+      </div>
+      <div class="vge-node n-mut">
+        <div class="vge-node-box">
+          <span class="vge-icon">⚠️</span>
+          <div class="vge-label">Mutation</div>
+          <div class="vge-desc">A "spelling mistake" in the gene — wrong protein gets built</div>
+        </div>
+      </div>
+      <div class="vge-arrow">
+        <div class="vge-arrow-line"></div>
+        <div class="vge-arrow-head">▶</div>
+        <div class="vge-arrow-lbl">broken protein</div>
+      </div>
+      <div class="vge-node n-dis">
+        <div class="vge-node-box">
+          <span class="vge-icon">🏥</span>
+          <div class="vge-label">Disease</div>
+          <div class="vge-desc">Body malfunctions — cancer, Alzheimer's, Parkinson's trace back here</div>
+        </div>
+      </div>
+      <div class="vge-arrow">
+        <div class="vge-arrow-line"></div>
+        <div class="vge-arrow-head">▶</div>
+        <div class="vge-arrow-lbl">GeneSight finds</div>
+      </div>
+      <div class="vge-node n-ai">
+        <div class="vge-node-box">
+          <span class="vge-icon">🤖</span>
+          <div class="vge-label">The Link</div>
+          <div class="vge-desc">GeneSight reads thousands of papers to find which genes connect to which diseases</div>
+        </div>
+      </div>
+    </div>
+    <div class="vge-examples">
+      <div class="vge-ex">
+        <div class="vge-ex-row">
+          <span class="vge-ex-gene">BRCA1</span>
+          <span class="vge-ex-arrow">→</span>
+          <span class="vge-ex-disease">Breast Cancer</span>
+        </div>
+        <div class="vge-ex-desc">BRCA1 normally repairs broken DNA. A mutation breaks this repair system — cells divide uncontrollably, causing tumors.</div>
+      </div>
+      <div class="vge-ex">
+        <div class="vge-ex-row">
+          <span class="vge-ex-gene">APOE4</span>
+          <span class="vge-ex-arrow">→</span>
+          <span class="vge-ex-disease">Alzheimer's</span>
+        </div>
+        <div class="vge-ex-desc">APOE4 affects how the brain clears protein waste. When it fails, toxic plaques build up — damaging memory and cognition.</div>
+      </div>
+      <div class="vge-ex">
+        <div class="vge-ex-row">
+          <span class="vge-ex-gene">LRRK2</span>
+          <span class="vge-ex-arrow">→</span>
+          <span class="vge-ex-disease">Parkinson's</span>
+        </div>
+        <div class="vge-ex-desc">LRRK2 helps brain cells manage waste. Mutations cause toxic buildup in neurons — destroying movement control over time.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Stats Bar ── -->
+  <div class="stats-bar">
+    <div class="stats-bar-item">
+      <div class="stats-bar-num">33M+</div>
+      <div class="stats-bar-lbl">PubMed papers<br>indexed</div>
+    </div>
+    <div class="stats-bar-item">
+      <div class="stats-bar-num">4</div>
+      <div class="stats-bar-lbl">Live scientific<br>databases</div>
+    </div>
+    <div class="stats-bar-item">
+      <div class="stats-bar-num">8</div>
+      <div class="stats-bar-lbl">Specialized AI<br>agents</div>
+    </div>
+    <div class="stats-bar-item">
+      <div class="stats-bar-num">&lt;90s</div>
+      <div class="stats-bar-lbl">Average time<br>per query</div>
+    </div>
+  </div>
+
+  <!-- ── Demo Preview ── -->
+  <div class="section-hdr">
+    <div class="section-eyebrow">See it in action</div>
+    <h2>Sample research output</h2>
+    <p>Here's what GeneSight produces for a real query on Alzheimer's disease gene networks</p>
+  </div>
+  <div class="demo-wrap">
+    <div class="demo-header">
+      <div class="demo-header-left">
+        <h3>Query: "Alzheimer's disease gene networks and APOE pathways"</h3>
+        <p>Pipeline completed in 47 seconds · 8 agents · 3 databases queried</p>
+      </div>
+      <div class="demo-badge">Live example output</div>
+    </div>
+    <div class="demo-body">
+      <div class="demo-query-bar">
+        <span class="demo-query-icon">🧬</span>
+        <span class="demo-query-text">Alzheimer's disease gene networks and APOE pathways</span>
+      </div>
+      <div class="demo-metrics">
+        <div class="demo-metric"><div class="demo-metric-num">28</div><div class="demo-metric-lbl">Papers retrieved</div></div>
+        <div class="demo-metric"><div class="demo-metric-num">5</div><div class="demo-metric-lbl">Hypotheses</div></div>
+        <div class="demo-metric"><div class="demo-metric-num">41</div><div class="demo-metric-lbl">Graph nodes</div></div>
+        <div class="demo-metric"><div class="demo-metric-num">67</div><div class="demo-metric-lbl">Relationships</div></div>
+      </div>
+      <!-- Sample hypothesis 1 -->
+      <div class="demo-hyp-card">
+        <div class="demo-hyp-header">
+          <span class="badge b-str">Strong</span>
+          <span class="conf-pill cp-high">87% confidence</span>
+        </div>
+        <div class="demo-hyp-title">APOE4 allele promotes tau hyperphosphorylation via disruption of lipid homeostasis in astrocytes</div>
+        <div class="demo-hyp-stmt">The APOE4 isoform impairs cholesterol efflux in astrocytes, leading to lipid droplet accumulation that activates CDK5 kinase and promotes pathological tau phosphorylation — a mechanism underexplored in current Alzheimer's therapeutic targets.</div>
+        <div class="demo-conf-track"><div class="demo-conf-fill" style="width:87%"></div></div>
+        <div class="demo-tags">
+          <span class="tag tag-g">🧬 APOE4</span>
+          <span class="tag tag-g">🧬 CDK5</span>
+          <span class="tag tag-g">🧬 MAPT</span>
+          <span class="tag tag-p">🔬 Lipid metabolism</span>
+          <span class="tag tag-e">📄 6 supporting papers</span>
+        </div>
+      </div>
+      <!-- Sample hypothesis 2 -->
+      <div class="demo-hyp-card">
+        <div class="demo-hyp-header">
+          <span class="badge b-mod">Moderate</span>
+          <span class="conf-pill cp-mid">64% confidence</span>
+        </div>
+        <div class="demo-hyp-title">CLU and BIN1 co-expression modulates amyloid-beta clearance through endosomal trafficking</div>
+        <div class="demo-hyp-stmt">Clusterin (CLU) and BIN1 share a regulatory interaction in endosomal pathways that may synergistically reduce amyloid-beta accumulation — suggesting a combined therapeutic target strategy in early-stage Alzheimer's.</div>
+        <div class="demo-conf-track"><div class="demo-conf-fill" style="width:64%;background:var(--amber)"></div></div>
+        <div class="demo-tags">
+          <span class="tag tag-g">🧬 CLU</span>
+          <span class="tag tag-g">🧬 BIN1</span>
+          <span class="tag tag-p">🔬 Endosomal trafficking</span>
+          <span class="tag tag-e">📄 3 supporting papers</span>
+        </div>
+      </div>
+    </div>
+    <div class="demo-blur-overlay">
+      <p>3 more hypotheses, full literature analysis, and knowledge graph available after running your own query</p>
+      <button class="run-btn" style="font-size:14px;padding:11px 32px" onclick="openModal()">Run your own query →</button>
+    </div>
+  </div>
+
+  <hr class="section-divider"/>
 
   <!-- ── How it works ── -->
-  <div style="text-align:center;margin-bottom:18px">
-    <div style="display:inline-block;font-size:10px;font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;color:var(--purple);background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:20px;padding:4px 16px;margin-bottom:12px">⚙ Under The Hood</div>
-    <div style="font-size:24px;font-weight:800;color:#f1f5f9;letter-spacing:-0.5px;margin-bottom:6px">How GeneSight works — <span style="background:linear-gradient(90deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">4 AI-powered stages</span></div>
-    <div style="font-size:13px;color:var(--text3);max-width:500px;margin:0 auto">Each query triggers a chain of specialized AI agents working together to surface new science</div>
+  <div class="section-hdr">
+    <div class="section-eyebrow">Under the hood</div>
+    <h2>How GeneSight works</h2>
+    <p>Each query triggers a chain of 8 specialized AI agents working together to surface new science</p>
   </div>
   <div class="how-grid">
-    <div class="how-card"><div class="how-icon">📚</div><div class="how-title">Literature Mining</div><div class="how-desc">Searches PubMed for the most relevant genomics papers</div></div>
-    <div class="how-card"><div class="how-icon">🔬</div><div class="how-title">Entity Extraction</div><div class="how-desc">Biomedical NER identifies genes, proteins and diseases</div></div>
-    <div class="how-card"><div class="how-icon">🕸</div><div class="how-title">Knowledge Graph</div><div class="how-desc">Builds a live Neo4j graph of biological relationships</div></div>
-    <div class="how-card"><div class="how-icon">💡</div><div class="how-title">Hypothesis Engine</div><div class="how-desc">GPT-4o surfaces unexplored gene–disease connections</div></div>
+    <div class="how-card">
+      <div class="how-num">1</div>
+      <div class="how-icon">📚</div>
+      <div class="how-title">Literature Mining</div>
+      <div class="how-desc">Searches PubMed for the most relevant genomics papers on your query</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">2</div>
+      <div class="how-icon">🔬</div>
+      <div class="how-title">Entity Extraction</div>
+      <div class="how-desc">Biomedical NLP identifies genes, proteins and diseases in each paper</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">3</div>
+      <div class="how-icon">🕸</div>
+      <div class="how-title">Knowledge Graph</div>
+      <div class="how-desc">Builds a live Neo4j graph of all discovered biological relationships</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">4</div>
+      <div class="how-icon">💡</div>
+      <div class="how-title">Hypothesis Engine</div>
+      <div class="how-desc">GPT-4o surfaces unexplored gene–disease connections ranked by confidence</div>
+    </div>
   </div>
 
-  <!-- ── CTA Banner ── -->
-  <div class="cta-banner" onclick="openModal()">
-    <div class="cta-left">
-      <div class="cta-title">Ready to discover hidden gene–disease connections?</div>
-      <div class="cta-sub">Type a gene, disease or pathway — our 8-agent AI pipeline does the rest in under 60 seconds</div>
-    </div>
-    <div class="cta-btn">⚡ Start Research Query →</div>
+  <hr class="section-divider"/>
+
+  <!-- ── FAQ ── -->
+  <div class="section-hdr">
+    <div class="section-eyebrow">Got questions?</div>
+    <h2>Frequently asked</h2>
+    <p>Everything you need to know about GeneSight and how it works</p>
   </div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">How accurate are the hypotheses GeneSight generates?</span>
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">Hypotheses are ranked by a confidence score (0–100%) based on how many peer-reviewed papers support each gene–disease link, the strength of co-occurrence, and pathway plausibility. "Strong" hypotheses (≥75%) have robust multi-paper evidence. All outputs should be treated as <strong>research leads to validate</strong>, not clinical conclusions.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Which databases does GeneSight query?</span>
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">GeneSight integrates four live scientific databases: <strong>PubMed</strong> (33M+ biomedical papers via NCBI E-utilities), <strong>NCBI Gene</strong> (gene-level annotations and synonyms), <strong>UniProt</strong> (protein functions and interactions), and <strong>Neo4j</strong> (graph database for storing and querying biological relationships discovered during the run).</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Is my research query private? Is any data stored?</span>
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">Your query is sent to the backend pipeline to retrieve and analyse public PubMed literature — no private data is involved. The knowledge graph built during your session is stored temporarily in Neo4j for the duration of the run. No queries or results are logged or retained beyond the session.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">What kind of query should I enter?</span>
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">You can enter a <strong>gene name</strong> (e.g. BRCA1, TP53), a <strong>disease</strong> (e.g. Alzheimer's disease, Type 2 diabetes), a <strong>biological pathway</strong> (e.g. mTOR signalling, neuroinflammation), or a combination. The more specific you are, the more targeted the hypotheses. Example: <em>"LRRK2 gene role in Parkinson's neuroinflammation pathways"</em>.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">How long does a query take to run?</span>
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">Most queries complete in <strong>30–90 seconds</strong>. The pipeline fetches up to 30 PubMed papers, extracts biomedical entities, builds a knowledge graph, generates hypotheses with GPT-4o, and validates them — all in sequence. You can watch each of the 8 agents complete in real time via the progress tracker.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Do I need a scientific background to use GeneSight?</span>
+        <span class="faq-chevron">▼</span>
+      </button>
+      <div class="faq-a">No. GeneSight is designed to be accessible to curious non-scientists too. The "Science made simple" section explains how genes cause diseases in plain English. The hypothesis output cards include plain-language summaries alongside the technical details. That said, the tool is most powerful in the hands of researchers who can evaluate and act on the leads it surfaces.</div>
+    </div>
+  </div>
+
 
   <!-- ── Pipeline tracker ── -->
   <div class="pipeline-card" id="pipelineCard">
-    <div class="section-label">// ⚙ Pipeline Executing</div>
+    <div class="pl-header">Pipeline executing</div>
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     <div class="status-txt" id="statusTxt">Initialising…</div>
     <div class="agent-grid" id="agentGrid"></div>
@@ -905,14 +1060,14 @@ nav{background:rgba(13,17,23,0.92);backdrop-filter:blur(12px);border-bottom:1px 
 
   <!-- ── Summary ── -->
   <div class="summary-card" id="summaryCard">
-    <div class="summary-lbl">▸ AI Research Summary</div>
+    <div class="summary-lbl">AI Research Summary</div>
     <div class="summary-text" id="summaryText"></div>
   </div>
 
   <!-- ── Metrics ── -->
   <div class="metric-row" id="metricRow">
     <div class="metric-card"><div class="metric-icon">📄</div><div class="metric-num" id="mPapers">0</div><div class="metric-lbl">Papers Retrieved</div></div>
-    <div class="metric-card"><div class="metric-icon">💡</div><div class="metric-num" id="mHyps">0</div><div class="metric-lbl">Hypotheses Generated</div></div>
+    <div class="metric-card"><div class="metric-icon">💡</div><div class="metric-num" id="mHyps">0</div><div class="metric-lbl">Hypotheses</div></div>
     <div class="metric-card"><div class="metric-icon">🕸</div><div class="metric-num" id="mNodes">0</div><div class="metric-lbl">Graph Nodes</div></div>
     <div class="metric-card"><div class="metric-icon">🔗</div><div class="metric-num" id="mEdges">0</div><div class="metric-lbl">Relationships</div></div>
   </div>
@@ -929,46 +1084,50 @@ nav{background:rgba(13,17,23,0.92);backdrop-filter:blur(12px);border-bottom:1px 
     <div class="tab-panel" id="tabHyp"></div>
   </div>
 
-  <div style="height:60px"></div>
+  <div style="height:48px"></div>
 </div><!-- /wrap -->
+
+<!-- ── Footer ── -->
+<footer class="site-footer">
+  <div class="footer-text">GeneSight · AI-Powered Genomics Research · Built with GPT-4o, PubMed, Neo4j</div>
+</footer>
 
 <!-- ── Research Query Modal ── -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
   <div class="modal-box" id="modalBox">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-header">
-      <div class="modal-eyebrow">🧬 GeneSight · Research Query</div>
+      <div class="modal-eyebrow">GeneSight · Research Query</div>
       <div class="modal-title">What do you want to discover?</div>
       <div class="modal-sub">Enter any gene, disease, or biological pathway below</div>
     </div>
-    <div class="input-wrap" style="margin-bottom:20px">
+    <div class="input-wrap">
       <span class="input-icon">🧬</span>
       <input id="queryInput" class="query-input" type="text"
         placeholder="e.g. BRCA1 BRCA2 role in breast cancer DNA repair mechanisms…"/>
     </div>
-    <div class="ex-label">// Try an example — click to fill</div>
+    <div class="ex-label">Try an example — click to fill</div>
     <div class="ex-row">
-      <button class="ex-btn" onclick="setQuery(this)">🧠 Alzheimer's disease gene networks</button>
-      <button class="ex-btn" onclick="setQuery(this)">🎗 BRCA1 breast cancer pathways</button>
-      <button class="ex-btn" onclick="setQuery(this)">🩸 Type 2 diabetes immune genes</button>
-      <button class="ex-btn" onclick="setQuery(this)">🧬 Parkinson's neuroinflammation</button>
-      <button class="ex-btn" onclick="setQuery(this)">💊 ALS motor neuron gene associations</button>
+      <button class="ex-btn" onclick="setQuery(this)">Alzheimer's disease gene networks</button>
+      <button class="ex-btn" onclick="setQuery(this)">BRCA1 breast cancer pathways</button>
+      <button class="ex-btn" onclick="setQuery(this)">Type 2 diabetes immune genes</button>
+      <button class="ex-btn" onclick="setQuery(this)">Parkinson's neuroinflammation</button>
+      <button class="ex-btn" onclick="setQuery(this)">ALS motor neuron gene associations</button>
     </div>
     <div class="error-box" id="errorBox"></div>
-    <div class="run-btn-wrap" style="margin-top:8px">
-      <button id="runBtn" class="run-btn" onclick="runPipeline()">⚡ Generate Hypotheses</button>
+    <div class="run-btn-wrap">
+      <button id="runBtn" class="run-btn" onclick="runPipeline()">Generate Hypotheses →</button>
     </div>
   </div>
 </div>
 
 <script>
 // ── Config ──
-// Change this to your Render backend URL when deployed
 const API_URL = window.GENOMICS_API_URL || 'http://localhost:8001';
 
 const AGENTS = [
   ['🗂','Task Planner'],['📚','Literature Retrieval'],['🔬','Info Extraction'],
-  ['🧬','Genomics DB'],   ['🕸','Knowledge Graph'],  ['💡','Hypothesis Generation'],
+  ['🧬','Genomics DB'],  ['🕸','Knowledge Graph'],  ['💡','Hypothesis Generation'],
   ['✅','Evidence Validation'],['📋','Report Generation']
 ];
 
@@ -976,14 +1135,12 @@ const AGENTS = [
 function qs(sel){ return document.querySelector(sel) }
 function show(el){ el.classList.add('visible') }
 function hide(el){ el.classList.remove('visible') }
-function setQuery(btn){ qs('#queryInput').value = btn.textContent.replace(/^.\s/,'') }
+function setQuery(btn){ qs('#queryInput').value = btn.textContent.trim() }
 function switchTab(idx){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx))
   document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx))
 }
-function showError(msg){
-  const el=qs('#errorBox'); el.textContent='❌ '+msg; show(el)
-}
+function showError(msg){ const el=qs('#errorBox'); el.textContent='⚠ '+msg; show(el) }
 function hideError(){ hide(qs('#errorBox')) }
 
 // ── Pipeline UI ──
@@ -996,7 +1153,6 @@ function renderAgents(currentName){
     return `<span class="agent-chip ${cls}">${dot}${icon} ${name}</span>`
   }).join('')
 }
-
 function updateProgress(idx){
   qs('#progressFill').style.width = `${Math.round((idx+1)/AGENTS.length*100)}%`
 }
@@ -1009,18 +1165,16 @@ async function runPipeline(){
   closeModal()
 
   const btn = qs('#runBtn')
-  btn.disabled = true; btn.textContent = '⏳ Running…'
+  btn.disabled = true; btn.textContent = 'Running…'
 
-  // Show tracker, hide results
   show(qs('#pipelineCard'))
   hide(qs('#summaryCard'))
   hide(qs('#metricRow'))
   hide(qs('#tabsWrap'))
   qs('#progressFill').style.width='0%'
-  qs('#statusTxt').innerHTML='Initialising…'
+  qs('#statusTxt').textContent='Initialising…'
   renderAgents('')
 
-  // Submit job
   let job_id
   try{
     const r = await fetch(`${API_URL}/query`,{
@@ -1032,10 +1186,9 @@ async function runPipeline(){
     job_id = (await r.json()).job_id
   }catch(e){
     showError(`Could not reach backend: ${e.message}`)
-    btn.disabled=false; btn.textContent='⚡ Run Pipeline'; return
+    btn.disabled=false; btn.textContent='Generate Hypotheses →'; return
   }
 
-  // Poll status
   while(true){
     await new Promise(r=>setTimeout(r,2000))
     let s
@@ -1046,35 +1199,33 @@ async function runPipeline(){
     const {status, current_agent, error} = s
     const agentIdx = AGENTS.findIndex(a=>a[1]===current_agent)
     updateProgress(agentIdx>=0?agentIdx:0)
-    qs('#statusTxt').innerHTML = `▶ Running: <span>${current_agent||'…'}</span>`
+    qs('#statusTxt').innerHTML = `Running: <span class="s-active">${current_agent||'…'}</span>`
     renderAgents(current_agent||'')
 
     if(status==='done'){
       qs('#progressFill').style.width='100%'
-      qs('#statusTxt').innerHTML='<span style="color:#34d399">✓ All agents complete — loading results…</span>'
-      // Mark ALL agent chips as done (including Report Generation)
+      qs('#statusTxt').innerHTML='<span class="s-active">✓ All agents complete — loading results…</span>'
       qs('#agentGrid').innerHTML = AGENTS.map(([icon,name])=>
         `<span class="agent-chip chip-done">✓ ${icon} ${name}</span>`
       ).join('')
       break
     }
     if(status==='error'){
-      showError(error||'Unknown pipeline error'); 
-      btn.disabled=false; btn.textContent='⚡ Run Pipeline'; return
+      showError(error||'Unknown pipeline error')
+      btn.disabled=false; btn.textContent='Generate Hypotheses →'; return
     }
   }
 
-  // Fetch result
   let result
   try{
     const res = await fetch(`${API_URL}/result/${job_id}`)
     if(!res.ok) throw new Error(`Server returned ${res.status}`)
     result = await res.json()
     if(!result || typeof result !== 'object') throw new Error('Empty response from server')
-  }catch(e){ showError(`Failed to fetch results: ${e.message}`); btn.disabled=false; btn.textContent='⚡ Run Pipeline'; return }
+  }catch(e){ showError(`Failed to fetch results: ${e.message}`); btn.disabled=false; btn.textContent='Generate Hypotheses →'; return }
 
   renderResults(result)
-  btn.disabled=false; btn.textContent='⚡ Run Pipeline'
+  btn.disabled=false; btn.textContent='Generate Hypotheses →'
 }
 
 // ── Render Results ──
@@ -1082,20 +1233,17 @@ function renderResults(r){
   const papers = r.papers||[], hyps = r.hypotheses||[]
   const nodes  = (r.graph?.nodes)||[], edges = (r.graph?.edges)||[]
 
-  // Summary
   if(r.summary){
     qs('#summaryText').textContent = r.summary
     show(qs('#summaryCard'))
   }
 
-  // Metrics
   qs('#mPapers').textContent = papers.length
   qs('#mHyps').textContent   = hyps.length
   qs('#mNodes').textContent  = nodes.length
   qs('#mEdges').textContent  = edges.length
   show(qs('#metricRow'))
 
-  // Tab labels
   document.querySelectorAll('.tab-btn')[0].textContent=`📄 Literature (${papers.length})`
   document.querySelectorAll('.tab-btn')[1].textContent=`🕸 Knowledge Graph (${nodes.length} nodes)`
   document.querySelectorAll('.tab-btn')[2].textContent=`💡 Hypotheses (${hyps.length})`
@@ -1109,25 +1257,25 @@ function renderResults(r){
   qs('#tabsWrap').scrollIntoView({behavior:'smooth',block:'start'})
 }
 
-function esc(str){ 
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') 
+function esc(str){
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
 }
 
 function renderLiterature(papers){
   if(!papers.length){ qs('#tabLit').innerHTML='<p style="color:var(--text3)">No papers retrieved.</p>'; return }
   qs('#tabLit').innerHTML = `
-    <div class="section-label" style="margin-bottom:16px">// ${papers.length} PubMed papers analysed by biomedical NLP</div>
+    <div class="section-lbl">${papers.length} PubMed papers analysed</div>
     ${papers.map(p=>{
       const authors = (p.authors||[]).slice(0,2).join(', ') + (p.authors?.length>2?` +${p.authors.length-2}`:'')
       const rel = Math.round((p.relevance_score||0.9)*100)
       return `
       <div class="paper-card">
-        <div class="paper-journal">📰 ${esc(p.journal||'').substring(0,50)}</div>
+        <div class="paper-journal">${esc(p.journal||'').substring(0,50)}</div>
         <div class="paper-title">${esc(p.title||'N/A')}</div>
-        <div class="paper-meta">👤 ${esc(authors)} &nbsp;·&nbsp; 📅 ${esc(p.year||'')} &nbsp;·&nbsp; <a href="https://pubmed.ncbi.nlm.nih.gov/${esc(p.pmid)}/" target="_blank">PMID ${esc(p.pmid)} ↗</a></div>
+        <div class="paper-meta">${esc(authors)} · ${esc(p.year||'')} · <a href="https://pubmed.ncbi.nlm.nih.gov/${esc(p.pmid)}/" target="_blank">PMID ${esc(p.pmid)} ↗</a></div>
         <div class="paper-abs">${esc(String(p.abstract||'').substring(0,380))}…</div>
         <div class="rel-row">
-          <span class="rel-label">RELEVANCE</span>
+          <span class="rel-label">Relevance</span>
           <div class="rel-track"><div class="rel-fill" style="width:${rel}%"></div></div>
           <span class="rel-label">${rel}%</span>
         </div>
@@ -1141,28 +1289,26 @@ function renderGraph(nodes, edges){
   const diseases = nodes.filter(n=>n.type==='disease')
   const proteins = nodes.filter(n=>n.type==='protein')
 
-  const statColor = {'🧬':'#34d399','🦠':'#f87171','🔩':'#c084fc','🔗':'#38bdf8'}
-
   qs('#tabKG').innerHTML = `
   <div class="kg-grid">
     <div>
-      <div class="section-label">// Graph Statistics</div>
-      ${[['🧬','Gene nodes',genes.length,'#34d399'],['🦠','Disease nodes',diseases.length,'#f87171'],
-         ['🔩','Protein nodes',proteins.length,'#c084fc'],['🔗','Edges',edges.length,'#38bdf8']].map(([ic,lb,ct,co])=>`
+      <div class="section-lbl">Statistics</div>
+      ${[['🧬','Gene nodes',genes.length],['🦠','Disease nodes',diseases.length],
+         ['🔩','Protein nodes',proteins.length],['🔗','Edges',edges.length]].map(([ic,lb,ct])=>`
       <div class="kg-stat">
         <span class="kg-stat-icon">${ic}</span>
-        <div><div class="kg-stat-val" style="color:${co}">${ct}</div><div class="kg-stat-lbl">${lb}</div></div>
+        <div><div class="kg-stat-val">${ct}</div><div class="kg-stat-lbl">${lb}</div></div>
       </div>`).join('')}
     </div>
     <div>
-      ${genes.length?`<div class="section-label">// Gene Nodes</div><div style="margin-bottom:16px">${genes.map(n=>`<span class="node-chip nc-gene">🧬 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
-      ${diseases.length?`<div class="section-label">// Disease Nodes</div><div style="margin-bottom:16px">${diseases.map(n=>`<span class="node-chip nc-disease">🦠 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
-      ${proteins.length?`<div class="section-label">// Protein Nodes</div><div style="margin-bottom:16px">${proteins.map(n=>`<span class="node-chip nc-protein">🔩 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
-      ${edges.length?`<div class="section-label">// Relationship Edges</div>
+      ${genes.length?`<div class="section-lbl">Gene Nodes</div><div style="margin-bottom:16px">${genes.map(n=>`<span class="node-chip nc-gene">🧬 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
+      ${diseases.length?`<div class="section-lbl">Disease Nodes</div><div style="margin-bottom:16px">${diseases.map(n=>`<span class="node-chip nc-disease">🦠 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
+      ${proteins.length?`<div class="section-lbl">Protein Nodes</div><div style="margin-bottom:16px">${proteins.map(n=>`<span class="node-chip nc-protein">🔩 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
+      ${edges.length?`<div class="section-lbl">Relationships</div>
         ${edges.slice(0,15).map(e=>`
         <div class="edge-row">
           <span class="node-chip nc-gene" style="margin:0">🧬 ${esc(e.source)}</span>
-          <span class="edge-arrow">──${esc(e.relation||'ASSOCIATED_WITH')}──▶</span>
+          <span class="edge-arrow">── ${esc(e.relation||'ASSOCIATED_WITH')} ──▶</span>
           <span class="node-chip nc-disease" style="margin:0">🦠 ${esc(e.target)}</span>
           <span class="edge-conf">conf ${Math.round((e.confidence||0.7)*100)}%</span>
         </div>`).join('')}`:''}
@@ -1173,23 +1319,21 @@ function renderGraph(nodes, edges){
 function renderHypotheses(hyps, papers){
   if(!hyps.length){ qs('#tabHyp').innerHTML='<p style="color:var(--text3)">No hypotheses generated.</p>'; return }
 
-  // Build a PMID → paper lookup map
   const paperMap = {}
   ;(papers||[]).forEach(p=>{ if(p.pmid) paperMap[String(p.pmid)] = p })
 
   qs('#tabHyp').innerHTML = `
-    <div class="section-label" style="margin-bottom:18px">// ${hyps.length} novel hypotheses · ranked by confidence</div>
+    <div class="section-lbl">${hyps.length} hypotheses · ranked by confidence</div>
     ${hyps.map((h,i)=>{
       const status = h.status||'Exploratory'
       const badgeCls = {Strong:'b-str',Moderate:'b-mod',Exploratory:'b-exp'}[status]||'b-exp'
       const conf = Math.round(h.confidence||50)
       const cpCls = conf>=75?'cp-high':conf>=55?'cp-mid':'cp-low'
-      const cfill = conf>=75?'linear-gradient(90deg,#10b981,#34d399)':conf>=55?'linear-gradient(90deg,#d97706,#fbbf24)':'linear-gradient(90deg,#dc2626,#f87171)'
+      const cfill = conf>=75?'var(--green)':conf>=55?'var(--amber)':'var(--red)'
       const gTags = (h.genes||[]).map(g=>`<span class="tag tag-g">🧬 ${esc(g)}</span>`).join('')
       const pTag  = h.pathway?`<span class="tag tag-p">🔬 ${esc(h.pathway)}</span>`:''
       const eTags = `<span class="tag tag-e">📄 ${h.evidence_count||0} supporting papers</span>`
 
-      // Build PMID tooltip
       const pmidList = h.supporting_pmids||[]
       let mTag = ''
       if(pmidList.length){
@@ -1207,7 +1351,7 @@ function renderHypotheses(hyps, papers){
           <span class="tag tag-e pmid-tag">
             🔗 ${pmidList.length} PMIDs
             <div class="pmid-tooltip">
-              <div class="pmid-tooltip-title">Supporting Papers — hover to browse, click to open</div>
+              <div class="pmid-tooltip-title">Supporting Papers — click to open in PubMed</div>
               ${tooltipItems}
             </div>
           </span>`
@@ -1215,28 +1359,26 @@ function renderHypotheses(hyps, papers){
 
       return `
       <div class="hyp-card">
-        <div class="hyp-rank">#${i+1}</div>
+        <div class="hyp-rank">#${i+1} of ${hyps.length}</div>
         <div class="hyp-header">
           <span class="badge ${badgeCls}">${status}</span>
-          <span class="conf-pill ${cpCls}">⚡ ${conf}% confidence</span>
+          <span class="conf-pill ${cpCls}">${conf}% confidence</span>
         </div>
         <div class="hyp-title">${esc(h.title||'')}</div>
         <div class="hyp-stmt">${esc(h.statement||'')}</div>
         <div class="conf-track"><div class="conf-fill" style="width:${conf}%;background:${cfill}"></div></div>
         <div class="tag-row">${gTags}${pTag}${eTags}${mTag}</div>
-      </div>
-      <div class="dna-div">· · · · · · · · · · · · · ·</div>`
+      </div>`
     }).join('')}`
 }
 
-// Allow pressing Enter to run
 qs('#queryInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runPipeline() })
 
 // ── Modal ──
 function openModal(){
   qs('#modalOverlay').classList.add('open')
   document.body.style.overflow='hidden'
-  setTimeout(()=>qs('#queryInput').focus(),300)
+  setTimeout(()=>qs('#queryInput').focus(),250)
 }
 function closeModal(){
   qs('#modalOverlay').classList.remove('open')
@@ -1247,49 +1389,50 @@ function closeModalOutside(e){
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal() })
 
-// ── DNA Double Helix Canvas ──
+// ── FAQ accordion ──
+function toggleFaq(btn){
+  const item = btn.closest('.faq-item')
+  const isOpen = item.classList.contains('open')
+  // Close all
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'))
+  // Open clicked if it was closed
+  if(!isOpen) item.classList.add('open')
+}
+
+// ── DNA Double Helix Canvas (clean blue 3D style) ──
 ;(function(){
   const canvas = document.getElementById('dnaCanvas')
   if(!canvas) return
   const ctx = canvas.getContext('2d')
   const W = canvas.width, H = canvas.height
 
-  // Vivid nucleotide colors
-  const COLORS = [
-    '#ef4444','#f97316','#eab308','#22c55e',
-    '#3b82f6','#a855f7','#ec4899','#84cc16',
-    '#06b6d4','#f43f5e','#8b5cf6','#10b981'
+  // Clean blue palette like the reference image
+  const STRAND_A = '#5aabf8'  // lighter blue
+  const STRAND_B = '#2176e8'  // deeper blue
+  const RUNG_COLOR = '#93c5fd' // rung bars
+  const BALL_COLORS = [
+    '#3b82f6','#60a5fa','#2563eb','#93c5fd',
+    '#1d4ed8','#7dd3fc','#1e40af','#bfdbfe'
   ]
 
-  // Fixed color per rung position so they don't flicker
-  const RUNG_COUNT = 18
-  const rungColors1 = Array.from({length:RUNG_COUNT},(_,i)=>COLORS[i%COLORS.length])
-  const rungColors2 = Array.from({length:RUNG_COUNT},(_,i)=>COLORS[(i+5)%COLORS.length])
+  const RUNG_COUNT = 16
+  const rungColorsA = Array.from({length:RUNG_COUNT},(_,i)=>BALL_COLORS[i%BALL_COLORS.length])
+  const rungColorsB = Array.from({length:RUNG_COUNT},(_,i)=>BALL_COLORS[(i+3)%BALL_COLORS.length])
 
-  let phase = 0  // animation phase
-
-  // Helix geometry
-  const AMP   = 72    // horizontal amplitude of each strand
-  const FREQ  = 0.045 // spatial frequency (radians per pixel of Y)
-  const TILTX = 0     // no tilt — straight vertical helix
+  let phase = 0
+  const AMP  = 64
+  const FREQ = 0.048
 
   function sphere(x, y, r, color){
-    // Bright 3D sphere with highlight
-    const g = ctx.createRadialGradient(x-r*0.35, y-r*0.38, r*0.04, x+r*0.1, y+r*0.1, r*1.05)
+    const g = ctx.createRadialGradient(x-r*0.3, y-r*0.35, r*0.05, x+r*0.1, y+r*0.1, r*1.0)
     g.addColorStop(0.0, '#ffffff')
-    g.addColorStop(0.18, lighten(color, 0.55))
-    g.addColorStop(0.55, color)
-    g.addColorStop(1.0,  darken(color, 0.55))
+    g.addColorStop(0.2, lighten(color, 0.4))
+    g.addColorStop(0.6, color)
+    g.addColorStop(1.0, darken(color, 0.4))
     ctx.beginPath()
     ctx.arc(x, y, r, 0, Math.PI*2)
     ctx.fillStyle = g
     ctx.fill()
-    // outer glow ring
-    ctx.beginPath()
-    ctx.arc(x, y, r+1, 0, Math.PI*2)
-    ctx.strokeStyle = color + '66'
-    ctx.lineWidth = 2
-    ctx.stroke()
   }
 
   function lighten(hex, a){
@@ -1304,134 +1447,69 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal() })
   function draw(){
     ctx.clearRect(0,0,W,H)
 
-    // Sample points along Y axis for the two sine strands
-    // Strand A: sin(y*freq + phase),  Strand B: sin(y*freq + phase + PI)
-    // Diagonal lean: x_center shifts with y
-    const steps = 200
+    const steps = 180
     const ptsA = [], ptsB = []
-
     for(let s=0; s<=steps; s++){
       const y  = (s/steps)*H
-      const cx = W/2 + (y - H/2)*TILTX          // diagonal lean
-      const xA = cx + Math.sin(y*FREQ + phase)*AMP
-      const xB = cx - Math.sin(y*FREQ + phase)*AMP  // opposite strand
+      const xA = W/2 + Math.sin(y*FREQ + phase)*AMP
+      const xB = W/2 - Math.sin(y*FREQ + phase)*AMP
       ptsA.push([xA, y])
       ptsB.push([xB, y])
     }
 
-    // Draw backbone strands as smooth curves (BEHIND balls)
+    // Draw backbone strands
     function drawStrand(pts, color){
       ctx.beginPath()
       ctx.moveTo(pts[0][0], pts[0][1])
       for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1])
       ctx.strokeStyle = color
-      ctx.lineWidth = 3
+      ctx.lineWidth = 3.5
       ctx.lineJoin = 'round'
+      ctx.globalAlpha = 0.7
       ctx.stroke()
+      ctx.globalAlpha = 1
     }
-    drawStrand(ptsA, 'rgba(56,189,248,0.35)')
-    drawStrand(ptsB, 'rgba(168,85,247,0.35)')
+    drawStrand(ptsA, STRAND_A)
+    drawStrand(ptsB, STRAND_B)
 
-    // Draw rungs + balls — place one rung every H/RUNG_COUNT pixels
-    const rungItems = []  // collect for depth sort
-
+    // Draw rungs and balls
+    const rungItems = []
     for(let i=0; i<RUNG_COUNT; i++){
       const y  = (i+0.5)/RUNG_COUNT * H
-      const cx = W/2 + (y - H/2)*TILTX
-      const xA = cx + Math.sin(y*FREQ + phase)*AMP
-      const xB = cx - Math.sin(y*FREQ + phase)*AMP
-      // depth = sin value tells us which strand is in front
+      const xA = W/2 + Math.sin(y*FREQ + phase)*AMP
+      const xB = W/2 - Math.sin(y*FREQ + phase)*AMP
       const sinV = Math.sin(y*FREQ + phase)
-      const depthA =  sinV   // +1 = front
+      const depthA =  sinV
       const depthB = -sinV
-
-      // Ball size scales with depth (perspective)
-      const rA = 8 + 3.5*(depthA+1)/2
-      const rB = 8 + 3.5*(depthB+1)/2
-
-      rungItems.push({y, xA, xB, yA:y, yB:y, depthA, depthB,
-        rA, rB, cA:rungColors1[i], cB:rungColors2[i]})
+      const rA = 7 + 3*(depthA+1)/2
+      const rB = 7 + 3*(depthB+1)/2
+      rungItems.push({y, xA, xB, depthA, depthB, rA, rB, cA:rungColorsA[i], cB:rungColorsB[i]})
     }
 
-    // Sort rungs by their midpoint depth so front rungs draw last
+    // Rungs
     rungItems.forEach(r=>{
-      // Draw rung line first (behind balls)
-      const midDepth = (r.depthA+r.depthB)/2
-      const alpha = 0.25 + 0.45*Math.abs(Math.sin(r.y*r.y))  // vary opacity
       ctx.beginPath()
-      ctx.moveTo(r.xA, r.yA)
-      ctx.lineTo(r.xB, r.yB)
-      ctx.strokeStyle = `rgba(200,210,255,${0.3 + 0.3*Math.abs(midDepth)})`
+      ctx.moveTo(r.xA, r.y)
+      ctx.lineTo(r.xB, r.y)
+      ctx.strokeStyle = RUNG_COLOR
       ctx.lineWidth = 2
-      ctx.lineCap = 'round'
+      ctx.globalAlpha = 0.5
       ctx.stroke()
+      ctx.globalAlpha = 1
     })
 
-    // Draw balls depth-sorted per rung
+    // Balls depth-sorted
     rungItems.forEach(r=>{
-      // Paint back ball first, front ball on top
       if(r.depthA <= r.depthB){
-        sphere(r.xA, r.yA, r.rA, r.cA)
-        sphere(r.xB, r.yB, r.rB, r.cB)
+        sphere(r.xA, r.y, r.rA, r.cA)
+        sphere(r.xB, r.y, r.rB, r.cB)
       } else {
-        sphere(r.xB, r.yB, r.rB, r.cB)
-        sphere(r.xA, r.yA, r.rA, r.cA)
+        sphere(r.xB, r.y, r.rB, r.cB)
+        sphere(r.xA, r.y, r.rA, r.cA)
       }
     })
 
-    phase += 0.022   // rotation speed
-    requestAnimationFrame(draw)
-  }
-
-  draw()
-})()
-
-// ── Floating Particle Background ──
-;(function(){
-  const canvas = document.getElementById('particleCanvas')
-  const ctx = canvas.getContext('2d')
-  const COLORS = ['#38bdf8','#c084fc','#34d399','#fbbf24','#f472b6','#2dd4bf']
-  const SYMBOLS = ['A','T','G','C','🧬','○','◇','⬡']
-  let W, H, particles = []
-
-  function resize(){
-    W = canvas.width  = window.innerWidth
-    H = canvas.height = window.innerHeight
-  }
-  window.addEventListener('resize', resize)
-  resize()
-
-  function rand(a,b){ return Math.random()*(b-a)+a }
-
-  function createParticle(){
-    return {
-      x: rand(0,W), y: rand(0,H),
-      vx: rand(-0.3,0.3), vy: rand(-0.5,-0.1),
-      size: rand(8,14),
-      color: COLORS[Math.floor(Math.random()*COLORS.length)],
-      symbol: SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)],
-      alpha: rand(0.2,0.5),
-      life: rand(0,1)
-    }
-  }
-
-  for(let i=0;i<55;i++) particles.push(createParticle())
-
-  function draw(){
-    ctx.clearRect(0,0,W,H)
-    particles.forEach(p=>{
-      p.life += 0.003
-      p.x += p.vx
-      p.y += p.vy
-      const a = p.alpha * Math.sin(p.life * Math.PI)
-      if(p.y < -20 || p.life >= 1){ Object.assign(p, createParticle(), {y:H+10, life:0}) }
-      ctx.save()
-      ctx.globalAlpha = Math.max(0, a)
-      ctx.font = `${p.size}px JetBrains Mono, monospace`
-      ctx.fillStyle = p.color
-      ctx.fillText(p.symbol, p.x, p.y)
-      ctx.restore()
-    })
+    phase += 0.020
     requestAnimationFrame(draw)
   }
   draw()
