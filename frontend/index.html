@@ -113,9 +113,43 @@ nav{
 /* ── DNA Panel ── */
 .dna-panel{
   display:flex;align-items:center;justify-content:center;
-  position:relative;
+  position:relative;min-height:380px;width:100%;
 }
-#dnaCanvas{display:block;max-width:100%}
+.dna-helix{
+  position:relative;width:180px;height:380px;flex-shrink:0;
+}
+.dna-strand{
+  position:absolute;left:0;top:0;width:100%;height:100%;
+  border-radius:50%;
+}
+.strand-a{
+  border:4px solid transparent;
+  border-left:4px solid #3b82f6;
+  border-right:4px solid #3b82f6;
+  animation:rotateA 3s linear infinite;
+  box-shadow:-2px 0 16px rgba(59,130,246,0.3),2px 0 16px rgba(59,130,246,0.3);
+}
+.strand-b{
+  border:4px solid transparent;
+  border-top:4px solid #60a5fa;
+  border-bottom:4px solid #60a5fa;
+  animation:rotateB 3s linear infinite;
+  box-shadow:0 -2px 16px rgba(96,165,250,0.3),0 2px 16px rgba(96,165,250,0.3);
+}
+@keyframes rotateA{from{transform:rotateY(0deg) rotateX(20deg)}to{transform:rotateY(360deg) rotateX(20deg)}}
+@keyframes rotateB{from{transform:rotateY(90deg) rotateX(20deg)}to{transform:rotateY(450deg) rotateX(20deg)}}
+.dna-rungs{
+  position:absolute;left:0;top:0;width:100%;height:100%;
+}
+.dna-rung{
+  position:absolute;left:10%;width:80%;height:3px;
+  border-radius:3px;transform-origin:center center;
+  animation:rungSpin 3s linear infinite;
+}
+@keyframes rungSpin{
+  from{transform:rotateY(0deg)}
+  to{transform:rotateY(360deg)}
+}
 
 /* ── Section divider ── */
 .section-divider{
@@ -760,7 +794,11 @@ nav{
       </div>
     </div>
     <div class="dna-panel">
-      <canvas id="dnaCanvas" width="260" height="420" style="display:block;max-width:100%"></canvas>
+      <div class="dna-helix">
+        <div class="dna-strand strand-a"></div>
+        <div class="dna-strand strand-b"></div>
+        <div class="dna-rungs" id="dnaRungs"></div>
+      </div>
     </div>
   </div>
 
@@ -1162,120 +1200,21 @@ function toggleFaq(btn){
   if(!isOpen) item.classList.add('open')
 }
 
-// ── DNA Double Helix Canvas (clean blue 3D style) ──
+// ── DNA Double Helix (CSS + JS, no canvas) ──
 ;(function(){
-  const canvas = document.getElementById('dnaCanvas')
-  if(!canvas) return
-  const ctx = canvas.getContext('2d')
-  const W = canvas.width, H = canvas.height
-
-  // Clean blue palette like the reference image
-  const STRAND_A = '#5aabf8'  // lighter blue
-  const STRAND_B = '#2176e8'  // deeper blue
-  const RUNG_COLOR = '#93c5fd' // rung bars
-  const BALL_COLORS = [
-    '#3b82f6','#60a5fa','#2563eb','#93c5fd',
-    '#1d4ed8','#7dd3fc','#1e40af','#bfdbfe'
-  ]
-
-  const RUNG_COUNT = 16
-  const rungColorsA = Array.from({length:RUNG_COUNT},(_,i)=>BALL_COLORS[i%BALL_COLORS.length])
-  const rungColorsB = Array.from({length:RUNG_COUNT},(_,i)=>BALL_COLORS[(i+3)%BALL_COLORS.length])
-
-  let phase = 0
-  const AMP  = 64
-  const FREQ = 0.048
-
-  function sphere(x, y, r, color){
-    const g = ctx.createRadialGradient(x-r*0.3, y-r*0.35, r*0.05, x+r*0.1, y+r*0.1, r*1.0)
-    g.addColorStop(0.0, '#ffffff')
-    g.addColorStop(0.2, lighten(color, 0.4))
-    g.addColorStop(0.6, color)
-    g.addColorStop(1.0, darken(color, 0.4))
-    ctx.beginPath()
-    ctx.arc(x, y, r, 0, Math.PI*2)
-    ctx.fillStyle = g
-    ctx.fill()
+  const container = document.getElementById('dnaRungs')
+  if(!container) return
+  const COLORS = ['#3b82f6','#60a5fa','#2563eb','#93c5fd','#1d4ed8','#7dd3fc','#1e40af','#bfdbfe']
+  const N = 14
+  for(let i=0;i<N;i++){
+    const rung = document.createElement('div')
+    rung.className = 'dna-rung'
+    const pct = (i+0.5)/N*100
+    const color = COLORS[i%COLORS.length]
+    const delay = -(i/N)*3  // stagger so rungs appear at all angles
+    rung.style.cssText = `top:${pct}%;background:linear-gradient(90deg,${color},${COLORS[(i+3)%COLORS.length]});animation-delay:${delay}s;opacity:0.85`
+    container.appendChild(rung)
   }
-
-  function lighten(hex, a){
-    const n=parseInt(hex.slice(1),16)
-    return `rgb(${Math.min(255,(n>>16)+~~(255*a))},${Math.min(255,((n>>8)&255)+~~(255*a))},${Math.min(255,(n&255)+~~(255*a))})`
-  }
-  function darken(hex, a){
-    const n=parseInt(hex.slice(1),16)
-    return `rgb(${Math.max(0,(n>>16)-~~(255*a))},${Math.max(0,((n>>8)&255)-~~(255*a))},${Math.max(0,(n&255)-~~(255*a))})`
-  }
-
-  function draw(){
-    ctx.clearRect(0,0,W,H)
-
-    const steps = 180
-    const ptsA = [], ptsB = []
-    for(let s=0; s<=steps; s++){
-      const y  = (s/steps)*H
-      const xA = W/2 + Math.sin(y*FREQ + phase)*AMP
-      const xB = W/2 - Math.sin(y*FREQ + phase)*AMP
-      ptsA.push([xA, y])
-      ptsB.push([xB, y])
-    }
-
-    // Draw backbone strands
-    function drawStrand(pts, color){
-      ctx.beginPath()
-      ctx.moveTo(pts[0][0], pts[0][1])
-      for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1])
-      ctx.strokeStyle = color
-      ctx.lineWidth = 3.5
-      ctx.lineJoin = 'round'
-      ctx.globalAlpha = 0.7
-      ctx.stroke()
-      ctx.globalAlpha = 1
-    }
-    drawStrand(ptsA, STRAND_A)
-    drawStrand(ptsB, STRAND_B)
-
-    // Draw rungs and balls
-    const rungItems = []
-    for(let i=0; i<RUNG_COUNT; i++){
-      const y  = (i+0.5)/RUNG_COUNT * H
-      const xA = W/2 + Math.sin(y*FREQ + phase)*AMP
-      const xB = W/2 - Math.sin(y*FREQ + phase)*AMP
-      const sinV = Math.sin(y*FREQ + phase)
-      const depthA =  sinV
-      const depthB = -sinV
-      const rA = 7 + 3*(depthA+1)/2
-      const rB = 7 + 3*(depthB+1)/2
-      rungItems.push({y, xA, xB, depthA, depthB, rA, rB, cA:rungColorsA[i], cB:rungColorsB[i]})
-    }
-
-    // Rungs
-    rungItems.forEach(r=>{
-      ctx.beginPath()
-      ctx.moveTo(r.xA, r.y)
-      ctx.lineTo(r.xB, r.y)
-      ctx.strokeStyle = RUNG_COLOR
-      ctx.lineWidth = 2
-      ctx.globalAlpha = 0.5
-      ctx.stroke()
-      ctx.globalAlpha = 1
-    })
-
-    // Balls depth-sorted
-    rungItems.forEach(r=>{
-      if(r.depthA <= r.depthB){
-        sphere(r.xA, r.y, r.rA, r.cA)
-        sphere(r.xB, r.y, r.rB, r.cB)
-      } else {
-        sphere(r.xB, r.y, r.rB, r.cB)
-        sphere(r.xA, r.y, r.rA, r.cA)
-      }
-    })
-
-    phase += 0.020
-    requestAnimationFrame(draw)
-  }
-  draw()
 })()
 </script>
 </body>
