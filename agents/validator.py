@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 from models.schemas import Hypothesis
 
 NEGATIVE_CONTEXT = [
@@ -82,10 +83,6 @@ class ValidatorAgent:
             if any(kw in statement_lower for kw in keywords):
                 found.extend(keywords)
 
-        # Also add individual words from the pathway as fallback
-        pathway_words = [w for w in statement_lower.split() if len(w) > 4]
-        found.extend(pathway_words[:3])
-
         return list(set(found)) if found else []
 
     def _score_paper(self, text: str, genes: list[str],
@@ -101,17 +98,16 @@ class ValidatorAgent:
         """
         score = 0
 
-        # Check 1 — gene must be present
-        gene_found = any(g in text for g in genes)
+        # Check 1 — gene must be present as a whole word
+        gene_found = any(re.search(r'\b' + re.escape(g) + r'\b', text) for g in genes)
         if not gene_found:
             return 0
         score += 1
 
-        # Check 2 — disease OR pathway mentioned (either is fine)
+        # Check 2 — disease keyword must match (pathway alone not enough)
         disease_found = any(d in text for d in disease_kws) if disease_kws else False
-        pathway_found = any(w in text for w in pathway.split() if len(w) > 4)
 
-        if disease_found or pathway_found:
+        if disease_found:
             score += 1
 
         # Check 3 — relationship keyword
