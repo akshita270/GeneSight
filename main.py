@@ -20,9 +20,7 @@ from config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Preloading agents...")
-    ExtractionAgent()  # triggers spaCy model load
-    print("All agents ready!")
+    print("GeneSight API starting up...")
     yield
     print("Shutting down...")
 

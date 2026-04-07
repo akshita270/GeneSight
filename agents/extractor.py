@@ -68,22 +68,29 @@ def is_valid_gene(text):
     return True
 
 
-# Load model once at startup
-print("Loading spaCy biomedical NER model...")
-_NLP = spacy.load("en_ner_bc5cdr_md")
-print("spaCy model loaded.")
+# Lazy-load model — only when first query runs (saves memory on startup)
+_NLP = None
+
+def _get_nlp():
+    global _NLP
+    if _NLP is None:
+        print("Loading spaCy biomedical NER model...")
+        _NLP = spacy.load("en_ner_bc5cdr_md")
+        print("spaCy model loaded.")
+    return _NLP
 
 
 class ExtractionAgent:
     def __init__(self):
-        self.nlp = _NLP
+        pass  # don't load model here — load on first use
 
     async def run(self, papers):
+        nlp = _get_nlp()
         genes, diseases, proteins = set(), set(), set()
 
         for p in papers:
             text = p.get("title", "") + " " + p.get("abstract", "")
-            doc = self.nlp(text)
+            doc = nlp(text)
 
             for ent in doc.ents:
                 val = ent.text.strip()
