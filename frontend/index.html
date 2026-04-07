@@ -296,6 +296,38 @@ nav{
 .modal-title{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:5px}
 .modal-sub{font-size:13px;color:var(--text3)}
 
+/* ── Modal Pipeline View ── */
+.modal-pipeline{display:none}
+.modal-pipeline.visible{display:block}
+.modal-query-input-wrap{display:block}
+.modal-query-input-wrap.hidden{display:none}
+.modal-pl-query{
+  font-size:13px;font-weight:600;color:var(--text2);
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;margin-bottom:20px;
+  display:flex;align-items:center;gap:8px;
+}
+.modal-pl-query-icon{font-size:14px}
+.modal-pl-progress-track{width:100%;height:6px;background:var(--bg3);border-radius:6px;margin-bottom:10px;overflow:hidden}
+.modal-pl-progress-fill{height:100%;background:var(--blue);border-radius:6px;transition:width .4s ease}
+.modal-pl-status{font-size:13px;color:var(--text2);margin-bottom:16px;min-height:20px}
+.modal-pl-status .s-active{color:var(--blue);font-weight:600}
+.modal-agent-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
+.modal-done-banner{
+  background:var(--green-light);border:1px solid #bbf7d0;
+  border-radius:12px;padding:18px 20px;text-align:center;display:none;
+}
+.modal-done-banner.visible{display:block}
+.modal-done-title{font-size:16px;font-weight:700;color:var(--green);margin-bottom:6px}
+.modal-done-sub{font-size:13px;color:var(--text2);margin-bottom:14px}
+.modal-view-btn{
+  padding:11px 28px;font-size:14px;font-weight:600;
+  background:var(--blue);color:#fff;border:none;border-radius:8px;
+  cursor:pointer;font-family:var(--sans);
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);transition:all .15s;
+}
+.modal-view-btn:hover{background:var(--blue-dark);transform:translateY(-1px)}
+
 /* ── Query Input ── */
 .input-wrap{position:relative;margin-bottom:16px}
 .input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
@@ -1050,14 +1082,6 @@ nav{
   </div>
 
 
-  <!-- ── Pipeline tracker ── -->
-  <div class="pipeline-card" id="pipelineCard">
-    <div class="pl-header">Pipeline executing</div>
-    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    <div class="status-txt" id="statusTxt">Initialising…</div>
-    <div class="agent-grid" id="agentGrid"></div>
-  </div>
-
   <!-- ── Summary ── -->
   <div class="summary-card" id="summaryCard">
     <div class="summary-lbl">AI Research Summary</div>
@@ -1095,29 +1119,57 @@ nav{
 <!-- ── Research Query Modal ── -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
   <div class="modal-box" id="modalBox">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-header">
-      <div class="modal-eyebrow">GeneSight · Research Query</div>
-      <div class="modal-title">What do you want to discover?</div>
-      <div class="modal-sub">Enter any gene, disease, or biological pathway below</div>
+    <button class="modal-close" id="modalCloseBtn" onclick="closeModal()">✕</button>
+
+    <!-- Step 1: Query Input -->
+    <div id="modalQueryView">
+      <div class="modal-header">
+        <div class="modal-eyebrow">GeneSight · Research Query</div>
+        <div class="modal-title">What do you want to discover?</div>
+        <div class="modal-sub">Enter any gene, disease, or biological pathway below</div>
+      </div>
+      <div class="input-wrap">
+        <span class="input-icon">🧬</span>
+        <input id="queryInput" class="query-input" type="text"
+          placeholder="e.g. BRCA1 BRCA2 role in breast cancer DNA repair mechanisms…"/>
+      </div>
+      <div class="ex-label">Try an example — click to fill</div>
+      <div class="ex-row">
+        <button class="ex-btn" onclick="setQuery(this)">Alzheimer's disease gene networks</button>
+        <button class="ex-btn" onclick="setQuery(this)">BRCA1 breast cancer pathways</button>
+        <button class="ex-btn" onclick="setQuery(this)">Type 2 diabetes immune genes</button>
+        <button class="ex-btn" onclick="setQuery(this)">Parkinson's neuroinflammation</button>
+        <button class="ex-btn" onclick="setQuery(this)">ALS motor neuron gene associations</button>
+      </div>
+      <div class="error-box" id="errorBox"></div>
+      <div class="run-btn-wrap">
+        <button id="runBtn" class="run-btn" onclick="runPipeline()">Generate Hypotheses →</button>
+      </div>
     </div>
-    <div class="input-wrap">
-      <span class="input-icon">🧬</span>
-      <input id="queryInput" class="query-input" type="text"
-        placeholder="e.g. BRCA1 BRCA2 role in breast cancer DNA repair mechanisms…"/>
+
+    <!-- Step 2: Pipeline Progress (shown after submit) -->
+    <div id="modalPipelineView" style="display:none">
+      <div class="modal-header" style="margin-bottom:16px">
+        <div class="modal-eyebrow">GeneSight · Running Pipeline</div>
+        <div class="modal-title" style="font-size:18px" id="modalPLTitle">Analysing your query…</div>
+      </div>
+      <div class="modal-pl-query">
+        <span class="modal-pl-query-icon">🧬</span>
+        <span id="modalPLQueryText"></span>
+      </div>
+      <div class="modal-pl-progress-track">
+        <div class="modal-pl-progress-fill" id="modalProgressFill" style="width:0%"></div>
+      </div>
+      <div class="modal-pl-status" id="modalStatusTxt">Initialising…</div>
+      <div class="modal-agent-grid" id="modalAgentGrid"></div>
+      <div class="modal-done-banner" id="modalDoneBanner">
+        <div class="modal-done-title">✓ Analysis complete!</div>
+        <div class="modal-done-sub">Your hypotheses, literature, and knowledge graph are ready</div>
+        <button class="modal-view-btn" onclick="viewResults()">View Results ↓</button>
+      </div>
+      <div class="error-box" id="modalErrorBox"></div>
     </div>
-    <div class="ex-label">Try an example — click to fill</div>
-    <div class="ex-row">
-      <button class="ex-btn" onclick="setQuery(this)">Alzheimer's disease gene networks</button>
-      <button class="ex-btn" onclick="setQuery(this)">BRCA1 breast cancer pathways</button>
-      <button class="ex-btn" onclick="setQuery(this)">Type 2 diabetes immune genes</button>
-      <button class="ex-btn" onclick="setQuery(this)">Parkinson's neuroinflammation</button>
-      <button class="ex-btn" onclick="setQuery(this)">ALS motor neuron gene associations</button>
-    </div>
-    <div class="error-box" id="errorBox"></div>
-    <div class="run-btn-wrap">
-      <button id="runBtn" class="run-btn" onclick="runPipeline()">Generate Hypotheses →</button>
-    </div>
+
   </div>
 </div>
 
@@ -1143,37 +1195,42 @@ function switchTab(idx){
 function showError(msg){ const el=qs('#errorBox'); el.textContent='⚠ '+msg; show(el) }
 function hideError(){ hide(qs('#errorBox')) }
 
-// ── Pipeline UI ──
-function renderAgents(currentName){
+// ── Pipeline UI (inside modal) ──
+function renderModalAgents(currentName){
   const idx = AGENTS.findIndex(a=>a[1]===currentName)
-  qs('#agentGrid').innerHTML = AGENTS.map(([icon,name],i)=>{
+  qs('#modalAgentGrid').innerHTML = AGENTS.map(([icon,name],i)=>{
     let cls='chip-pending', dot=''
     if(i<idx){cls='chip-done';dot='✓ '}
     else if(i===idx){cls='chip-active';dot='▶ '}
     return `<span class="agent-chip ${cls}">${dot}${icon} ${name}</span>`
   }).join('')
 }
-function updateProgress(idx){
-  qs('#progressFill').style.width = `${Math.round((idx+1)/AGENTS.length*100)}%`
-}
+
+let _pendingResult = null
 
 // ── Main pipeline ──
 async function runPipeline(){
   const query = qs('#queryInput').value.trim()
   if(!query){ showError('Please enter a research query.'); return }
   hideError()
-  closeModal()
 
-  const btn = qs('#runBtn')
-  btn.disabled = true; btn.textContent = 'Running…'
+  // Switch modal to pipeline view
+  qs('#modalQueryView').style.display = 'none'
+  qs('#modalPipelineView').style.display = 'block'
+  qs('#modalCloseBtn').style.display = 'none'
+  qs('#modalPLQueryText').textContent = query
+  qs('#modalProgressFill').style.width = '0%'
+  qs('#modalStatusTxt').textContent = 'Initialising…'
+  qs('#modalPLTitle').textContent = 'Analysing your query…'
+  qs('#modalDoneBanner').classList.remove('visible')
+  hide(qs('#modalErrorBox'))
+  renderModalAgents('')
+  _pendingResult = null
 
-  show(qs('#pipelineCard'))
+  // Reset results area
   hide(qs('#summaryCard'))
   hide(qs('#metricRow'))
   hide(qs('#tabsWrap'))
-  qs('#progressFill').style.width='0%'
-  qs('#statusTxt').textContent='Initialising…'
-  renderAgents('')
 
   let job_id
   try{
@@ -1185,8 +1242,8 @@ async function runPipeline(){
     if(!r.ok) throw new Error(`HTTP ${r.status}`)
     job_id = (await r.json()).job_id
   }catch(e){
-    showError(`Could not reach backend: ${e.message}`)
-    btn.disabled=false; btn.textContent='Generate Hypotheses →'; return
+    showModalError(`Could not reach backend: ${e.message}`)
+    resetModal(); return
   }
 
   while(true){
@@ -1194,38 +1251,64 @@ async function runPipeline(){
     let s
     try{
       s = await (await fetch(`${API_URL}/status/${job_id}`)).json()
-    }catch(e){ showError(`Polling error: ${e.message}`); break }
+    }catch(e){ showModalError(`Polling error: ${e.message}`); break }
 
     const {status, current_agent, error} = s
     const agentIdx = AGENTS.findIndex(a=>a[1]===current_agent)
-    updateProgress(agentIdx>=0?agentIdx:0)
-    qs('#statusTxt').innerHTML = `Running: <span class="s-active">${current_agent||'…'}</span>`
-    renderAgents(current_agent||'')
+    qs('#modalProgressFill').style.width = `${Math.round(((agentIdx>=0?agentIdx:0)+1)/AGENTS.length*100)}%`
+    qs('#modalStatusTxt').innerHTML = `Running: <span class="s-active">${current_agent||'…'}</span>`
+    renderModalAgents(current_agent||'')
 
     if(status==='done'){
-      qs('#progressFill').style.width='100%'
-      qs('#statusTxt').innerHTML='<span class="s-active">✓ All agents complete — loading results…</span>'
-      qs('#agentGrid').innerHTML = AGENTS.map(([icon,name])=>
+      qs('#modalProgressFill').style.width='100%'
+      qs('#modalStatusTxt').innerHTML='<span class="s-active">✓ All 8 agents complete!</span>'
+      qs('#modalAgentGrid').innerHTML = AGENTS.map(([icon,name])=>
         `<span class="agent-chip chip-done">✓ ${icon} ${name}</span>`
       ).join('')
+      qs('#modalPLTitle').textContent = 'Pipeline complete 🎉'
       break
     }
     if(status==='error'){
-      showError(error||'Unknown pipeline error')
-      btn.disabled=false; btn.textContent='Generate Hypotheses →'; return
+      showModalError(error||'Unknown pipeline error')
+      resetModal(); return
     }
   }
 
-  let result
+  // Fetch results
   try{
     const res = await fetch(`${API_URL}/result/${job_id}`)
     if(!res.ok) throw new Error(`Server returned ${res.status}`)
-    result = await res.json()
+    const result = await res.json()
     if(!result || typeof result !== 'object') throw new Error('Empty response from server')
-  }catch(e){ showError(`Failed to fetch results: ${e.message}`); btn.disabled=false; btn.textContent='Generate Hypotheses →'; return }
+    _pendingResult = result
+    // Show done banner
+    qs('#modalDoneBanner').classList.add('visible')
+  }catch(e){
+    showModalError(`Failed to fetch results: ${e.message}`)
+    resetModal()
+  }
+}
 
-  renderResults(result)
-  btn.disabled=false; btn.textContent='Generate Hypotheses →'
+function viewResults(){
+  if(_pendingResult) renderResults(_pendingResult)
+  closeModal()
+  // Scroll to results
+  setTimeout(()=>{
+    const el = qs('#summaryCard') || qs('#metricRow') || qs('#tabsWrap')
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'})
+  }, 150)
+}
+
+function showModalError(msg){
+  const el = qs('#modalErrorBox')
+  el.textContent = '⚠ ' + msg
+  show(el)
+}
+
+function resetModal(){
+  qs('#runBtn').disabled = false
+  qs('#runBtn').textContent = 'Generate Hypotheses →'
+  qs('#modalCloseBtn').style.display = 'flex'
 }
 
 // ── Render Results ──
@@ -1376,11 +1459,23 @@ qs('#queryInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runPipeli
 
 // ── Modal ──
 function openModal(){
+  // Reset to query view
+  qs('#modalQueryView').style.display = 'block'
+  qs('#modalPipelineView').style.display = 'none'
+  qs('#modalCloseBtn').style.display = 'flex'
+  qs('#runBtn').disabled = false
+  qs('#runBtn').textContent = 'Generate Hypotheses →'
+  hideError()
   qs('#modalOverlay').classList.add('open')
   document.body.style.overflow='hidden'
   setTimeout(()=>qs('#queryInput').focus(),250)
 }
 function closeModal(){
+  // Only allow close if not mid-run (pipeline view without done banner)
+  const pipelineVisible = qs('#modalPipelineView').style.display !== 'none'
+  const doneVisible = qs('#modalDoneBanner').classList.contains('visible')
+  const errorVisible = qs('#modalErrorBox').classList.contains('visible')
+  if(pipelineVisible && !doneVisible && !errorVisible) return // block close while running
   qs('#modalOverlay').classList.remove('open')
   document.body.style.overflow=''
 }
