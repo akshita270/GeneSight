@@ -123,41 +123,38 @@ PAPERS:
         self, count: int, total: int, gpt_prior: float
     ) -> tuple[float, str]:
         """
-        Blend GPT's scientific prior (40%) with real evidence ratio (60%).
+        Confidence is determined PURELY by paper count — strictly monotonic.
+        More papers always = higher confidence, regardless of GPT prior.
 
-        Evidence score scale:
-          0 papers  →  0
-          1 paper   →  30
-          2-3       →  45 + ratio*20
-          4-7       →  60 + ratio*20
-          8+        →  75 + ratio*10
+        GPT prior only acts as a small tiebreaker (±4 pts) within each band
+        so hypotheses with equal paper counts are ordered sensibly.
 
-        Status bands:
-          0 papers            → Exploratory, conf 10–40
-          1-2 papers          → Exploratory, conf 35–64
-          3-6 papers          → Moderate,    conf 55–79
-          7+  papers          → Strong,       conf 70–95
+        Scale (count → base confidence):
+          0  →  15   Exploratory
+          1  →  38   Exploratory
+          2  →  48   Exploratory
+          3  →  58   Moderate
+          4  →  65   Moderate
+          5  →  70   Moderate
+          6  →  75   Moderate
+          7  →  80   Strong
+          8  →  84   Strong
+          9  →  88   Strong
+          10+ →  92   Strong
         """
-        ratio = count / total if total > 0 else 0.0
+        BASE = {0: 15, 1: 38, 2: 48, 3: 58, 4: 65,
+                5: 70, 6: 75, 7: 80, 8: 84, 9: 88}
+        base = BASE.get(count, 92 if count >= 10 else 15)
+
+        # GPT prior maps 50–90 → -4..+4 tiebreaker
+        tiebreak = round((gpt_prior - 70) / 20 * 4)  # normalise around 70
+        conf = float(max(10, min(95, base + tiebreak)))
 
         if count == 0:
-            evidence_score = 0.0
-        elif count == 1:
-            evidence_score = 30.0
-        elif count <= 3:
-            evidence_score = 45.0 + ratio * 20
-        elif count <= 7:
-            evidence_score = 60.0 + ratio * 20
-        else:
-            evidence_score = 75.0 + ratio * 10
-
-        blended = 0.40 * gpt_prior + 0.60 * evidence_score
-
-        if count == 0:
-            return float(max(10, min(40,  blended))), "Exploratory"
+            return conf, "Exploratory"
         elif count <= 2:
-            return float(max(35, min(64,  blended))), "Exploratory"
+            return conf, "Exploratory"
         elif count <= 6:
-            return float(max(55, min(79,  blended))), "Moderate"
+            return conf, "Moderate"
         else:
-            return float(max(70, min(95,  blended))), "Strong"
+            return conf, "Strong"

@@ -28,16 +28,19 @@ Recent literature abstracts (top 3):
 {abstracts}
 
 Generate {n} novel gene-disease hypotheses.
-Rules:
-- Use ONLY real human gene symbols found in the genes list above (e.g. TREM2, APOE, BIN1, BRCA1, TP53).
-- Each hypothesis MUST include exactly 2 genes from the genes list — this allows evidence validation.
-- Each hypothesis must be distinct — use different gene pairs.
-- confidence: integer 50-90 reflecting how plausible the hypothesis is scientifically.
-You MUST respond ONLY with a raw JSON array. No markdown. No backticks. No explanation.
-Each object must have: title, statement, genes (array of 2), pathway, confidence.
+STRICT RULES — follow exactly:
+1. genes field: pick exactly 2 symbols from the Genes list above. Use them EXACTLY as written.
+   REJECT any symbol that is: an abbreviation (RAS, VIP, CP, NF), a pathway name, a disease name,
+   or not a standard HGNC gene symbol. Valid examples: TREM2, APOE, BRCA1, TP53, EGFR, PTEN, KRAS.
+2. Each hypothesis must use a DIFFERENT pair of genes — no repeated genes across hypotheses.
+3. statement: 1-2 sentences describing the specific molecular mechanism linking those 2 genes to the disease.
+4. confidence: integer 50-90 reflecting scientific plausibility.
+5. pathway: the specific biological pathway (e.g. "PI3K/AKT Signaling", "DNA Damage Response").
+You MUST respond ONLY with a raw JSON array. No markdown, no backticks, no extra text.
+Each object must have exactly: title, statement, genes (array of exactly 2), pathway, confidence.
 
-Example output:
-[{{"title":"TREM2-APOE interaction in neuroinflammation","statement":"TREM2 and APOE jointly modulate microglial lipid metabolism, driving Alzheimer neuroinflammation.","genes":["TREM2","APOE"],"pathway":"Neuroinflammation","confidence":72}}]
+Example:
+[{{"title":"TREM2-APOE interaction in neuroinflammation","statement":"TREM2 and APOE jointly regulate microglial lipid clearance; loss of function in both accelerates amyloid accumulation in Alzheimer's disease.","genes":["TREM2","APOE"],"pathway":"Microglial Lipid Metabolism","confidence":74}}]
 """)
 
     async def run(self, query: str, graph: KnowledgeGraph, papers: list[dict]) -> list[Hypothesis]:
