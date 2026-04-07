@@ -46,13 +46,19 @@ GENE_INDICATORS = re.compile(
 )
 
 NON_GENE_WORDS = {
-    "DNA", "RNA", "PCR", "MRI", "CT", "USA", "FDA", "WHO", "NIH", "ATP",
-    "ADP", "AMP", "NAD", "FAD", "GTP", "GDP", "CTP", "UTP", "CAMP",
-    "ROS", "NO", "CO", "NF", "IL", "TNF", "IFN", "TGF", "EGF", "FGF",
-    "IGF", "VEGF", "HIF", "NF", "AP", "SP", "YY", "MYC", "ERK", "JNK",
-    "STAT", "MAPK", "PI3K", "AKT", "JAK", "SRC", "ABL", "BCR",
-    "IC50", "EC50", "LD50", "IC", "EC", "OR", "HR", "RR", "CI",
-    "COVID", "SARS", "HIV", "AIDS", "TB", "COPD", "IBD",
+    # Lab / measurement acronyms
+    "DNA", "RNA", "PCR", "MRI", "CT", "PET", "NMR", "ELISA", "FACS",
+    # Organisations / standards
+    "USA", "FDA", "WHO", "NIH", "CDC", "EMA",
+    # Small molecules / metabolites (not genes)
+    "ATP", "ADP", "AMP", "NAD", "FAD", "GTP", "GDP", "CTP", "UTP",
+    "CAMP", "CGMP", "ROS", "NO", "CO",
+    # Statistics
+    "IC50", "EC50", "LD50", "OR", "HR", "RR", "CI", "SD", "SE",
+    # Diseases (abbreviations, not genes)
+    "HIV", "AIDS", "TB", "COPD", "IBD", "COVID", "SARS",
+    # Two-letter non-genes
+    "NF", "AP", "SP", "YY", "IL", "IC", "EC",
 }
 
 DISEASE_STOPWORDS = {

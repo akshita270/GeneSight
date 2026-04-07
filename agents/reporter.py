@@ -48,7 +48,7 @@ Total hypotheses generated: {hyp_count}
                     journal=str(p.get("journal", "")),
                     year=self._safe_year(p.get("year", 0)),
                     abstract=str(p.get("abstract", "")),
-                    relevance_score=0.9,
+                    relevance_score=float(p.get("relevance_score", 0.7)),
                 ))
             except Exception as e:
                 print(f"Skipping paper due to error: {e}")
