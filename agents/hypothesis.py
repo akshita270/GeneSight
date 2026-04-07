@@ -28,12 +28,16 @@ Recent literature abstracts (top 3):
 {abstracts}
 
 Generate {n} novel gene-disease hypotheses.
-Use only real human gene symbols (e.g. TREM2, APOE, BIN1) in the genes field.
+Rules:
+- Use ONLY real human gene symbols found in the genes list above (e.g. TREM2, APOE, BIN1, BRCA1, TP53).
+- Each hypothesis MUST include exactly 2 genes from the genes list — this allows evidence validation.
+- Each hypothesis must be distinct — use different gene pairs.
+- confidence: integer 50-90 reflecting how plausible the hypothesis is scientifically.
 You MUST respond ONLY with a raw JSON array. No markdown. No backticks. No explanation.
-Each object must have: title, statement, genes, pathway, confidence.
+Each object must have: title, statement, genes (array of 2), pathway, confidence.
 
 Example output:
-[{{"title":"TREM2 hypothesis","statement":"TREM2 loss impairs microglial function.","genes":["TREM2"],"pathway":"Neuroinflammation","confidence":80}}]
+[{{"title":"TREM2-APOE interaction in neuroinflammation","statement":"TREM2 and APOE jointly modulate microglial lipid metabolism, driving Alzheimer neuroinflammation.","genes":["TREM2","APOE"],"pathway":"Neuroinflammation","confidence":72}}]
 """)
 
     async def run(self, query: str, graph: KnowledgeGraph, papers: list[dict]) -> list[Hypothesis]:
