@@ -674,12 +674,6 @@ nav{
 @media(max-width:860px){
   .hero{grid-template-columns:1fr 220px;gap:28px}
 }
-@media(max-width:600px){
-  .hero{grid-template-columns:1fr}
-  .dna-panel{display:none}
-  .hero{padding:52px 0 44px}
-  .hero h1{font-size:38px}
-}
 @media(max-width:768px){
   .stats-bar{grid-template-columns:repeat(2,1fr)}
   .demo-metrics{grid-template-columns:repeat(2,1fr)}
@@ -702,7 +696,14 @@ nav{
   .tab-btn{font-size:11px;padding:10px 8px}
   .modal-box{padding:28px 22px}
 }
+@media(max-width:600px){
+  .hero{grid-template-columns:1fr 180px;gap:16px}
+  .hero{padding:52px 0 44px}
+  .hero h1{font-size:26px}
+}
 @media(max-width:480px){
+  .dna-panel{display:none}
+  .hero{grid-template-columns:1fr}
   .stats-bar{grid-template-columns:repeat(2,1fr);gap:10px}
   .demo-metrics{grid-template-columns:repeat(2,1fr)}
   .wrap{padding:0 14px}
