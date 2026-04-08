@@ -116,12 +116,7 @@ nav{
   position:relative;min-width:220px;
 }
 .dna-panel svg{
-  filter:drop-shadow(0 8px 32px rgba(59,130,246,0.25));
-  animation:dnaFloat 4s ease-in-out infinite;
-}
-@keyframes dnaFloat{
-  0%,100%{transform:translateY(0px)}
-  50%{transform:translateY(-16px)}
+  filter:drop-shadow(0 10px 30px rgba(59,130,246,0.18));
 }
 
 /* ── Section divider ── */
@@ -767,140 +762,185 @@ nav{
       </div>
     </div>
     <div class="dna-panel">
-      <!-- Premium inline SVG DNA double helix — thick tubular strands, glossy spheres, depth layering -->
-      <svg width="200" height="400" viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!--
+        DNA double helix — exact replica of reference image.
+        Two thick twisted tubes (dark blue + sky blue), 5 rungs, glossy spheres, ground shadow.
+        Painter's algorithm: back strand → rungs → front strand → cap spheres.
+        cx=110, amplitude=58. One full twist per 200px. Total height 400px = 2 twists.
+      -->
+      <svg width="220" height="420" viewBox="0 0 220 420" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <!-- Strand A: dark blue (back side of helix) -->
-          <linearGradient id="stA" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#1e3a8a"/>
-            <stop offset="40%"  stop-color="#2563eb"/>
+
+          <!-- ── Tube gradients (cross-section shading: dark edge → bright centre → dark edge) ── -->
+          <!-- Dark blue strand -->
+          <linearGradient id="tdBase" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#1a56db"/>
+            <stop offset="50%"  stop-color="#3b82f6"/>
             <stop offset="100%" stop-color="#1e3a8a"/>
           </linearGradient>
-          <!-- Strand A highlight: lighter to simulate tube roundness -->
-          <linearGradient id="stAh" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#3b82f6" stop-opacity="0"/>
-            <stop offset="50%"  stop-color="#93c5fd" stop-opacity="0.6"/>
-            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
-          </linearGradient>
-          <!-- Strand B: sky blue (front side) -->
-          <linearGradient id="stB" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#2563eb"/>
-            <stop offset="40%"  stop-color="#60a5fa"/>
-            <stop offset="100%" stop-color="#2563eb"/>
-          </linearGradient>
-          <linearGradient id="stBh" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#bfdbfe" stop-opacity="0"/>
-            <stop offset="50%"  stop-color="#eff6ff"  stop-opacity="0.7"/>
-            <stop offset="100%" stop-color="#bfdbfe" stop-opacity="0"/>
-          </linearGradient>
-          <!-- Rung -->
-          <linearGradient id="rG" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#3b82f6"/>
-            <stop offset="50%"  stop-color="#bfdbfe"/>
+          <!-- Sky blue strand -->
+          <linearGradient id="tlBase" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#60a5fa"/>
+            <stop offset="50%"  stop-color="#93c5fd"/>
             <stop offset="100%" stop-color="#3b82f6"/>
           </linearGradient>
-          <!-- Sphere dark blue -->
-          <radialGradient id="spD" cx="33%" cy="28%" r="60%">
-            <stop offset="0%"   stop-color="#dbeafe"/>
-            <stop offset="35%"  stop-color="#3b82f6"/>
+          <!-- Rung gradient -->
+          <linearGradient id="rungG" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#5b9cf6"/>
+            <stop offset="50%"  stop-color="#bfdbfe"/>
+            <stop offset="100%" stop-color="#5b9cf6"/>
+          </linearGradient>
+
+          <!-- ── Glossy sphere gradients ── -->
+          <!-- Dark sphere (dark blue strand ends) -->
+          <radialGradient id="spDark" cx="32%" cy="28%" r="68%">
+            <stop offset="0%"   stop-color="#e0eeff"/>
+            <stop offset="25%"  stop-color="#60a5fa"/>
+            <stop offset="65%"  stop-color="#2563eb"/>
             <stop offset="100%" stop-color="#1e3a8a"/>
           </radialGradient>
-          <!-- Sphere light blue -->
-          <radialGradient id="spL" cx="33%" cy="28%" r="60%">
+          <!-- Light sphere (sky blue strand ends) -->
+          <radialGradient id="spLight" cx="32%" cy="28%" r="68%">
             <stop offset="0%"   stop-color="#f0f9ff"/>
-            <stop offset="35%"  stop-color="#7dd3fc"/>
-            <stop offset="100%" stop-color="#0369a1"/>
+            <stop offset="25%"  stop-color="#bae6fd"/>
+            <stop offset="65%"  stop-color="#7dd3fc"/>
+            <stop offset="100%" stop-color="#2563eb"/>
           </radialGradient>
-          <!-- Drop shadow for spheres -->
-          <filter id="sph" x="-40%" y="-40%" width="180%" height="180%">
-            <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#1e3a8a" flood-opacity="0.35"/>
-          </filter>
-          <!-- Soft glow for strands -->
-          <filter id="sg" x="-25%" y="-10%" width="150%" height="120%">
-            <feGaussianBlur stdDeviation="2.5" result="b"/>
+
+          <!-- ── Filters ── -->
+          <!-- Tube softness -->
+          <filter id="tube" x="-30%" y="-10%" width="160%" height="120%">
+            <feGaussianBlur stdDeviation="1.8" result="b"/>
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
+          <!-- Sphere 3D shadow -->
+          <filter id="spf" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#1e3a8a" flood-opacity="0.4"/>
+          </filter>
+          <!-- Full helix soft shadow -->
+          <filter id="helixShadow" x="-20%" y="-5%" width="140%" height="115%">
+            <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#3b82f6" flood-opacity="0.15"/>
+          </filter>
+
         </defs>
 
+        <g filter="url(#helixShadow)">
+
         <!--
-          Helix geometry (cx=100, amplitude=52):
-          Strand A: x = 100 + 52*sin(t)   → starts right, goes left
-          Strand B: x = 100 - 52*sin(t)   → opposite phase
-          Period = 180px (2 full twists over 360px height)
-          Key y values and x positions:
-            y=20:  A=100  B=100  (top caps, meeting point)
-            y=65:  A=152  B=48   (A far right, B far left — rung)
-            y=110: A=100  B=100  (crossing)
-            y=155: A=48   B=152  (A far left, B far right — rung)
-            y=200: A=100  B=100  (crossing)
-            y=245: A=152  B=48   (rung)
-            y=290: A=100  B=100  (crossing)
-            y=335: A=48   B=152  (rung)
-            y=380: A=100  B=100  (bottom caps)
+          GEOMETRY (cx=110):
+          Strand A (dark blue, starts going RIGHT):  x = 110 + 58·sin(angle)
+          Strand B (sky blue,  starts going LEFT):   x = 110 - 58·sin(angle)
+          angle goes 0→4π over y=10→410 (2 full rotations)
+
+          Key crossing / peak points:
+            y= 10 → x=110,110   top caps
+            y= 60 → x=168, 52   Rung 1  (A right, B left)
+            y=110 → x=110,110   crossing
+            y=160 → x= 52,168   Rung 2  (A left, B right)
+            y=210 → x=110,110   crossing
+            y=260 → x=168, 52   Rung 3  (A right, B left)
+            y=310 → x=110,110   crossing
+            y=360 → x= 52,168   Rung 4  (A left, B right)
+            y=410 → x=110,110   bottom caps
+
+          Each strand is drawn in 4 segments (quarter twists) so
+          the front strand always paints over the back strand at crossings.
+
+          Segment classification (which strand is in FRONT):
+            y=10→110:  A goes right (front), B goes left (back)
+            y=110→210: B goes right (front), A goes left (back)
+            y=210→310: A goes right (front), B goes left (back)
+            y=310→410: B goes right (front), A goes left (back)
         -->
 
-        <!-- ═══ BACK STRAND (Strand B, drawn first so front overlaps) ═══ -->
-        <!-- Top half of B: from top-centre curving left -->
-        <path d="M100,20 C52,50 48,95 100,110" stroke="url(#stA)" stroke-width="14" stroke-linecap="round" fill="none" filter="url(#sg)" opacity="0.75"/>
-        <!-- highlight -->
-        <path d="M100,20 C52,50 48,95 100,110" stroke="url(#stAh)" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <!-- ════════════════════════════════════════
+             SEGMENT 1  y=10→110   A=FRONT  B=BACK
+             ════════════════════════════════════════ -->
 
-        <!-- Second quarter of B: from crossing curving right -->
-        <path d="M100,110 C148,125 152,170 100,200" stroke="url(#stA)" stroke-width="14" stroke-linecap="round" fill="none" filter="url(#sg)" opacity="0.75"/>
-        <path d="M100,110 C148,125 152,170 100,200" stroke="url(#stAh)" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <!-- B back (dark, thinner) -->
+        <path d="M110,10 C60,40 52,80 110,110"
+              stroke="#2d6fd4" stroke-width="13" stroke-linecap="round" fill="none" opacity="0.72"/>
 
-        <!-- Third quarter of B -->
-        <path d="M100,200 C52,215 48,260 100,290" stroke="url(#stA)" stroke-width="14" stroke-linecap="round" fill="none" filter="url(#sg)" opacity="0.75"/>
-        <path d="M100,200 C52,215 48,260 100,290" stroke="url(#stAh)" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <!-- Rung 1 at y=60 (behind A) -->
+        <line x1="52" y1="60" x2="168" y2="60" stroke="url(#rungG)" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+        <circle cx="52"  cy="60" r="11" fill="url(#spLight)" filter="url(#spf)"/>
+        <circle cx="168" cy="60" r="11" fill="url(#spDark)"  filter="url(#spf)"/>
 
-        <!-- Fourth quarter of B -->
-        <path d="M100,290 C148,305 152,350 100,380" stroke="url(#stA)" stroke-width="14" stroke-linecap="round" fill="none" filter="url(#sg)" opacity="0.75"/>
-        <path d="M100,290 C148,305 152,350 100,380" stroke="url(#stAh)" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <!-- A front (sky blue, thicker) -->
+        <path d="M110,10 C160,40 168,80 110,110"
+              stroke="#7ab8f5" stroke-width="18" stroke-linecap="round" fill="none" filter="url(#tube)"/>
+        <!-- A front highlight -->
+        <path d="M110,10 C160,40 168,80 110,110"
+              stroke="white" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.25"/>
 
-        <!-- ═══ RUNGS behind front strand ═══ -->
-        <!-- Rung at y=65: A=152(right), B=48(left) — B is behind, draw full rung -->
-        <line x1="48" y1="65" x2="152" y2="65" stroke="url(#rG)" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
-        <circle cx="48"  cy="65" r="10" fill="url(#spL)" filter="url(#sph)"/>
-        <circle cx="152" cy="65" r="10" fill="url(#spD)" filter="url(#sph)"/>
+        <!-- ════════════════════════════════════════
+             SEGMENT 2  y=110→210  B=FRONT  A=BACK
+             ════════════════════════════════════════ -->
 
-        <!-- Rung at y=155: A=48(left), B=152(right) -->
-        <line x1="48" y1="155" x2="152" y2="155" stroke="url(#rG)" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
-        <circle cx="48"  cy="155" r="10" fill="url(#spD)" filter="url(#sph)"/>
-        <circle cx="152" cy="155" r="10" fill="url(#spL)" filter="url(#sph)"/>
+        <!-- A back -->
+        <path d="M110,110 C60,140 52,180 110,210"
+              stroke="#2d6fd4" stroke-width="13" stroke-linecap="round" fill="none" opacity="0.72"/>
 
-        <!-- Rung at y=245 -->
-        <line x1="48" y1="245" x2="152" y2="245" stroke="url(#rG)" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
-        <circle cx="48"  cy="245" r="10" fill="url(#spL)" filter="url(#sph)"/>
-        <circle cx="152" cy="245" r="10" fill="url(#spD)" filter="url(#sph)"/>
+        <!-- Rung 2 at y=160 (behind B) -->
+        <line x1="52" y1="160" x2="168" y2="160" stroke="url(#rungG)" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+        <circle cx="52"  cy="160" r="11" fill="url(#spDark)"  filter="url(#spf)"/>
+        <circle cx="168" cy="160" r="11" fill="url(#spLight)" filter="url(#spf)"/>
 
-        <!-- Rung at y=335 -->
-        <line x1="48" y1="335" x2="152" y2="335" stroke="url(#rG)" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
-        <circle cx="48"  cy="335" r="10" fill="url(#spD)" filter="url(#sph)"/>
-        <circle cx="152" cy="335" r="10" fill="url(#spL)" filter="url(#sph)"/>
+        <!-- B front -->
+        <path d="M110,110 C160,140 168,180 110,210"
+              stroke="#7ab8f5" stroke-width="18" stroke-linecap="round" fill="none" filter="url(#tube)"/>
+        <path d="M110,110 C160,140 168,180 110,210"
+              stroke="white" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.25"/>
 
-        <!-- ═══ FRONT STRAND (Strand A, drawn on top) ═══ -->
-        <!-- Top quarter: from top-centre curving right -->
-        <path d="M100,20 C148,50 152,95 100,110" stroke="url(#stB)" stroke-width="16" stroke-linecap="round" fill="none" filter="url(#sg)"/>
-        <path d="M100,20 C148,50 152,95 100,110" stroke="url(#stBh)" stroke-width="8"  stroke-linecap="round" fill="none"/>
+        <!-- ════════════════════════════════════════
+             SEGMENT 3  y=210→310  A=FRONT  B=BACK
+             ════════════════════════════════════════ -->
 
-        <!-- Second quarter: from crossing curving left -->
-        <path d="M100,110 C52,125 48,170 100,200" stroke="url(#stB)" stroke-width="16" stroke-linecap="round" fill="none" filter="url(#sg)"/>
-        <path d="M100,110 C52,125 48,170 100,200" stroke="url(#stBh)" stroke-width="8"  stroke-linecap="round" fill="none"/>
+        <!-- B back -->
+        <path d="M110,210 C60,240 52,280 110,310"
+              stroke="#2d6fd4" stroke-width="13" stroke-linecap="round" fill="none" opacity="0.72"/>
 
-        <!-- Third quarter -->
-        <path d="M100,200 C148,215 152,260 100,290" stroke="url(#stB)" stroke-width="16" stroke-linecap="round" fill="none" filter="url(#sg)"/>
-        <path d="M100,200 C148,215 152,260 100,290" stroke="url(#stBh)" stroke-width="8"  stroke-linecap="round" fill="none"/>
+        <!-- Rung 3 at y=260 (behind A) -->
+        <line x1="52" y1="260" x2="168" y2="260" stroke="url(#rungG)" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+        <circle cx="52"  cy="260" r="11" fill="url(#spLight)" filter="url(#spf)"/>
+        <circle cx="168" cy="260" r="11" fill="url(#spDark)"  filter="url(#spf)"/>
 
-        <!-- Fourth quarter -->
-        <path d="M100,290 C52,305 48,350 100,380" stroke="url(#stB)" stroke-width="16" stroke-linecap="round" fill="none" filter="url(#sg)"/>
-        <path d="M100,290 C52,305 48,350 100,380" stroke="url(#stBh)" stroke-width="8"  stroke-linecap="round" fill="none"/>
+        <!-- A front -->
+        <path d="M110,210 C160,240 168,280 110,310"
+              stroke="#7ab8f5" stroke-width="18" stroke-linecap="round" fill="none" filter="url(#tube)"/>
+        <path d="M110,210 C160,240 168,280 110,310"
+              stroke="white" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.25"/>
 
-        <!-- ═══ TOP & BOTTOM CAP SPHERES ═══ -->
-        <circle cx="100" cy="20"  r="13" fill="url(#spD)" filter="url(#sph)"/>
-        <circle cx="100" cy="380" r="13" fill="url(#spL)" filter="url(#sph)"/>
+        <!-- ════════════════════════════════════════
+             SEGMENT 4  y=310→410  B=FRONT  A=BACK
+             ════════════════════════════════════════ -->
 
-        <!-- Shadow under bottom sphere -->
-        <ellipse cx="100" cy="396" rx="18" ry="5" fill="#1e3a8a" opacity="0.18"/>
+        <!-- A back -->
+        <path d="M110,310 C60,340 52,380 110,410"
+              stroke="#2d6fd4" stroke-width="13" stroke-linecap="round" fill="none" opacity="0.72"/>
+
+        <!-- Rung 4 at y=360 (behind B) -->
+        <line x1="52" y1="360" x2="168" y2="360" stroke="url(#rungG)" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+        <circle cx="52"  cy="360" r="11" fill="url(#spDark)"  filter="url(#spf)"/>
+        <circle cx="168" cy="360" r="11" fill="url(#spLight)" filter="url(#spf)"/>
+
+        <!-- B front -->
+        <path d="M110,310 C160,340 168,380 110,410"
+              stroke="#7ab8f5" stroke-width="18" stroke-linecap="round" fill="none" filter="url(#tube)"/>
+        <path d="M110,310 C160,340 168,380 110,410"
+              stroke="white" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.25"/>
+
+        <!-- ════════════════════════════════════════
+             CAP SPHERES  top + bottom
+             ════════════════════════════════════════ -->
+        <circle cx="110" cy="10"  r="14" fill="url(#spDark)"  filter="url(#spf)"/>
+        <circle cx="110" cy="410" r="14" fill="url(#spLight)" filter="url(#spf)"/>
+
+        </g>
+
+        <!-- Ground shadow ellipse (like in the reference image) -->
+        <ellipse cx="110" cy="418" rx="38" ry="7" fill="#2563eb" opacity="0.13"/>
+
       </svg>
     </div>
   </div>
