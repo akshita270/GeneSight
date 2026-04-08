@@ -110,73 +110,17 @@ nav{
 .hs-num{font-size:18px;font-weight:700;color:var(--blue)}
 .hs-lbl{font-size:11px;color:var(--text3);margin-top:2px;letter-spacing:0.2px}
 
-/* ── DNA Helix (pure CSS, no canvas/JS) ── */
+/* ── DNA Panel ── */
 .dna-panel{
   display:flex;align-items:center;justify-content:center;
   position:relative;min-width:240px;
 }
-.helix{
-  position:relative;width:100px;height:380px;
-  animation:helixFloat 3s ease-in-out infinite;
-}
-@keyframes helixFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
-
-/* Each rung = one base pair */
-.rung{
-  position:absolute;left:50%;
-  width:80px;height:14px;
-  transform:translateX(-50%);
-  animation:rungSpin 3s ease-in-out infinite;
-  transform-style:preserve-3d;
-}
-@keyframes rungSpin{
-  0%  {transform:translateX(-50%) rotateY(0deg)}
-  100%{transform:translateX(-50%) rotateY(360deg)}
-}
-
-/* Left ball on each rung */
-.ball-l,.ball-r{
-  position:absolute;top:50%;
-  width:16px;height:16px;
-  border-radius:50%;
-  transform:translateY(-50%);
-  box-shadow:inset -4px -3px 8px rgba(0,0,0,0.35), inset 3px 3px 6px rgba(255,255,255,0.5);
-}
-.ball-l{
-  left:0;
-  background:radial-gradient(circle at 35% 35%, #bfdbfe, #1d4ed8 70%);
-}
-.ball-r{
-  right:0;
-  background:radial-gradient(circle at 35% 35%, #93c5fd, #2563eb 70%);
-}
-
-/* The connecting bar between the two balls */
-.bar{
-  position:absolute;left:16px;right:16px;top:50%;
-  height:4px;transform:translateY(-50%);
-  background:linear-gradient(90deg,#3b82f6,#93c5fd,#3b82f6);
-  border-radius:2px;opacity:0.75;
-}
-
-/* Strand lines running vertically — two sinusoidal paths via clip */
-.strand-left,.strand-right{
-  position:absolute;top:0;width:5px;height:100%;
-  border-radius:3px;
-}
-.strand-left{
-  left:0;
-  background:linear-gradient(180deg,
-    #1d4ed8 0%,#3b82f6 10%,#1d4ed8 20%,#3b82f6 30%,#1d4ed8 40%,
-    #3b82f6 50%,#1d4ed8 60%,#3b82f6 70%,#1d4ed8 80%,#3b82f6 90%,#1d4ed8 100%);
-  box-shadow:0 0 8px rgba(59,130,246,0.6);
-}
-.strand-right{
-  right:0;
-  background:linear-gradient(180deg,
-    #2563eb 0%,#60a5fa 10%,#2563eb 20%,#60a5fa 30%,#2563eb 40%,
-    #60a5fa 50%,#2563eb 60%,#60a5fa 70%,#2563eb 80%,#60a5fa 90%,#2563eb 100%);
-  box-shadow:0 0 8px rgba(96,165,250,0.6);
+.dna-img{
+  width:260px;
+  opacity:0.92;
+  filter:drop-shadow(0 8px 32px rgba(59,130,246,0.18));
+  pointer-events:none;
+  user-select:none;
 }
 
 /* ── Section divider ── */
@@ -822,21 +766,11 @@ nav{
       </div>
     </div>
     <div class="dna-panel">
-      <div class="helix">
-        <div class="strand-left"></div>
-        <div class="strand-right"></div>
-        <!-- 10 rungs, evenly spaced, each with staggered animation-delay for wave effect -->
-        <div class="rung" style="top:14px;  animation-delay:0s">   <div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:50px;  animation-delay:-0.3s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:86px;  animation-delay:-0.6s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:122px; animation-delay:-0.9s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:158px; animation-delay:-1.2s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:194px; animation-delay:-1.5s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:230px; animation-delay:-1.8s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:266px; animation-delay:-2.1s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:302px; animation-delay:-2.4s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-        <div class="rung" style="top:338px; animation-delay:-2.7s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
-      </div>
+      <img class="dna-img"
+        src="https://cdn3d.iconscout.com/3d/premium/thumb/dna-3d-icon-download-in-png-blend-fbx-gltf-file-formats--biology-science-genetics-medical-pack-healthcare-icons-5688989.png"
+        alt="DNA double helix"
+        draggable="false"
+      />
     </div>
   </div>
 
@@ -1238,7 +1172,7 @@ function toggleFaq(btn){
   if(!isOpen) item.classList.add('open')
 }
 
-// ── DNA helix: pure CSS, no JS needed ──
+// ── DNA helix: static premium image ──
 </script>
 </body>
 </html>
