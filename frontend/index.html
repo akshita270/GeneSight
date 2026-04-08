@@ -110,12 +110,74 @@ nav{
 .hs-num{font-size:18px;font-weight:700;color:var(--blue)}
 .hs-lbl{font-size:11px;color:var(--text3);margin-top:2px;letter-spacing:0.2px}
 
-/* ── DNA Panel ── */
+/* ── DNA Helix (pure CSS, no canvas/JS) ── */
 .dna-panel{
   display:flex;align-items:center;justify-content:center;
   position:relative;min-width:240px;
 }
-#dnaCanvas{display:block;}
+.helix{
+  position:relative;width:100px;height:380px;
+  animation:helixFloat 3s ease-in-out infinite;
+}
+@keyframes helixFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+
+/* Each rung = one base pair */
+.rung{
+  position:absolute;left:50%;
+  width:80px;height:14px;
+  transform:translateX(-50%);
+  animation:rungSpin 3s ease-in-out infinite;
+  transform-style:preserve-3d;
+}
+@keyframes rungSpin{
+  0%  {transform:translateX(-50%) rotateY(0deg)}
+  100%{transform:translateX(-50%) rotateY(360deg)}
+}
+
+/* Left ball on each rung */
+.ball-l,.ball-r{
+  position:absolute;top:50%;
+  width:16px;height:16px;
+  border-radius:50%;
+  transform:translateY(-50%);
+  box-shadow:inset -4px -3px 8px rgba(0,0,0,0.35), inset 3px 3px 6px rgba(255,255,255,0.5);
+}
+.ball-l{
+  left:0;
+  background:radial-gradient(circle at 35% 35%, #bfdbfe, #1d4ed8 70%);
+}
+.ball-r{
+  right:0;
+  background:radial-gradient(circle at 35% 35%, #93c5fd, #2563eb 70%);
+}
+
+/* The connecting bar between the two balls */
+.bar{
+  position:absolute;left:16px;right:16px;top:50%;
+  height:4px;transform:translateY(-50%);
+  background:linear-gradient(90deg,#3b82f6,#93c5fd,#3b82f6);
+  border-radius:2px;opacity:0.75;
+}
+
+/* Strand lines running vertically — two sinusoidal paths via clip */
+.strand-left,.strand-right{
+  position:absolute;top:0;width:5px;height:100%;
+  border-radius:3px;
+}
+.strand-left{
+  left:0;
+  background:linear-gradient(180deg,
+    #1d4ed8 0%,#3b82f6 10%,#1d4ed8 20%,#3b82f6 30%,#1d4ed8 40%,
+    #3b82f6 50%,#1d4ed8 60%,#3b82f6 70%,#1d4ed8 80%,#3b82f6 90%,#1d4ed8 100%);
+  box-shadow:0 0 8px rgba(59,130,246,0.6);
+}
+.strand-right{
+  right:0;
+  background:linear-gradient(180deg,
+    #2563eb 0%,#60a5fa 10%,#2563eb 20%,#60a5fa 30%,#2563eb 40%,
+    #60a5fa 50%,#2563eb 60%,#60a5fa 70%,#2563eb 80%,#60a5fa 90%,#2563eb 100%);
+  box-shadow:0 0 8px rgba(96,165,250,0.6);
+}
 
 /* ── Section divider ── */
 .section-divider{
@@ -760,7 +822,21 @@ nav{
       </div>
     </div>
     <div class="dna-panel">
-      <canvas id="dnaCanvas" width="240" height="420"></canvas>
+      <div class="helix">
+        <div class="strand-left"></div>
+        <div class="strand-right"></div>
+        <!-- 10 rungs, evenly spaced, each with staggered animation-delay for wave effect -->
+        <div class="rung" style="top:14px;  animation-delay:0s">   <div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:50px;  animation-delay:-0.3s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:86px;  animation-delay:-0.6s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:122px; animation-delay:-0.9s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:158px; animation-delay:-1.2s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:194px; animation-delay:-1.5s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:230px; animation-delay:-1.8s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:266px; animation-delay:-2.1s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:302px; animation-delay:-2.4s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+        <div class="rung" style="top:338px; animation-delay:-2.7s"><div class="ball-l"></div><div class="bar"></div><div class="ball-r"></div></div>
+      </div>
     </div>
   </div>
 
@@ -1162,168 +1238,7 @@ function toggleFaq(btn){
   if(!isOpen) item.classList.add('open')
 }
 
-// ── 3D-style DNA Helix on Canvas ──────────────────────────────────────────
-(function(){
-  const canvas = document.getElementById('dnaCanvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const cx = W/2;           // horizontal centre
-  const amplitude = 72;     // how wide the helix swings
-  const numRungs  = 9;      // base-pair rungs
-  const tubeR     = 11;     // strand tube radius (for 3D shading)
-  const ballR     = 10;     // sphere radius at rung ends
-  const cycleH    = H / 2;  // one full twist = half the canvas height
-  let   angle     = 0;      // rotation angle (radians, updated each frame)
-  const SPEED     = 0.018;  // rotation speed
-
-  // Colour palette — two blues like the reference image
-  const COL_DARK  = { r:49,  g:130, b:206 };  // deep cornflower
-  const COL_LIGHT = { r:147, g:197, b:253 };  // sky blue
-
-  // Lerp helper
-  function lerp(a,b,t){ return a+(b-a)*t; }
-
-  // Draw a thick 3D-looking segment between two points using multiple layered strokes
-  function drawTube(x1,y1, x2,y2, r, col, alpha){
-    const steps = 5;
-    for(let i=steps;i>=0;i--){
-      const t    = i/steps;                    // 1 = edge, 0 = highlight centre
-      const w    = r * 2 * (0.4 + 0.6*t);     // thicker at edges
-      const bright = 1 - t*0.75;              // brighter in centre
-      ctx.beginPath();
-      ctx.moveTo(x1,y1);
-      ctx.lineTo(x2,y2);
-      ctx.strokeStyle = `rgba(${Math.round(lerp(255,col.r,t))},${Math.round(lerp(255,col.g,t))},${Math.round(lerp(255,col.b,t))},${alpha})`;
-      ctx.lineWidth   = w;
-      ctx.lineCap     = 'round';
-      ctx.stroke();
-    }
-  }
-
-  // Draw a 3D glossy sphere
-  function drawSphere(x, y, r, col, alpha){
-    // base sphere
-    const grad = ctx.createRadialGradient(x-r*0.3, y-r*0.3, r*0.05, x, y, r);
-    grad.addColorStop(0,   `rgba(255,255,255,${alpha})`);
-    grad.addColorStop(0.35,`rgba(${col.r},${col.g},${col.b},${alpha})`);
-    grad.addColorStop(1,   `rgba(${Math.round(col.r*0.45)},${Math.round(col.g*0.45)},${Math.round(col.b*0.45)},${alpha})`);
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI*2);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    // specular highlight
-    ctx.beginPath();
-    ctx.arc(x-r*0.28, y-r*0.28, r*0.28, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,255,255,${alpha*0.65})`;
-    ctx.fill();
-  }
-
-  // Build helix point list for a given phase offset
-  // Returns [{x,y,z}] along the helix
-  function helixPoints(phaseOffset, n){
-    const pts = [];
-    for(let i=0; i<=n; i++){
-      const t   = i/n;
-      const phi = angle + phaseOffset + t * Math.PI * 4; // 2 full twists
-      const y   = 20 + t*(H-40);
-      const x   = cx + Math.cos(phi) * amplitude;
-      const z   = Math.sin(phi);       // -1 (back) → +1 (front)
-      pts.push({x,y,z});
-    }
-    return pts;
-  }
-
-  // Rung positions: evenly spaced, rung i at fraction (i+0.5)/numRungs along height
-  function rungData(){
-    const rungs = [];
-    for(let i=0;i<numRungs;i++){
-      const t   = (i+0.5)/numRungs;
-      const y   = 20 + t*(H-40);
-      const phi = angle + t * Math.PI * 4;
-      const xA  = cx + Math.cos(phi)      * amplitude;
-      const zA  = Math.sin(phi);
-      const xB  = cx + Math.cos(phi+Math.PI) * amplitude;
-      const zB  = Math.sin(phi+Math.PI);
-      rungs.push({y, xA, zA, xB, zB});
-    }
-    return rungs;
-  }
-
-  function drawFrame(){
-    ctx.clearRect(0,0,W,H);
-
-    // Sample strands into small segments for smooth tube drawing
-    const SEG = 60;
-    const ptsA = helixPoints(0,          SEG);
-    const ptsB = helixPoints(Math.PI,    SEG);
-
-    const rungs = rungData();
-
-    // --- Collect all drawable items with depth (z) for painter's-algo sort ---
-    const items = [];
-
-    // Strand segments
-    for(let i=0;i<SEG;i++){
-      const mz = (ptsA[i].z + ptsA[i+1].z)*0.5;
-      items.push({type:'tubA', i, z:mz});
-      const mzB = (ptsB[i].z + ptsB[i+1].z)*0.5;
-      items.push({type:'tubB', i, z:mzB});
-    }
-
-    // Rungs + spheres
-    for(let i=0;i<rungs.length;i++){
-      const r = rungs[i];
-      const midZ = (r.zA + r.zB)*0.5;
-      items.push({type:'rung',   i, z:midZ});
-      items.push({type:'sphA',   i, z:r.zA});
-      items.push({type:'sphB',   i, z:r.zB});
-    }
-
-    // Sort back→front (lower z drawn first)
-    items.sort((a,b)=>a.z-b.z);
-
-    // Draw each item
-    for(const item of items){
-      const alpha = 1; // full opacity; depth conveyed by shading
-      if(item.type==='tubA'){
-        const i=item.i;
-        // alpha fade for back segments
-        const za = ptsA[i].z;
-        const fadeA = 0.45 + 0.55 * ((za+1)/2);
-        drawTube(ptsA[i].x,ptsA[i].y, ptsA[i+1].x,ptsA[i+1].y, tubeR, COL_DARK, fadeA);
-      }
-      else if(item.type==='tubB'){
-        const i=item.i;
-        const zb = ptsB[i].z;
-        const fadeB = 0.45 + 0.55 * ((zb+1)/2);
-        drawTube(ptsB[i].x,ptsB[i].y, ptsB[i+1].x,ptsB[i+1].y, tubeR, COL_LIGHT, fadeB);
-      }
-      else if(item.type==='rung'){
-        const r=rungs[item.i];
-        const midZ  = (r.zA+r.zB)*0.5;
-        const rungA = 0.35 + 0.4*((midZ+1)/2);
-        // draw rung as a thin tube
-        drawTube(r.xA,r.y, r.xB,r.y, 4, {r:147,g:197,b:253}, rungA);
-      }
-      else if(item.type==='sphA'){
-        const r=rungs[item.i];
-        const fadeS = 0.5 + 0.5*((r.zA+1)/2);
-        drawSphere(r.xA, r.y, ballR, COL_DARK, fadeS);
-      }
-      else if(item.type==='sphB'){
-        const r=rungs[item.i];
-        const fadeS = 0.5 + 0.5*((r.zB+1)/2);
-        drawSphere(r.xB, r.y, ballR, COL_LIGHT, fadeS);
-      }
-    }
-
-    angle += SPEED;
-    requestAnimationFrame(drawFrame);
-  }
-
-  drawFrame();
-})();
+// ── DNA helix: pure CSS, no JS needed ──
 </script>
 </body>
 </html>
