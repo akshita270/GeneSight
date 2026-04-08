@@ -113,43 +113,9 @@ nav{
 /* ── DNA Panel ── */
 .dna-panel{
   display:flex;align-items:center;justify-content:center;
-  position:relative;min-height:380px;width:100%;
+  position:relative;
 }
-.dna-helix{
-  position:relative;width:180px;height:380px;flex-shrink:0;
-}
-.dna-strand{
-  position:absolute;left:0;top:0;width:100%;height:100%;
-  border-radius:50%;
-}
-.strand-a{
-  border:4px solid transparent;
-  border-left:4px solid #3b82f6;
-  border-right:4px solid #3b82f6;
-  animation:rotateA 3s linear infinite;
-  box-shadow:-2px 0 16px rgba(59,130,246,0.3),2px 0 16px rgba(59,130,246,0.3);
-}
-.strand-b{
-  border:4px solid transparent;
-  border-top:4px solid #60a5fa;
-  border-bottom:4px solid #60a5fa;
-  animation:rotateB 3s linear infinite;
-  box-shadow:0 -2px 16px rgba(96,165,250,0.3),0 2px 16px rgba(96,165,250,0.3);
-}
-@keyframes rotateA{from{transform:rotateY(0deg) rotateX(20deg)}to{transform:rotateY(360deg) rotateX(20deg)}}
-@keyframes rotateB{from{transform:rotateY(90deg) rotateX(20deg)}to{transform:rotateY(450deg) rotateX(20deg)}}
-.dna-rungs{
-  position:absolute;left:0;top:0;width:100%;height:100%;
-}
-.dna-rung{
-  position:absolute;left:10%;width:80%;height:3px;
-  border-radius:3px;transform-origin:center center;
-  animation:rungSpin 3s linear infinite;
-}
-@keyframes rungSpin{
-  from{transform:rotateY(0deg)}
-  to{transform:rotateY(360deg)}
-}
+#dnaCanvas{display:block}
 
 /* ── Section divider ── */
 .section-divider{
@@ -794,11 +760,7 @@ nav{
       </div>
     </div>
     <div class="dna-panel">
-      <div class="dna-helix">
-        <div class="dna-strand strand-a"></div>
-        <div class="dna-strand strand-b"></div>
-        <div class="dna-rungs" id="dnaRungs"></div>
-      </div>
+      <canvas id="dnaCanvas"></canvas>
     </div>
   </div>
 
@@ -1200,22 +1162,98 @@ function toggleFaq(btn){
   if(!isOpen) item.classList.add('open')
 }
 
-// ── DNA Double Helix (CSS + JS, no canvas) ──
-;(function(){
-  const container = document.getElementById('dnaRungs')
-  if(!container) return
-  const COLORS = ['#3b82f6','#60a5fa','#2563eb','#93c5fd','#1d4ed8','#7dd3fc','#1e40af','#bfdbfe']
-  const N = 14
-  for(let i=0;i<N;i++){
-    const rung = document.createElement('div')
-    rung.className = 'dna-rung'
-    const pct = (i+0.5)/N*100
-    const color = COLORS[i%COLORS.length]
-    const delay = -(i/N)*3  // stagger so rungs appear at all angles
-    rung.style.cssText = `top:${pct}%;background:linear-gradient(90deg,${color},${COLORS[(i+3)%COLORS.length]});animation-delay:${delay}s;opacity:0.85`
-    container.appendChild(rung)
+// ── DNA Double Helix Canvas ──
+document.addEventListener('DOMContentLoaded', function(){
+  const canvas = document.getElementById('dnaCanvas')
+  if(!canvas) return
+
+  // Size the canvas explicitly in JS so it's always correct
+  const W = 240, H = 420
+  canvas.width  = W
+  canvas.height = H
+  canvas.style.width  = W + 'px'
+  canvas.style.height = H + 'px'
+
+  const ctx = canvas.getContext('2d')
+
+  const STRAND_A   = '#5aabf8'
+  const STRAND_B   = '#2176e8'
+  const RUNG_COLOR = '#93c5fd'
+  const BALL_COLORS = ['#3b82f6','#60a5fa','#2563eb','#93c5fd','#1d4ed8','#7dd3fc','#1e40af','#bfdbfe']
+  const RUNG_COUNT  = 16
+  const rungColorsA = Array.from({length:RUNG_COUNT},(_,i)=>BALL_COLORS[i%BALL_COLORS.length])
+  const rungColorsB = Array.from({length:RUNG_COUNT},(_,i)=>BALL_COLORS[(i+3)%BALL_COLORS.length])
+
+  let phase = 0
+  const AMP  = 72
+  const FREQ = 0.045
+
+  function lighten(hex,a){
+    const n=parseInt(hex.slice(1),16)
+    return `rgb(${Math.min(255,(n>>16)+~~(255*a))},${Math.min(255,((n>>8)&255)+~~(255*a))},${Math.min(255,(n&255)+~~(255*a))})`
   }
-})()
+  function darken(hex,a){
+    const n=parseInt(hex.slice(1),16)
+    return `rgb(${Math.max(0,(n>>16)-~~(255*a))},${Math.max(0,((n>>8)&255)-~~(255*a))},${Math.max(0,(n&255)-~~(255*a))})`
+  }
+  function sphere(x,y,r,color){
+    const g=ctx.createRadialGradient(x-r*0.3,y-r*0.35,r*0.05,x+r*0.1,y+r*0.1,r*1.0)
+    g.addColorStop(0.0,'#ffffff')
+    g.addColorStop(0.2,lighten(color,0.4))
+    g.addColorStop(0.6,color)
+    g.addColorStop(1.0,darken(color,0.4))
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2)
+    ctx.fillStyle=g; ctx.fill()
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H)
+
+    // Build strand points
+    const steps=180, ptsA=[], ptsB=[]
+    for(let s=0;s<=steps;s++){
+      const y=(s/steps)*H
+      ptsA.push([W/2+Math.sin(y*FREQ+phase)*AMP, y])
+      ptsB.push([W/2-Math.sin(y*FREQ+phase)*AMP, y])
+    }
+
+    // Draw strands
+    ;[{pts:ptsA,col:STRAND_A},{pts:ptsB,col:STRAND_B}].forEach(({pts,col})=>{
+      ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1])
+      for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1])
+      ctx.strokeStyle=col; ctx.lineWidth=3.5; ctx.lineJoin='round'
+      ctx.globalAlpha=0.75; ctx.stroke(); ctx.globalAlpha=1
+    })
+
+    // Build rungs
+    const rungs=[]
+    for(let i=0;i<RUNG_COUNT;i++){
+      const y=(i+0.5)/RUNG_COUNT*H
+      const sinV=Math.sin(y*FREQ+phase)
+      const xA=W/2+sinV*AMP, xB=W/2-sinV*AMP
+      rungs.push({y,xA,xB,depthA:sinV,depthB:-sinV,
+        rA:7+3*(sinV+1)/2, rB:7+3*(-sinV+1)/2,
+        cA:rungColorsA[i], cB:rungColorsB[i]})
+    }
+
+    // Draw rung bars
+    rungs.forEach(r=>{
+      ctx.beginPath(); ctx.moveTo(r.xA,r.y); ctx.lineTo(r.xB,r.y)
+      ctx.strokeStyle=RUNG_COLOR; ctx.lineWidth=2
+      ctx.globalAlpha=0.5; ctx.stroke(); ctx.globalAlpha=1
+    })
+
+    // Draw balls depth-sorted
+    rungs.forEach(r=>{
+      if(r.depthA<=r.depthB){ sphere(r.xA,r.y,r.rA,r.cA); sphere(r.xB,r.y,r.rB,r.cB) }
+      else                   { sphere(r.xB,r.y,r.rB,r.cB); sphere(r.xA,r.y,r.rA,r.cA) }
+    })
+
+    phase+=0.020
+    requestAnimationFrame(draw)
+  }
+  draw()
+})
 </script>
 </body>
 </html>
