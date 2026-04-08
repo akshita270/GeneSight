@@ -333,6 +333,14 @@ nav{
   font-family:var(--sans);transition:all .15s;
 }
 .download-btn:hover{background:#dcfce7;border-color:#86efac}
+.pdf-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;font-size:13px;font-weight:600;
+  background:var(--red-light);color:var(--red);
+  border:1px solid #fecaca;border-radius:8px;cursor:pointer;
+  font-family:var(--sans);transition:all .15s;
+}
+.pdf-btn:hover{background:#fee2e2;border-color:#fca5a5}
 .share-btn{
   display:inline-flex;align-items:center;gap:7px;
   padding:9px 18px;font-size:13px;font-weight:600;
@@ -408,6 +416,114 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
 }
 .similar-chip:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
 
+/* ── Compare button ── */
+.compare-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;font-size:13px;font-weight:600;
+  background:var(--purple-light);color:var(--purple);
+  border:1px solid #ddd6fe;border-radius:8px;cursor:pointer;
+  font-family:var(--sans);transition:all .15s;
+}
+.compare-btn:hover{background:#ede9fe;border-color:#c4b5fd}
+
+/* ── Comparison Modal ── */
+.cmp-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:1000;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(4px);
+}
+.cmp-overlay.open{display:flex}
+.cmp-modal{
+  background:var(--bg);border-radius:20px;width:100%;max-width:820px;
+  max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.18);
+  border:1px solid var(--border);
+}
+.cmp-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:24px 28px 20px;border-bottom:1px solid var(--border);
+}
+.cmp-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.4px}
+.cmp-sub{font-size:13px;color:var(--text3);margin-top:3px}
+.cmp-close{
+  background:var(--bg2);border:1px solid var(--border);border-radius:50%;
+  width:32px;height:32px;font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .15s;
+}
+.cmp-close:hover{background:var(--bg3)}
+.cmp-body{padding:24px 28px}
+.cmp-inputs{
+  display:flex;align-items:flex-end;gap:12px;margin-bottom:24px;flex-wrap:wrap;
+}
+.cmp-input-group{flex:1;min-width:180px}
+.cmp-label{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;color:var(--text2);
+  text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;
+}
+.cmp-label-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.cmp-a{background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid)}
+.cmp-b-badge{background:var(--purple-light);color:var(--purple);border:1px solid #ddd6fe}
+.cmp-input{
+  width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;
+  font-size:14px;color:var(--text);background:var(--bg);font-family:var(--sans);
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.cmp-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.cmp-input[readonly]{background:var(--bg2);color:var(--text2)}
+.cmp-vs{
+  font-size:13px;font-weight:800;color:var(--text3);
+  padding:10px 0;flex-shrink:0;
+}
+.cmp-run-btn{
+  padding:10px 24px;font-size:14px;font-weight:600;
+  background:var(--blue);color:#fff;border:none;border-radius:10px;
+  cursor:pointer;font-family:var(--sans);transition:background .15s;white-space:nowrap;
+}
+.cmp-run-btn:hover{background:var(--blue-dark)}
+.cmp-overlap-section{
+  background:var(--blue-light);border:1px solid var(--blue-mid);
+  border-radius:12px;padding:16px 20px;margin-bottom:20px;
+}
+.cmp-overlap-title{
+  font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;
+  letter-spacing:0.4px;margin-bottom:10px;
+}
+.cmp-overlap-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cmp-overlap-chip{
+  padding:4px 12px;background:#fff;border:2px solid var(--blue);
+  border-radius:20px;font-size:12px;font-weight:700;color:var(--blue);
+}
+.cmp-no-overlap{font-size:13px;color:var(--text3);font-style:italic}
+.cmp-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.cmp-columns{grid-template-columns:1fr}}
+.cmp-col-hdr{
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;
+  padding:8px 12px;border-radius:8px;margin-bottom:10px;
+}
+.cmp-a-hdr{background:var(--blue-light);color:var(--blue)}
+.cmp-b-hdr{background:var(--purple-light);color:var(--purple)}
+.cmp-hyp-row{
+  padding:10px 12px;border:1px solid var(--border);border-radius:10px;
+  margin-bottom:8px;font-size:13px;transition:border-color .15s;
+}
+.cmp-hyp-row:hover{border-color:var(--blue-mid)}
+.cmp-hyp-row.has-overlap{border-color:#93c5fd;background:var(--blue-light)}
+.cmp-hyp-name{font-weight:600;color:var(--text);line-height:1.4;margin-bottom:4px}
+.cmp-hyp-meta{font-size:11px;color:var(--text3);display:flex;gap:8px;flex-wrap:wrap}
+.cmp-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 0;gap:16px}
+.cmp-spinner{
+  width:36px;height:36px;border:3px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cmp-loading-txt{font-size:14px;color:var(--text3)}
+.cmp-error{
+  background:var(--red-light);border:1px solid #fecaca;
+  border-radius:10px;padding:16px;color:var(--red);font-size:13px;
+}
+
 /* ── Print styles ── */
 @media print{
   nav,.results-search,.pipeline-wrap,.empty-state,
@@ -452,7 +568,8 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
     <button class="nav-back" onclick="window.location.href='index.html'">← Back</button>
     <div class="nav-actions">
       <button class="darkmode-btn" id="darkmodeBtn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
-      <button class="download-btn" id="downloadBtn" onclick="downloadReport()" style="display:none">⬇ Download Report</button>
+      <button class="download-btn" id="downloadBtn" onclick="downloadReport()" style="display:none">⬇ HTML</button>
+      <button class="pdf-btn" id="pdfBtn" onclick="exportPDF()" style="display:none">📄 PDF</button>
       <button class="share-btn" id="shareBtn" onclick="shareLink()" style="display:none">🔗 Share</button>
       <div style="position:relative">
         <button class="history-btn" onclick="toggleHistory()">🕐 History <span id="historyCount"></span></button>
@@ -464,6 +581,7 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
           <div class="history-list" id="historyList"></div>
         </div>
       </div>
+      <button class="compare-btn" id="compareBtn" onclick="openCompare()" style="display:none">⚖️ Compare</button>
       <button class="nav-new-btn" onclick="newQuery()">New Query →</button>
     </div>
   </div>
@@ -571,6 +689,54 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
 <div class="similar-wrap wrap" id="similarWrap" style="display:none">
   <div class="similar-title">🔍 You might also want to explore</div>
   <div class="similar-chips" id="similarChips"></div>
+</div>
+
+<!-- ── Comparison Modal ── -->
+<div class="cmp-overlay" id="cmpOverlay" onclick="closeCmpOutside(event)">
+  <div class="cmp-modal">
+    <div class="cmp-header">
+      <div>
+        <div class="cmp-title">⚖️ Hypothesis Comparison</div>
+        <div class="cmp-sub">Compare gene overlaps between two disease queries</div>
+      </div>
+      <button class="cmp-close" onclick="closeCompare()">✕</button>
+    </div>
+    <div class="cmp-body">
+      <div class="cmp-inputs">
+        <div class="cmp-input-group">
+          <label class="cmp-label">Query A <span class="cmp-label-badge cmp-a">Current</span></label>
+          <input class="cmp-input" id="cmpInputA" placeholder="e.g. Alzheimer's disease" readonly/>
+        </div>
+        <div class="cmp-vs">VS</div>
+        <div class="cmp-input-group">
+          <label class="cmp-label">Query B</label>
+          <input class="cmp-input" id="cmpInputB" placeholder="e.g. Parkinson's disease" />
+        </div>
+        <button class="cmp-run-btn" onclick="runComparison()">Compare →</button>
+      </div>
+      <div id="cmpResults" style="display:none">
+        <div class="cmp-overlap-section">
+          <div class="cmp-overlap-title" id="cmpOverlapTitle">Shared Genes</div>
+          <div class="cmp-overlap-chips" id="cmpOverlapChips"></div>
+        </div>
+        <div class="cmp-columns">
+          <div class="cmp-col">
+            <div class="cmp-col-hdr cmp-a-hdr" id="cmpColHdrA">Query A</div>
+            <div id="cmpColA"></div>
+          </div>
+          <div class="cmp-col">
+            <div class="cmp-col-hdr cmp-b-hdr" id="cmpColHdrB">Query B</div>
+            <div id="cmpColB"></div>
+          </div>
+        </div>
+      </div>
+      <div class="cmp-loading" id="cmpLoading" style="display:none">
+        <div class="cmp-spinner"></div>
+        <div class="cmp-loading-txt" id="cmpLoadingTxt">Running pipeline for Query B…</div>
+      </div>
+      <div class="cmp-error" id="cmpError" style="display:none"></div>
+    </div>
+  </div>
 </div>
 
 <footer class="site-footer">
@@ -737,6 +903,8 @@ function renderResults(r){
   const dlBtn = qs('#downloadBtn')
   if(dlBtn) dlBtn.style.display = 'inline-flex'
   const sbBtn = qs('#shareBtn'); if(sbBtn) sbBtn.style.display = 'inline-flex'
+  const pdfBtnEl = qs('#pdfBtn'); if(pdfBtnEl) pdfBtnEl.style.display = 'inline-flex'
+  const cmpBtn = qs('#compareBtn'); if(cmpBtn) cmpBtn.style.display = 'inline-flex'
 
   if(r.summary){ qs('#summaryText').textContent = r.summary; show(qs('#summaryCard')) }
 
@@ -1122,6 +1290,212 @@ function renderSimilarDiseases(query){
   qs('#similarChips').innerHTML = suggestions.map(s=>
     `<button class="similar-chip" onclick="window.location.href='results.html?q='+encodeURIComponent('${s.replace(/'/g,"\\'")}')">🔬 ${s}</button>`
   ).join('')
+}
+
+// ── Export to PDF ────────────────────────────────────────────────────────────
+function exportPDF(){
+  // Build a clean print-only page and open it → user hits Cmd+P / Ctrl+P
+  if(!_lastResult) return
+  const r = _lastResult
+  const query = qs('#queryHeaderText')?.textContent || 'GeneSight Report'
+  const date  = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
+
+  const hypsHtml = (r.hypotheses||[]).map((h,i)=>{
+    const conf   = Math.round(h.confidence||0)
+    const status = h.status||'Exploratory'
+    const color  = status==='Strong'?'#16a34a':status==='Moderate'?'#d97706':'#7c3aed'
+    return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px 18px;margin-bottom:10px;break-inside:avoid">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+        <span style="background:${color}22;color:${color};border:1px solid ${color}44;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">${status.toUpperCase()}</span>
+        <span style="background:#eff4ff;color:#2563eb;border:1px solid #dbeafe;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600">${conf}% confidence</span>
+      </div>
+      <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:6px">${esc(h.title||'')}</div>
+      <div style="font-size:12px;color:#475569;line-height:1.7;margin-bottom:8px">${esc(h.statement||'')}</div>
+      <div style="font-size:11px;color:#64748b">🧬 <b>Genes:</b> ${esc((h.genes||[]).join(', '))} &nbsp;|&nbsp; 🔬 <b>Pathway:</b> ${esc(h.pathway||'')} &nbsp;|&nbsp; 📄 <b>Papers:</b> ${h.evidence_count||0}</div>
+    </div>`
+  }).join('')
+
+  const papersHtml = (r.papers||[]).slice(0,20).map(p=>{
+    const authors = (p.authors||[]).slice(0,3).join(', ')
+    return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin-bottom:8px;break-inside:avoid">
+      <div style="font-size:10px;color:#2563eb;font-weight:600;margin-bottom:3px">${esc(p.journal||'')}</div>
+      <div style="font-size:13px;font-weight:600;color:#0f172a;margin-bottom:4px">${esc(p.title||'')}</div>
+      <div style="font-size:10px;color:#94a3b8;font-family:monospace">${esc(authors)} · ${p.year||''} · PMID ${esc(p.pmid||'')}</div>
+    </div>`
+  }).join('')
+
+  const summaryHtml = r.summary
+    ? `<div style="background:#eff4ff;border-left:3px solid #2563eb;border-radius:8px;padding:14px 18px;margin-bottom:20px">
+        <div style="font-size:10px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">AI Research Summary</div>
+        <div style="font-size:12px;color:#0f172a;line-height:1.75">${esc(r.summary)}</div>
+       </div>` : ''
+
+  const printWin = window.open('','_blank')
+  printWin.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>GeneSight PDF — ${esc(query)}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Helvetica Neue',Arial,sans-serif;color:#0f172a;background:#fff;padding:30px 36px;max-width:860px;margin:0 auto}
+  h1{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;margin-bottom:3px}
+  h2{font-size:14px;font-weight:700;color:#0f172a;margin:22px 0 12px;padding-bottom:6px;border-bottom:2px solid #e2e8f0}
+  .meta{font-size:11px;color:#94a3b8;margin-bottom:20px}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+  .metric{background:#f8f9fb;border:1px solid #e2e8f0;border-radius:8px;padding:12px;text-align:center}
+  .metric-num{font-size:22px;font-weight:700;color:#2563eb}
+  .metric-lbl{font-size:9px;color:#94a3b8;margin-top:2px;text-transform:uppercase;letter-spacing:0.3px}
+  @media print{
+    @page{margin:14mm;size:A4}
+    body{padding:0}
+    h2{page-break-before:auto}
+  }
+</style>
+</head>
+<body>
+  <h1>🧬 GeneSight Research Report</h1>
+  <div class="meta">Query: <b>${esc(query)}</b> &nbsp;·&nbsp; ${date} &nbsp;·&nbsp; GPT-4o + PubMed</div>
+  ${summaryHtml}
+  <div class="metrics">
+    <div class="metric"><div class="metric-num">${(r.papers||[]).length}</div><div class="metric-lbl">Papers</div></div>
+    <div class="metric"><div class="metric-num">${(r.hypotheses||[]).length}</div><div class="metric-lbl">Hypotheses</div></div>
+    <div class="metric"><div class="metric-num">${(r.graph?.nodes||[]).length}</div><div class="metric-lbl">Graph Nodes</div></div>
+    <div class="metric"><div class="metric-num">${(r.graph?.edges||[]).length}</div><div class="metric-lbl">Relationships</div></div>
+  </div>
+  <h2>💡 Hypotheses</h2>${hypsHtml}
+  <h2>📄 Literature (top 20)</h2>${papersHtml}
+  <div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center">GeneSight AI · ${date}</div>
+  <script>window.onload=()=>{window.print()}<\/script>
+</body>
+</html>`)
+  printWin.document.close()
+}
+
+// ── Hypothesis Comparison ─────────────────────────────────────────────────────
+let _compareJobId = null
+
+function openCompare(){
+  const q = qs('#queryHeaderText')?.textContent || ''
+  qs('#cmpInputA').value = q
+  qs('#cmpInputB').value = ''
+  qs('#cmpResults').style.display = 'none'
+  qs('#cmpLoading').style.display = 'none'
+  qs('#cmpError').style.display = 'none'
+  qs('#cmpOverlay').classList.add('open')
+  document.body.style.overflow = 'hidden'
+  setTimeout(()=>qs('#cmpInputB').focus(), 200)
+}
+function closeCompare(){
+  qs('#cmpOverlay').classList.remove('open')
+  document.body.style.overflow = ''
+}
+function closeCmpOutside(e){
+  if(e.target === qs('#cmpOverlay')) closeCompare()
+}
+
+async function runComparison(){
+  const qA = qs('#cmpInputA').value.trim()
+  const qB = qs('#cmpInputB').value.trim()
+  if(!qB){ qs('#cmpError').textContent='Please enter Query B'; qs('#cmpError').style.display='block'; return }
+  qs('#cmpError').style.display = 'none'
+  qs('#cmpResults').style.display = 'none'
+  qs('#cmpLoading').style.display = 'flex'
+  qs('#cmpLoadingTxt').textContent = `Submitting query: "${qB}"…`
+
+  // Submit query B
+  let jobId
+  try{
+    const r = await fetch(`${API_URL}/query`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:qB})
+    })
+    if(!r.ok) throw new Error(`HTTP ${r.status}`)
+    jobId = (await r.json()).job_id
+  }catch(e){
+    qs('#cmpLoading').style.display = 'none'
+    qs('#cmpError').textContent = `Could not start pipeline: ${e.message}`
+    qs('#cmpError').style.display = 'block'
+    return
+  }
+
+  // Poll until done
+  while(true){
+    await new Promise(r=>setTimeout(r,2500))
+    let s
+    try{ s = await (await fetch(`${API_URL}/status/${jobId}`)).json() }
+    catch(e){ qs('#cmpLoading').style.display='none'; qs('#cmpError').textContent=`Poll error: ${e.message}`; qs('#cmpError').style.display='block'; return }
+    qs('#cmpLoadingTxt').textContent = `Running: ${s.current_agent||'…'} (Query B)`
+    if(s.status==='done') break
+    if(s.status==='error'){
+      qs('#cmpLoading').style.display='none'
+      qs('#cmpError').textContent = `Pipeline error: ${s.error||'Unknown'}`
+      qs('#cmpError').style.display='block'
+      return
+    }
+  }
+
+  // Fetch results B
+  let resB
+  try{
+    const r = await fetch(`${API_URL}/result/${jobId}`)
+    if(!r.ok) throw new Error(`Server ${r.status}`)
+    resB = await r.json()
+  }catch(e){
+    qs('#cmpLoading').style.display='none'
+    qs('#cmpError').textContent = `Fetch error: ${e.message}`
+    qs('#cmpError').style.display='block'
+    return
+  }
+
+  qs('#cmpLoading').style.display = 'none'
+  renderComparison(qA, _lastResult, qB, resB)
+}
+
+function renderComparison(qA, resA, qB, resB){
+  const hypsA = resA?.hypotheses || []
+  const hypsB = resB?.hypotheses || []
+
+  // Collect all genes from each
+  const genesA = new Set(hypsA.flatMap(h=>h.genes||[]).map(g=>g.toUpperCase()))
+  const genesB = new Set(hypsB.flatMap(h=>h.genes||[]).map(g=>g.toUpperCase()))
+  const overlap = [...genesA].filter(g=>genesB.has(g))
+
+  // Overlap chips
+  qs('#cmpColHdrA').textContent = qA.length>30 ? qA.slice(0,28)+'…' : qA
+  qs('#cmpColHdrB').textContent = qB.length>30 ? qB.slice(0,28)+'…' : qB
+  qs('#cmpOverlapTitle').textContent = overlap.length
+    ? `🔗 ${overlap.length} Shared Gene${overlap.length>1?'s':''} — potential cross-disease targets`
+    : 'No shared genes found between these two queries'
+
+  qs('#cmpOverlapChips').innerHTML = overlap.length
+    ? overlap.map(g=>`<span class="cmp-overlap-chip">🧬 ${esc(g)}</span>`).join('')
+    : `<span class="cmp-no-overlap">The two diseases appear to involve distinct gene pathways.</span>`
+
+  // Hypothesis rows for each side
+  function renderHypRows(hyps, overlapSet){
+    if(!hyps.length) return '<p style="color:var(--text3);font-size:13px">No hypotheses found.</p>'
+    return hyps.map(h=>{
+      const geneList = (h.genes||[]).map(g=>g.toUpperCase())
+      const hasOverlap = geneList.some(g=>overlapSet.has(g))
+      const conf = Math.round(h.confidence||50)
+      const status = h.status||'Exploratory'
+      const badgeColor = status==='Strong'?'#16a34a':status==='Moderate'?'#d97706':'#7c3aed'
+      return `<div class="cmp-hyp-row${hasOverlap?' has-overlap':''}">
+        <div class="cmp-hyp-name">${esc(h.title||'')}</div>
+        <div class="cmp-hyp-meta">
+          <span style="color:${badgeColor};font-weight:700">${status}</span>
+          <span>${conf}%</span>
+          <span>🧬 ${esc((h.genes||[]).join(', '))}</span>
+          ${hasOverlap?'<span style="color:var(--blue);font-weight:600">⚡ Shared gene</span>':''}
+        </div>
+      </div>`
+    }).join('')
+  }
+
+  qs('#cmpColA').innerHTML = renderHypRows(hypsA, new Set(overlap))
+  qs('#cmpColB').innerHTML = renderHypRows(hypsB, new Set(overlap))
+  qs('#cmpResults').style.display = 'block'
 }
 
 function shareLink(){
