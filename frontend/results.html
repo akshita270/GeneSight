@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -269,6 +270,8 @@ nav{
 .edge-row:last-child{border-bottom:none}
 .edge-arrow{color:var(--text3);font-size:11px;white-space:nowrap;font-family:monospace}
 .edge-conf{margin-left:auto;font-size:10px;color:var(--text3);font-family:monospace}
+#geneGraph{width:100%;height:420px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
+.graph-node text{font-size:11px;fill:var(--text);font-family:var(--sans);font-weight:500;pointer-events:none}
 
 /* ── Hypothesis cards ── */
 .hyp-card{
@@ -277,6 +280,10 @@ nav{
 }
 .hyp-card:hover{border-color:#bfdbfe;box-shadow:var(--shadow-md)}
 .hyp-rank{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:10px}
+.trend-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;letter-spacing:0.2px}
+.trend-up{background:var(--green-light);color:var(--green)}
+.trend-mid{background:var(--amber-light);color:var(--amber)}
+.trend-down{background:var(--purple-light);color:var(--purple)}
 .hyp-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;border:1px solid}
 .b-str{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
@@ -326,6 +333,14 @@ nav{
   font-family:var(--sans);transition:all .15s;
 }
 .download-btn:hover{background:#dcfce7;border-color:#86efac}
+.share-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;font-size:13px;font-weight:600;
+  background:var(--blue-light);color:var(--blue);
+  border:1px solid var(--blue-mid);border-radius:8px;cursor:pointer;
+  font-family:var(--sans);transition:all .15s;
+}
+.share-btn:hover{background:var(--blue-mid)}
 
 /* ── History button & panel ── */
 .history-btn{
@@ -364,6 +379,34 @@ nav{
 .history-item-arrow{font-size:11px;color:var(--text3);flex-shrink:0}
 .history-empty{padding:24px 16px;text-align:center;font-size:13px;color:var(--text3)}
 .nav-actions{display:flex;align-items:center;gap:8px;margin-left:auto;position:relative}
+.darkmode-btn{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--border);
+  background:var(--bg2);cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.darkmode-btn:hover{background:var(--bg3);border-color:var(--blue-mid)}
+body.dark{
+  --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;
+  --border:#334155;--border2:#1e293b;
+  --text:#f1f5f9;--text2:#cbd5e1;--text3:#64748b;--text4:#475569;
+  --blue-light:#1e3a8a;--blue-mid:#1d4ed8;
+  --shadow:0 1px 3px rgba(0,0,0,0.4),0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.4),0 2px 4px rgba(0,0,0,0.2);
+}
+body.dark nav{background:rgba(15,23,42,0.95)}
+body.dark .paper-card,body.dark .hyp-card,body.dark .metric-card,
+body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
+
+/* ── Similar Diseases ── */
+.similar-wrap{padding:24px 0 8px}
+.similar-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:12px}
+.similar-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;
+  background:var(--bg2);color:var(--text2);border:1px solid var(--border);
+  cursor:pointer;font-family:var(--sans);transition:all .15s;margin:4px;
+}
+.similar-chip:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
 
 /* ── Print styles ── */
 @media print{
@@ -408,7 +451,9 @@ nav{
     </div>
     <button class="nav-back" onclick="window.location.href='index.html'">← Back</button>
     <div class="nav-actions">
+      <button class="darkmode-btn" id="darkmodeBtn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
       <button class="download-btn" id="downloadBtn" onclick="downloadReport()" style="display:none">⬇ Download Report</button>
+      <button class="share-btn" id="shareBtn" onclick="shareLink()" style="display:none">🔗 Share</button>
       <div style="position:relative">
         <button class="history-btn" onclick="toggleHistory()">🕐 History <span id="historyCount"></span></button>
         <div class="history-panel" id="historyPanel">
@@ -522,6 +567,11 @@ nav{
 
   <div style="height:48px"></div>
 </div><!-- /resultsWrap -->
+
+<div class="similar-wrap wrap" id="similarWrap" style="display:none">
+  <div class="similar-title">🔍 You might also want to explore</div>
+  <div class="similar-chips" id="similarChips"></div>
+</div>
 
 <footer class="site-footer">
   <div class="footer-text">GeneSight · AI-Powered Genomics Research · Built with GPT-4o, PubMed, Neo4j</div>
@@ -664,8 +714,17 @@ async function main(){
 
 function showError(msg){
   const el = qs('#errorBox')
-  el.textContent = '⚠ ' + msg
-  el.style.display = 'block'
+  el.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <div style="font-size:24px;flex-shrink:0">⚠️</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">Pipeline Error</div>
+        <div style="font-size:13px;opacity:0.85;margin-bottom:12px">${esc(msg)}</div>
+        <button onclick="window.location.reload()" style="padding:8px 18px;font-size:13px;font-weight:600;background:var(--red);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:var(--sans)">↺ Retry</button>
+        <button onclick="window.location.href='index.html'" style="padding:8px 18px;font-size:13px;font-weight:600;background:transparent;color:var(--red);border:1px solid #fca5a5;border-radius:8px;cursor:pointer;font-family:var(--sans);margin-left:8px">← New Query</button>
+      </div>
+    </div>`
+  el.classList.add('visible')
   qs('#queryHeaderSub').textContent = 'Error — see below'
 }
 
@@ -677,6 +736,7 @@ function renderResults(r){
   // Show download button now that we have results
   const dlBtn = qs('#downloadBtn')
   if(dlBtn) dlBtn.style.display = 'inline-flex'
+  const sbBtn = qs('#shareBtn'); if(sbBtn) sbBtn.style.display = 'inline-flex'
 
   if(r.summary){ qs('#summaryText').textContent = r.summary; show(qs('#summaryCard')) }
 
@@ -695,6 +755,7 @@ function renderResults(r){
   renderGraph(nodes, edges)
   renderHypotheses(hyps, papers)
   show(qs('#tabsWrap'))
+  renderSimilarDiseases(qs('#queryHeaderText').textContent)
 
   // Scroll smoothly to results
   setTimeout(()=>qs('#metricRow').scrollIntoView({behavior:'smooth',block:'start'}), 200)
@@ -723,11 +784,13 @@ function renderLiterature(papers){
 }
 
 function renderGraph(nodes, edges){
-  if(!nodes.length){ qs('#tabKG').innerHTML='<p style="color:var(--text3)">No graph data.</p>'; return }
+  if(!nodes.length){ qs('#tabKG').innerHTML='<p style="color:var(--text3);padding:16px">No graph data.</p>'; return }
   const genes = nodes.filter(n=>n.type==='gene')
   const diseases = nodes.filter(n=>n.type==='disease')
   const proteins = nodes.filter(n=>n.type==='protein')
+
   qs('#tabKG').innerHTML = `
+  <div id="geneGraph"></div>
   <div class="kg-grid">
     <div>
       <div class="section-lbl">Statistics</div>
@@ -751,6 +814,62 @@ function renderGraph(nodes, edges){
         </div>`).join('')}`:''}
     </div>
   </div>`
+
+  // D3 force graph
+  try{
+    const container = document.getElementById('geneGraph')
+    const W = container.clientWidth || 600
+    const H = 420
+    const colorMap = {gene:'#16a34a', disease:'#dc2626', protein:'#7c3aed'}
+    const d3nodes = nodes.map(n=>({id:n.id||n.label, label:n.label||n.id, type:n.type||'gene'}))
+    const nodeIds = new Set(d3nodes.map(n=>n.id))
+    const d3links = edges.filter(e=>nodeIds.has(e.source)&&nodeIds.has(e.target))
+                         .map(e=>({source:e.source, target:e.target, rel:e.relation||''}))
+
+    const svg = d3.select('#geneGraph').append('svg')
+      .attr('width','100%').attr('height',H)
+
+    // Arrow marker
+    svg.append('defs').append('marker')
+      .attr('id','arr').attr('viewBox','0 -5 10 10').attr('refX',18).attr('refY',0)
+      .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+      .append('path').attr('d','M0,-5L10,0L0,5').attr('fill','#94a3b8')
+
+    const sim = d3.forceSimulation(d3nodes)
+      .force('link', d3.forceLink(d3links).id(d=>d.id).distance(90))
+      .force('charge', d3.forceManyBody().strength(-200))
+      .force('center', d3.forceCenter(W/2, H/2))
+      .force('collision', d3.forceCollide(28))
+
+    const link = svg.append('g').selectAll('line').data(d3links).join('line')
+      .attr('stroke','#94a3b8').attr('stroke-width',1.5).attr('stroke-opacity',0.6)
+      .attr('marker-end','url(#arr)')
+
+    const node = svg.append('g').selectAll('g').data(d3nodes).join('g')
+      .attr('class','graph-node').call(
+        d3.drag()
+          .on('start',(e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y })
+          .on('drag', (e,d)=>{ d.fx=e.x; d.fy=e.y })
+          .on('end',  (e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null })
+      )
+
+    node.append('circle').attr('r',16)
+      .attr('fill',d=>colorMap[d.type]||'#3b82f6')
+      .attr('fill-opacity',0.15)
+      .attr('stroke',d=>colorMap[d.type]||'#3b82f6')
+      .attr('stroke-width',2)
+
+    node.append('text').attr('text-anchor','middle').attr('dy','0.35em')
+      .attr('font-size','10px').attr('fill',d=>colorMap[d.type]||'#3b82f6')
+      .attr('font-weight','700')
+      .text(d=>d.label.length>8?d.label.slice(0,7)+'…':d.label)
+
+    sim.on('tick',()=>{
+      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+          .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y)
+      node.attr('transform',d=>`translate(${d.x},${d.y})`)
+    })
+  }catch(err){ console.warn('D3 graph error:', err) }
 }
 
 function renderHypotheses(hyps, papers){
@@ -786,9 +905,11 @@ function renderHypotheses(hyps, papers){
             ${tooltipItems}
           </div></span>`
       }
+      const trendIcon = conf>=75?'↑ Strong evidence':conf>=55?'→ Moderate evidence':'↓ Exploratory'
+      const trendCls = conf>=75?'trend-up':conf>=55?'trend-mid':'trend-down'
       return `
       <div class="hyp-card">
-        <div class="hyp-rank">#${i+1} of ${hyps.length}</div>
+        <div class="hyp-rank">#${i+1} of ${hyps.length} &nbsp;<span class="trend-badge ${trendCls}">${trendIcon}</span></div>
         <div class="hyp-header">
           <span class="badge ${badgeCls}">${status}</span>
           <span class="conf-pill ${cpCls}">${conf}% confidence</span>
@@ -958,6 +1079,66 @@ function downloadReport(){
   a.download = `genesight-${query.replace(/[^a-z0-9]/gi,'-').toLowerCase().slice(0,40)}-${Date.now()}.html`
   a.click()
   URL.revokeObjectURL(url)
+}
+
+// ── Dark Mode ──
+function toggleDark(){
+  document.body.classList.toggle('dark')
+  const isDark = document.body.classList.contains('dark')
+  localStorage.setItem('gs_dark', isDark?'1':'0')
+  qs('#darkmodeBtn').textContent = isDark ? '☀️' : '🌙'
+}
+// Apply saved preference on load
+if(localStorage.getItem('gs_dark')==='1'){
+  document.body.classList.add('dark')
+  document.addEventListener('DOMContentLoaded',()=>{
+    const btn = qs('#darkmodeBtn')
+    if(btn) btn.textContent='☀️'
+  })
+}
+
+const SIMILAR_MAP = {
+  "alzheimer": ["Parkinson's disease","Lewy body dementia","Frontotemporal dementia","Vascular dementia","Huntington's disease"],
+  "parkinson": ["Alzheimer's disease","Lewy body dementia","ALS motor neuron disease","Multiple system atrophy","Essential tremor"],
+  "cancer": ["Tumour suppressor pathways","Metastasis gene networks","Immunotherapy resistance","Angiogenesis pathways","DNA repair mechanisms"],
+  "breast": ["Ovarian cancer BRCA","Cervical cancer pathways","Endometrial cancer genes","Lung cancer biomarkers","Colorectal cancer mutations"],
+  "diabetes": ["Insulin resistance pathways","Metabolic syndrome genes","Obesity genetic factors","Pancreatic beta cell function","Cardiovascular disease risk"],
+  "brca": ["Ovarian cancer BRCA2","DNA repair pathways","Triple negative breast cancer","Hereditary cancer syndromes","RAD51 repair mechanisms"],
+  "autism": ["ADHD genetic factors","Schizophrenia gene networks","Bipolar disorder pathways","Fragile X syndrome","Rett syndrome genes"],
+  "als": ["Parkinson's disease","Frontotemporal dementia","Huntington's disease","Spinal muscular atrophy","Multiple sclerosis genes"],
+  "heart": ["Atrial fibrillation genes","Hypertrophic cardiomyopathy","Coronary artery disease","Heart failure biomarkers","Arrhythmia pathways"],
+  "default": ["Type 2 diabetes genes","Alzheimer's gene networks","BRCA1 breast cancer","Parkinson's neuroinflammation","ALS motor neuron disease"]
+}
+
+function renderSimilarDiseases(query){
+  const q = (query||'').toLowerCase()
+  let suggestions = SIMILAR_MAP.default
+  for(const [key, vals] of Object.entries(SIMILAR_MAP)){
+    if(key !== 'default' && q.includes(key)){ suggestions = vals; break }
+  }
+  const wrap = qs('#similarWrap')
+  if(!wrap) return
+  wrap.style.display = 'block'
+  qs('#similarChips').innerHTML = suggestions.map(s=>
+    `<button class="similar-chip" onclick="window.location.href='results.html?q='+encodeURIComponent('${s.replace(/'/g,"\\'")}')">🔬 ${s}</button>`
+  ).join('')
+}
+
+function shareLink(){
+  const url = window.location.href
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>{
+      const btn = qs('#shareBtn')
+      const orig = btn.innerHTML
+      btn.innerHTML = '✅ Copied!'
+      btn.style.background='var(--green-light)'
+      btn.style.color='var(--green)'
+      btn.style.borderColor='#bbf7d0'
+      setTimeout(()=>{ btn.innerHTML=orig; btn.style.background=''; btn.style.color=''; btn.style.borderColor='' }, 2000)
+    })
+  } else {
+    prompt('Copy this link:', url)
+  }
 }
 
 main()
