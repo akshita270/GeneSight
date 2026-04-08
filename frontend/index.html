@@ -113,16 +113,9 @@ nav{
 /* ── DNA Panel ── */
 .dna-panel{
   display:flex;align-items:center;justify-content:center;
-  position:relative;min-width:220px;
+  position:relative;min-width:240px;
 }
-.dna-svg{width:220px;height:400px;overflow:visible}
-@keyframes helixSpin{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
-@keyframes helixSpinB{0%{transform:scaleX(-1)}50%{transform:scaleX(1)}100%{transform:scaleX(-1)}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-.dna-wrap{animation:float 4s ease-in-out infinite;transform-origin:center}
-.strand-a{animation:helixSpin 3s ease-in-out infinite;transform-origin:110px center}
-.strand-b{animation:helixSpinB 3s ease-in-out infinite;transform-origin:110px center}
-.rung{opacity:0.7}
+#dnaCanvas{display:block;}
 
 /* ── Section divider ── */
 .section-divider{
@@ -767,41 +760,7 @@ nav{
       </div>
     </div>
     <div class="dna-panel">
-      <svg class="dna-svg" viewBox="0 0 220 400" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="ballA" cx="35%" cy="35%"><stop offset="0%" stop-color="#bfdbfe"/><stop offset="100%" stop-color="#1d4ed8"/></radialGradient>
-          <radialGradient id="ballB" cx="35%" cy="35%"><stop offset="0%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#2563eb"/></radialGradient>
-          <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        </defs>
-        <g class="dna-wrap">
-          <!-- Strand A (sine wave, left) -->
-          <path class="strand-a" d="M110,10 C60,35 160,65 110,90 C60,115 160,145 110,170 C60,195 160,225 110,250 C60,275 160,305 110,330 C60,355 160,385 110,390"
-            fill="none" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round" filter="url(#glow)" opacity="0.85"/>
-          <!-- Strand B (opposite sine wave, right) -->
-          <path class="strand-b" d="M110,10 C160,35 60,65 110,90 C160,115 60,145 110,170 C160,195 60,225 110,250 C160,275 60,305 110,330 C160,355 60,385 110,390"
-            fill="none" stroke="#60a5fa" stroke-width="3.5" stroke-linecap="round" filter="url(#glow)" opacity="0.85"/>
-          <!-- Rungs (horizontal bars) -->
-          <line class="rung" x1="79" y1="50"  x2="141" y2="50"  stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-          <line class="rung" x1="68" y1="90"  x2="152" y2="90"  stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
-          <line class="rung" x1="79" y1="130" x2="141" y2="130" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-          <line class="rung" x1="68" y1="170" x2="152" y2="170" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
-          <line class="rung" x1="79" y1="210" x2="141" y2="210" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-          <line class="rung" x1="68" y1="250" x2="152" y2="250" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
-          <line class="rung" x1="79" y1="290" x2="141" y2="290" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-          <line class="rung" x1="68" y1="330" x2="152" y2="330" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
-          <line class="rung" x1="79" y1="370" x2="141" y2="370" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-          <!-- Balls at rung ends -->
-          <circle cx="79"  cy="50"  r="8" fill="url(#ballA)"/><circle cx="141" cy="50"  r="8" fill="url(#ballB)"/>
-          <circle cx="68"  cy="90"  r="9" fill="url(#ballB)"/><circle cx="152" cy="90"  r="9" fill="url(#ballA)"/>
-          <circle cx="79"  cy="130" r="8" fill="url(#ballA)"/><circle cx="141" cy="130" r="8" fill="url(#ballB)"/>
-          <circle cx="68"  cy="170" r="9" fill="url(#ballB)"/><circle cx="152" cy="170" r="9" fill="url(#ballA)"/>
-          <circle cx="79"  cy="210" r="8" fill="url(#ballA)"/><circle cx="141" cy="210" r="8" fill="url(#ballB)"/>
-          <circle cx="68"  cy="250" r="9" fill="url(#ballB)"/><circle cx="152" cy="250" r="9" fill="url(#ballA)"/>
-          <circle cx="79"  cy="290" r="8" fill="url(#ballA)"/><circle cx="141" cy="290" r="8" fill="url(#ballB)"/>
-          <circle cx="68"  cy="330" r="9" fill="url(#ballB)"/><circle cx="152" cy="330" r="9" fill="url(#ballA)"/>
-          <circle cx="79"  cy="370" r="8" fill="url(#ballA)"/><circle cx="141" cy="370" r="8" fill="url(#ballB)"/>
-        </g>
-      </svg>
+      <canvas id="dnaCanvas" width="240" height="420"></canvas>
     </div>
   </div>
 
@@ -1203,7 +1162,168 @@ function toggleFaq(btn){
   if(!isOpen) item.classList.add('open')
 }
 
-// ── DNA helix handled via inline SVG — no JS needed ──
+// ── 3D-style DNA Helix on Canvas ──────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('dnaCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2;           // horizontal centre
+  const amplitude = 72;     // how wide the helix swings
+  const numRungs  = 9;      // base-pair rungs
+  const tubeR     = 11;     // strand tube radius (for 3D shading)
+  const ballR     = 10;     // sphere radius at rung ends
+  const cycleH    = H / 2;  // one full twist = half the canvas height
+  let   angle     = 0;      // rotation angle (radians, updated each frame)
+  const SPEED     = 0.018;  // rotation speed
+
+  // Colour palette — two blues like the reference image
+  const COL_DARK  = { r:49,  g:130, b:206 };  // deep cornflower
+  const COL_LIGHT = { r:147, g:197, b:253 };  // sky blue
+
+  // Lerp helper
+  function lerp(a,b,t){ return a+(b-a)*t; }
+
+  // Draw a thick 3D-looking segment between two points using multiple layered strokes
+  function drawTube(x1,y1, x2,y2, r, col, alpha){
+    const steps = 5;
+    for(let i=steps;i>=0;i--){
+      const t    = i/steps;                    // 1 = edge, 0 = highlight centre
+      const w    = r * 2 * (0.4 + 0.6*t);     // thicker at edges
+      const bright = 1 - t*0.75;              // brighter in centre
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x2,y2);
+      ctx.strokeStyle = `rgba(${Math.round(lerp(255,col.r,t))},${Math.round(lerp(255,col.g,t))},${Math.round(lerp(255,col.b,t))},${alpha})`;
+      ctx.lineWidth   = w;
+      ctx.lineCap     = 'round';
+      ctx.stroke();
+    }
+  }
+
+  // Draw a 3D glossy sphere
+  function drawSphere(x, y, r, col, alpha){
+    // base sphere
+    const grad = ctx.createRadialGradient(x-r*0.3, y-r*0.3, r*0.05, x, y, r);
+    grad.addColorStop(0,   `rgba(255,255,255,${alpha})`);
+    grad.addColorStop(0.35,`rgba(${col.r},${col.g},${col.b},${alpha})`);
+    grad.addColorStop(1,   `rgba(${Math.round(col.r*0.45)},${Math.round(col.g*0.45)},${Math.round(col.b*0.45)},${alpha})`);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    // specular highlight
+    ctx.beginPath();
+    ctx.arc(x-r*0.28, y-r*0.28, r*0.28, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${alpha*0.65})`;
+    ctx.fill();
+  }
+
+  // Build helix point list for a given phase offset
+  // Returns [{x,y,z}] along the helix
+  function helixPoints(phaseOffset, n){
+    const pts = [];
+    for(let i=0; i<=n; i++){
+      const t   = i/n;
+      const phi = angle + phaseOffset + t * Math.PI * 4; // 2 full twists
+      const y   = 20 + t*(H-40);
+      const x   = cx + Math.cos(phi) * amplitude;
+      const z   = Math.sin(phi);       // -1 (back) → +1 (front)
+      pts.push({x,y,z});
+    }
+    return pts;
+  }
+
+  // Rung positions: evenly spaced, rung i at fraction (i+0.5)/numRungs along height
+  function rungData(){
+    const rungs = [];
+    for(let i=0;i<numRungs;i++){
+      const t   = (i+0.5)/numRungs;
+      const y   = 20 + t*(H-40);
+      const phi = angle + t * Math.PI * 4;
+      const xA  = cx + Math.cos(phi)      * amplitude;
+      const zA  = Math.sin(phi);
+      const xB  = cx + Math.cos(phi+Math.PI) * amplitude;
+      const zB  = Math.sin(phi+Math.PI);
+      rungs.push({y, xA, zA, xB, zB});
+    }
+    return rungs;
+  }
+
+  function drawFrame(){
+    ctx.clearRect(0,0,W,H);
+
+    // Sample strands into small segments for smooth tube drawing
+    const SEG = 60;
+    const ptsA = helixPoints(0,          SEG);
+    const ptsB = helixPoints(Math.PI,    SEG);
+
+    const rungs = rungData();
+
+    // --- Collect all drawable items with depth (z) for painter's-algo sort ---
+    const items = [];
+
+    // Strand segments
+    for(let i=0;i<SEG;i++){
+      const mz = (ptsA[i].z + ptsA[i+1].z)*0.5;
+      items.push({type:'tubA', i, z:mz});
+      const mzB = (ptsB[i].z + ptsB[i+1].z)*0.5;
+      items.push({type:'tubB', i, z:mzB});
+    }
+
+    // Rungs + spheres
+    for(let i=0;i<rungs.length;i++){
+      const r = rungs[i];
+      const midZ = (r.zA + r.zB)*0.5;
+      items.push({type:'rung',   i, z:midZ});
+      items.push({type:'sphA',   i, z:r.zA});
+      items.push({type:'sphB',   i, z:r.zB});
+    }
+
+    // Sort back→front (lower z drawn first)
+    items.sort((a,b)=>a.z-b.z);
+
+    // Draw each item
+    for(const item of items){
+      const alpha = 1; // full opacity; depth conveyed by shading
+      if(item.type==='tubA'){
+        const i=item.i;
+        // alpha fade for back segments
+        const za = ptsA[i].z;
+        const fadeA = 0.45 + 0.55 * ((za+1)/2);
+        drawTube(ptsA[i].x,ptsA[i].y, ptsA[i+1].x,ptsA[i+1].y, tubeR, COL_DARK, fadeA);
+      }
+      else if(item.type==='tubB'){
+        const i=item.i;
+        const zb = ptsB[i].z;
+        const fadeB = 0.45 + 0.55 * ((zb+1)/2);
+        drawTube(ptsB[i].x,ptsB[i].y, ptsB[i+1].x,ptsB[i+1].y, tubeR, COL_LIGHT, fadeB);
+      }
+      else if(item.type==='rung'){
+        const r=rungs[item.i];
+        const midZ  = (r.zA+r.zB)*0.5;
+        const rungA = 0.35 + 0.4*((midZ+1)/2);
+        // draw rung as a thin tube
+        drawTube(r.xA,r.y, r.xB,r.y, 4, {r:147,g:197,b:253}, rungA);
+      }
+      else if(item.type==='sphA'){
+        const r=rungs[item.i];
+        const fadeS = 0.5 + 0.5*((r.zA+1)/2);
+        drawSphere(r.xA, r.y, ballR, COL_DARK, fadeS);
+      }
+      else if(item.type==='sphB'){
+        const r=rungs[item.i];
+        const fadeS = 0.5 + 0.5*((r.zB+1)/2);
+        drawSphere(r.xB, r.y, ballR, COL_LIGHT, fadeS);
+      }
+    }
+
+    angle += SPEED;
+    requestAnimationFrame(drawFrame);
+  }
+
+  drawFrame();
+})();
 </script>
 </body>
 </html>
