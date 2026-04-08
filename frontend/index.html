@@ -113,9 +113,16 @@ nav{
 /* ── DNA Panel ── */
 .dna-panel{
   display:flex;align-items:center;justify-content:center;
-  position:relative;
+  position:relative;min-width:220px;
 }
-#dnaCanvas{display:block}
+.dna-svg{width:220px;height:400px;overflow:visible}
+@keyframes helixSpin{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+@keyframes helixSpinB{0%{transform:scaleX(-1)}50%{transform:scaleX(1)}100%{transform:scaleX(-1)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.dna-wrap{animation:float 4s ease-in-out infinite;transform-origin:center}
+.strand-a{animation:helixSpin 3s ease-in-out infinite;transform-origin:110px center}
+.strand-b{animation:helixSpinB 3s ease-in-out infinite;transform-origin:110px center}
+.rung{opacity:0.7}
 
 /* ── Section divider ── */
 .section-divider{
@@ -760,7 +767,41 @@ nav{
       </div>
     </div>
     <div class="dna-panel">
-      <canvas id="dnaCanvas"></canvas>
+      <svg class="dna-svg" viewBox="0 0 220 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="ballA" cx="35%" cy="35%"><stop offset="0%" stop-color="#bfdbfe"/><stop offset="100%" stop-color="#1d4ed8"/></radialGradient>
+          <radialGradient id="ballB" cx="35%" cy="35%"><stop offset="0%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#2563eb"/></radialGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g class="dna-wrap">
+          <!-- Strand A (sine wave, left) -->
+          <path class="strand-a" d="M110,10 C60,35 160,65 110,90 C60,115 160,145 110,170 C60,195 160,225 110,250 C60,275 160,305 110,330 C60,355 160,385 110,390"
+            fill="none" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round" filter="url(#glow)" opacity="0.85"/>
+          <!-- Strand B (opposite sine wave, right) -->
+          <path class="strand-b" d="M110,10 C160,35 60,65 110,90 C160,115 60,145 110,170 C160,195 60,225 110,250 C160,275 60,305 110,330 C160,355 60,385 110,390"
+            fill="none" stroke="#60a5fa" stroke-width="3.5" stroke-linecap="round" filter="url(#glow)" opacity="0.85"/>
+          <!-- Rungs (horizontal bars) -->
+          <line class="rung" x1="79" y1="50"  x2="141" y2="50"  stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
+          <line class="rung" x1="68" y1="90"  x2="152" y2="90"  stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
+          <line class="rung" x1="79" y1="130" x2="141" y2="130" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
+          <line class="rung" x1="68" y1="170" x2="152" y2="170" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
+          <line class="rung" x1="79" y1="210" x2="141" y2="210" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
+          <line class="rung" x1="68" y1="250" x2="152" y2="250" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
+          <line class="rung" x1="79" y1="290" x2="141" y2="290" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
+          <line class="rung" x1="68" y1="330" x2="152" y2="330" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/>
+          <line class="rung" x1="79" y1="370" x2="141" y2="370" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
+          <!-- Balls at rung ends -->
+          <circle cx="79"  cy="50"  r="8" fill="url(#ballA)"/><circle cx="141" cy="50"  r="8" fill="url(#ballB)"/>
+          <circle cx="68"  cy="90"  r="9" fill="url(#ballB)"/><circle cx="152" cy="90"  r="9" fill="url(#ballA)"/>
+          <circle cx="79"  cy="130" r="8" fill="url(#ballA)"/><circle cx="141" cy="130" r="8" fill="url(#ballB)"/>
+          <circle cx="68"  cy="170" r="9" fill="url(#ballB)"/><circle cx="152" cy="170" r="9" fill="url(#ballA)"/>
+          <circle cx="79"  cy="210" r="8" fill="url(#ballA)"/><circle cx="141" cy="210" r="8" fill="url(#ballB)"/>
+          <circle cx="68"  cy="250" r="9" fill="url(#ballB)"/><circle cx="152" cy="250" r="9" fill="url(#ballA)"/>
+          <circle cx="79"  cy="290" r="8" fill="url(#ballA)"/><circle cx="141" cy="290" r="8" fill="url(#ballB)"/>
+          <circle cx="68"  cy="330" r="9" fill="url(#ballB)"/><circle cx="152" cy="330" r="9" fill="url(#ballA)"/>
+          <circle cx="79"  cy="370" r="8" fill="url(#ballA)"/><circle cx="141" cy="370" r="8" fill="url(#ballB)"/>
+        </g>
+      </svg>
     </div>
   </div>
 
@@ -1162,98 +1203,7 @@ function toggleFaq(btn){
   if(!isOpen) item.classList.add('open')
 }
 
-// ── DNA Double Helix Canvas ──
-document.addEventListener('DOMContentLoaded', function(){
-  const canvas = document.getElementById('dnaCanvas')
-  if(!canvas) return
-
-  // Size the canvas explicitly in JS so it's always correct
-  const W = 240, H = 420
-  canvas.width  = W
-  canvas.height = H
-  canvas.style.width  = W + 'px'
-  canvas.style.height = H + 'px'
-
-  const ctx = canvas.getContext('2d')
-
-  const STRAND_A   = '#5aabf8'
-  const STRAND_B   = '#2176e8'
-  const RUNG_COLOR = '#93c5fd'
-  const BALL_COLORS = ['#3b82f6','#60a5fa','#2563eb','#93c5fd','#1d4ed8','#7dd3fc','#1e40af','#bfdbfe']
-  const RUNG_COUNT  = 16
-  const rungColorsA = Array.from({length:RUNG_COUNT},(_,i)=>BALL_COLORS[i%BALL_COLORS.length])
-  const rungColorsB = Array.from({length:RUNG_COUNT},(_,i)=>BALL_COLORS[(i+3)%BALL_COLORS.length])
-
-  let phase = 0
-  const AMP  = 72
-  const FREQ = 0.045
-
-  function lighten(hex,a){
-    const n=parseInt(hex.slice(1),16)
-    return `rgb(${Math.min(255,(n>>16)+~~(255*a))},${Math.min(255,((n>>8)&255)+~~(255*a))},${Math.min(255,(n&255)+~~(255*a))})`
-  }
-  function darken(hex,a){
-    const n=parseInt(hex.slice(1),16)
-    return `rgb(${Math.max(0,(n>>16)-~~(255*a))},${Math.max(0,((n>>8)&255)-~~(255*a))},${Math.max(0,(n&255)-~~(255*a))})`
-  }
-  function sphere(x,y,r,color){
-    const g=ctx.createRadialGradient(x-r*0.3,y-r*0.35,r*0.05,x+r*0.1,y+r*0.1,r*1.0)
-    g.addColorStop(0.0,'#ffffff')
-    g.addColorStop(0.2,lighten(color,0.4))
-    g.addColorStop(0.6,color)
-    g.addColorStop(1.0,darken(color,0.4))
-    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2)
-    ctx.fillStyle=g; ctx.fill()
-  }
-
-  function draw(){
-    ctx.clearRect(0,0,W,H)
-
-    // Build strand points
-    const steps=180, ptsA=[], ptsB=[]
-    for(let s=0;s<=steps;s++){
-      const y=(s/steps)*H
-      ptsA.push([W/2+Math.sin(y*FREQ+phase)*AMP, y])
-      ptsB.push([W/2-Math.sin(y*FREQ+phase)*AMP, y])
-    }
-
-    // Draw strands
-    ;[{pts:ptsA,col:STRAND_A},{pts:ptsB,col:STRAND_B}].forEach(({pts,col})=>{
-      ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1])
-      for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1])
-      ctx.strokeStyle=col; ctx.lineWidth=3.5; ctx.lineJoin='round'
-      ctx.globalAlpha=0.75; ctx.stroke(); ctx.globalAlpha=1
-    })
-
-    // Build rungs
-    const rungs=[]
-    for(let i=0;i<RUNG_COUNT;i++){
-      const y=(i+0.5)/RUNG_COUNT*H
-      const sinV=Math.sin(y*FREQ+phase)
-      const xA=W/2+sinV*AMP, xB=W/2-sinV*AMP
-      rungs.push({y,xA,xB,depthA:sinV,depthB:-sinV,
-        rA:7+3*(sinV+1)/2, rB:7+3*(-sinV+1)/2,
-        cA:rungColorsA[i], cB:rungColorsB[i]})
-    }
-
-    // Draw rung bars
-    rungs.forEach(r=>{
-      ctx.beginPath(); ctx.moveTo(r.xA,r.y); ctx.lineTo(r.xB,r.y)
-      ctx.strokeStyle=RUNG_COLOR; ctx.lineWidth=2
-      ctx.globalAlpha=0.5; ctx.stroke(); ctx.globalAlpha=1
-    })
-
-    // Draw balls depth-sorted
-    rungs.forEach(r=>{
-      if(r.depthA<=r.depthB){ sphere(r.xA,r.y,r.rA,r.cA); sphere(r.xB,r.y,r.rB,r.cB) }
-      else                   { sphere(r.xB,r.y,r.rB,r.cB); sphere(r.xA,r.y,r.rA,r.cA) }
-    })
-
-    phase+=0.020
-    requestAnimationFrame(draw)
-  }
-  draw()
-})
+// ── DNA helix handled via inline SVG — no JS needed ──
 </script>
 </body>
 </html>
