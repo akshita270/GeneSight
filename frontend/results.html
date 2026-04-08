@@ -341,14 +341,6 @@ nav{
   font-family:var(--sans);transition:all .15s;
 }
 .pdf-btn:hover{background:#fee2e2;border-color:#fca5a5}
-.share-btn{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:9px 18px;font-size:13px;font-weight:600;
-  background:var(--blue-light);color:var(--blue);
-  border:1px solid var(--blue-mid);border-radius:8px;cursor:pointer;
-  font-family:var(--sans);transition:all .15s;
-}
-.share-btn:hover{background:var(--blue-mid)}
 
 /* ── History button & panel ── */
 .history-btn{
@@ -570,7 +562,6 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
       <button class="darkmode-btn" id="darkmodeBtn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
       <button class="download-btn" id="downloadBtn" onclick="downloadReport()" style="display:none">⬇ HTML</button>
       <button class="pdf-btn" id="pdfBtn" onclick="exportPDF()" style="display:none">📄 PDF</button>
-      <button class="share-btn" id="shareBtn" onclick="shareLink()" style="display:none">🔗 Share</button>
       <div style="position:relative">
         <button class="history-btn" onclick="toggleHistory()">🕐 History <span id="historyCount"></span></button>
         <div class="history-panel" id="historyPanel">
@@ -902,7 +893,6 @@ function renderResults(r){
   // Show download button now that we have results
   const dlBtn = qs('#downloadBtn')
   if(dlBtn) dlBtn.style.display = 'inline-flex'
-  const sbBtn = qs('#shareBtn'); if(sbBtn) sbBtn.style.display = 'inline-flex'
   const pdfBtnEl = qs('#pdfBtn'); if(pdfBtnEl) pdfBtnEl.style.display = 'inline-flex'
   const cmpBtn = qs('#compareBtn'); if(cmpBtn) cmpBtn.style.display = 'inline-flex'
 
@@ -1146,10 +1136,12 @@ function timeAgo(ts){
   if(s<86400) return `${Math.floor(s/3600)}h ago`
   return `${Math.floor(s/86400)}d ago`
 }
-// Close history panel when clicking outside
+// Close history panel when clicking outside — use the wrapper div that holds BOTH button + panel
 document.addEventListener('click', e=>{
-  const panel = qs('#historyPanel')
-  if(panel && !panel.closest('div').contains(e.target)) panel.classList.remove('open')
+  const wrapper = qs('#historyPanel')?.parentElement  // the <div style="position:relative"> wrapper
+  if(wrapper && !wrapper.contains(e.target)){
+    qs('#historyPanel')?.classList.remove('open')
+  }
 })
 
 // ── Download Report ──────────────────────────────────────────────────────────
@@ -1498,22 +1490,6 @@ function renderComparison(qA, resA, qB, resB){
   qs('#cmpResults').style.display = 'block'
 }
 
-function shareLink(){
-  const url = window.location.href
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(url).then(()=>{
-      const btn = qs('#shareBtn')
-      const orig = btn.innerHTML
-      btn.innerHTML = '✅ Copied!'
-      btn.style.background='var(--green-light)'
-      btn.style.color='var(--green)'
-      btn.style.borderColor='#bbf7d0'
-      setTimeout(()=>{ btn.innerHTML=orig; btn.style.background=''; btn.style.color=''; btn.style.borderColor='' }, 2000)
-    })
-  } else {
-    prompt('Copy this link:', url)
-  }
-}
 
 main()
 </script>
