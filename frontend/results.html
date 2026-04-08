@@ -151,26 +151,101 @@ nav{
 .results-search-btn:hover{background:var(--blue-dark)}
 
 /* ── Pipeline card ── */
+/* ── Pipeline / Loading ── */
 .pipeline-wrap{
   background:var(--bg);border:1px solid var(--border);
-  border-radius:16px;padding:28px 32px;margin-bottom:28px;
+  border-radius:16px;padding:32px;margin-bottom:28px;
   box-shadow:var(--shadow);
 }
-.pl-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
-.pl-sub{font-size:13px;color:var(--text3);margin-bottom:20px}
-.progress-track{width:100%;height:6px;background:var(--bg3);border-radius:6px;margin-bottom:12px;overflow:hidden}
-.progress-fill{height:100%;background:var(--blue);border-radius:6px;transition:width .4s ease}
-.status-txt{font-size:13px;color:var(--text2);margin-bottom:16px;min-height:20px}
-.status-txt .s-active{color:var(--blue);font-weight:600}
-.agent-grid{display:flex;flex-wrap:wrap;gap:8px}
-.agent-chip{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid;transition:all .2s;
+.pl-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-0.3px}
+.pl-sub{font-size:13px;color:var(--text3);margin-bottom:24px}
+
+/* Big animated status line */
+.pl-status-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.pl-spinner{
+  width:20px;height:20px;border:2.5px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .7s linear infinite;flex-shrink:0;
 }
-.chip-done{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
-.chip-active{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);animation:pulse 1.4s ease-in-out infinite}
-.chip-pending{background:var(--bg2);color:var(--text3);border-color:var(--border)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pl-status-msg{font-size:15px;font-weight:600;color:var(--blue);transition:all .3s}
+
+/* Progress bar */
+.progress-track{width:100%;height:8px;background:var(--bg3);border-radius:8px;margin-bottom:24px;overflow:hidden}
+.progress-fill{
+  height:100%;border-radius:8px;transition:width .6s cubic-bezier(.4,0,.2,1);
+  background:linear-gradient(90deg, var(--blue), #60a5fa);
+  position:relative;overflow:hidden;
+}
+.progress-fill::after{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);
+  animation:shimmer 1.4s infinite;
+}
+@keyframes shimmer{to{left:100%}}
+
+/* Step list */
+.pl-steps{display:flex;flex-direction:column;gap:0}
+.pl-step{
+  display:flex;align-items:center;gap:14px;
+  padding:10px 0;border-bottom:1px solid var(--border2);
+  transition:all .2s;
+}
+.pl-step:last-child{border-bottom:none}
+.pl-step-icon{
+  width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;flex-shrink:0;border:2px solid var(--border);
+  background:var(--bg2);transition:all .3s;
+}
+.pl-step.step-done .pl-step-icon{background:var(--green-light);border-color:#86efac;font-size:13px}
+.pl-step.step-active .pl-step-icon{background:var(--blue-light);border-color:var(--blue);animation:pulse 1.2s ease-in-out infinite}
+.pl-step.step-pending .pl-step-icon{opacity:0.4}
+.pl-step-info{flex:1}
+.pl-step-name{font-size:13px;font-weight:600;color:var(--text);transition:color .2s}
+.pl-step.step-active .pl-step-name{color:var(--blue)}
+.pl-step.step-pending .pl-step-name{color:var(--text3)}
+.pl-step-desc{font-size:11px;color:var(--text3);margin-top:1px;line-height:1.4}
+.pl-step-tag{
+  font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;
+  white-space:nowrap;flex-shrink:0;
+}
+.tag-done{background:var(--green-light);color:var(--green)}
+.tag-active{background:var(--blue-light);color:var(--blue);animation:pulse 1.2s ease-in-out infinite}
+.tag-pending{background:var(--bg2);color:var(--text3)}
+
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* Skeleton cards shown below pipeline while waiting */
+.skeleton-section{margin-bottom:28px}
+.skeleton-label{font-size:11px;font-weight:600;color:var(--text4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+.skel-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:20px;margin-bottom:10px;overflow:hidden;position:relative;
+}
+.skel-card::after{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+  animation:shimmer 1.6s infinite;
+}
+.skel-line{height:12px;background:var(--bg3);border-radius:6px;margin-bottom:10px}
+.skel-line.w-80{width:80%}
+.skel-line.w-60{width:60%}
+.skel-line.w-40{width:40%}
+.skel-line.w-30{width:30%}
+.skel-line.h-full{height:10px}
+.skel-row{display:flex;gap:10px;margin-bottom:10px}
+.skel-badge{height:22px;width:70px;background:var(--bg3);border-radius:20px}
+.skel-pill{height:22px;width:90px;background:var(--bg3);border-radius:20px}
+
+/* ── Done banner ── */
+.done-banner{
+  background:var(--green-light);border:1px solid #bbf7d0;
+  border-radius:12px;padding:16px 20px;margin-top:20px;
+  display:flex;align-items:center;gap:14px;display:none;
+}
+.done-banner.visible{display:flex}
+.done-banner-icon{font-size:24px}
+.done-banner-title{font-size:15px;font-weight:700;color:var(--green)}
 
 /* ── Done banner ── */
 .done-banner{
@@ -633,11 +708,21 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
 
   <!-- ── Pipeline card ── -->
   <div class="pipeline-wrap" id="pipelineWrap">
-    <div class="pl-title">Pipeline running</div>
-    <div class="pl-sub">8 AI agents working in sequence — this takes 30–90 seconds</div>
-    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    <div class="status-txt" id="statusTxt">Initialising…</div>
-    <div class="agent-grid" id="agentGrid"></div>
+    <div class="pl-title">🧬 Analysing your query</div>
+    <div class="pl-sub" id="plSub">Starting 8 AI agents — this usually takes 30–90 seconds</div>
+
+    <!-- Animated status message -->
+    <div class="pl-status-row">
+      <div class="pl-spinner" id="plSpinner"></div>
+      <div class="pl-status-msg" id="plStatusMsg">Connecting to pipeline…</div>
+    </div>
+
+    <!-- Progress bar with shimmer -->
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:4%"></div></div>
+
+    <!-- Step-by-step agent list -->
+    <div class="pl-steps" id="plSteps"></div>
+
     <div class="done-banner" id="doneBanner">
       <div class="done-banner-icon">✅</div>
       <div>
@@ -646,6 +731,43 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
       </div>
     </div>
     <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <!-- ── Skeleton preview (shown while loading) ── -->
+  <div id="skeletonSection">
+    <div class="skeleton-section">
+      <div class="skel-label">Hypotheses preview</div>
+      <div class="skel-card">
+        <div class="skel-row"><div class="skel-badge"></div><div class="skel-pill"></div></div>
+        <div class="skel-line w-80"></div>
+        <div class="skel-line w-60"></div>
+        <div class="skel-row"><div class="skel-badge"></div><div class="skel-badge"></div><div class="skel-badge"></div></div>
+      </div>
+      <div class="skel-card">
+        <div class="skel-row"><div class="skel-badge"></div><div class="skel-pill"></div></div>
+        <div class="skel-line w-80"></div>
+        <div class="skel-line w-40"></div>
+        <div class="skel-row"><div class="skel-badge"></div><div class="skel-badge"></div></div>
+      </div>
+      <div class="skel-card">
+        <div class="skel-row"><div class="skel-badge"></div><div class="skel-pill"></div></div>
+        <div class="skel-line w-80"></div>
+        <div class="skel-line w-60"></div>
+      </div>
+    </div>
+    <div class="skeleton-section">
+      <div class="skel-label">Literature preview</div>
+      <div class="skel-card">
+        <div class="skel-line w-30"></div>
+        <div class="skel-line w-80"></div>
+        <div class="skel-line w-40"></div>
+      </div>
+      <div class="skel-card">
+        <div class="skel-line w-30"></div>
+        <div class="skel-line w-80"></div>
+        <div class="skel-line w-60"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Summary ── -->
@@ -771,14 +893,38 @@ function fillEmpty(btn){
 qs('#emptySearchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runEmptySearch() })
 qs('#newQueryInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runNewQuery() })
 
-// ── Render Agents ──
-function renderAgents(currentName){
-  const idx = AGENTS.findIndex(a=>a[1]===currentName)
-  qs('#agentGrid').innerHTML = AGENTS.map(([icon,name],i)=>{
-    let cls='chip-pending', dot=''
-    if(i<idx){cls='chip-done';dot='✓ '}
-    else if(i===idx){cls='chip-active';dot='▶ '}
-    return `<span class="agent-chip ${cls}">${dot}${icon} ${name}</span>`
+// ── Agent step descriptions (shown in the step list) ──
+const AGENT_DESCS = {
+  'Task Planner':          'Breaking down your query into research tasks',
+  'Literature Retrieval':  'Fetching up to 40 relevant PubMed papers…',
+  'Info Extraction':       'Extracting genes, diseases and proteins from papers',
+  'Genomics DB':           'Cross-referencing NCBI Gene & UniProt databases',
+  'Knowledge Graph':       'Building gene–disease relationship graph in Neo4j',
+  'Hypothesis Generation': 'GPT-4o generating novel gene–disease hypotheses…',
+  'Evidence Validation':   'Validating each hypothesis against paper evidence',
+  'Report Generation':     'Compiling final ranked report with confidence scores',
+}
+
+// ── Render step list ──
+function renderSteps(currentName, allDone=false){
+  const idx = allDone ? AGENTS.length : AGENTS.findIndex(a=>a[1]===currentName)
+  qs('#plSteps').innerHTML = AGENTS.map(([icon,name],i)=>{
+    let state = i < idx ? 'done' : i === idx ? 'active' : 'pending'
+    if(allDone) state = 'done'
+    const tag = state==='done'
+      ? `<span class="pl-step-tag tag-done">✓ Done</span>`
+      : state==='active'
+        ? `<span class="pl-step-tag tag-active">● Running</span>`
+        : `<span class="pl-step-tag tag-pending">Waiting</span>`
+    const iconContent = state==='done' ? '✓' : icon
+    return `<div class="pl-step step-${state}">
+      <div class="pl-step-icon">${iconContent}</div>
+      <div class="pl-step-info">
+        <div class="pl-step-name">${name}</div>
+        <div class="pl-step-desc">${AGENT_DESCS[name]||''}</div>
+      </div>
+      ${tag}
+    </div>`
   }).join('')
 }
 
@@ -791,14 +937,13 @@ async function main(){
   renderHistoryPanel()
 
   if(!query){
-    // No query — show beautiful empty state
     qs('#emptyState').classList.add('visible')
     qs('#resultsWrap').style.display = 'none'
     qs('#emptySearchInput').focus()
     return
   }
 
-  // Has query — show results wrap, hide empty state
+  // Show results wrap immediately — skeleton is visible right away
   qs('#emptyState').style.display = 'none'
   qs('#resultsWrap').style.display = 'block'
 
@@ -806,11 +951,26 @@ async function main(){
   qs('#queryHeaderSub').textContent = 'Pipeline running…'
   qs('#newQueryInput').value = query
   document.title = `GeneSight · ${query}`
-  renderAgents('')
 
-  // Save to history immediately when query starts
+  // Render all steps as pending immediately so page isn't blank
+  renderSteps('')
+
+  // Save to history
   saveToHistory(query)
   renderHistoryPanel()
+
+  // ── Animate status messages during cold start (Render wakes up in ~20s) ──
+  const warmupMsgs = [
+    'Waking up the AI pipeline…',
+    'Connecting to PubMed database…',
+    'Submitting your research query…',
+  ]
+  let wIdx = 0
+  const warmupInterval = setInterval(()=>{
+    if(wIdx < warmupMsgs.length){
+      qs('#plStatusMsg').textContent = warmupMsgs[wIdx++]
+    }
+  }, 4000)
 
   // Submit query
   let job_id
@@ -822,7 +982,11 @@ async function main(){
     })
     if(!r.ok) throw new Error(`HTTP ${r.status}`)
     job_id = (await r.json()).job_id
+    clearInterval(warmupInterval)
+    qs('#plStatusMsg').textContent = 'Query received — agents starting…'
+    qs('#progressFill').style.width = '8%'
   }catch(e){
+    clearInterval(warmupInterval)
     showError(`Could not reach backend: ${e.message}`)
     return
   }
@@ -837,18 +1001,21 @@ async function main(){
 
     const {status, current_agent, error} = s
     const agentIdx = AGENTS.findIndex(a=>a[1]===current_agent)
-    qs('#progressFill').style.width = `${Math.round(((agentIdx>=0?agentIdx:0)+1)/AGENTS.length*100)}%`
-    qs('#statusTxt').innerHTML = `Running: <span class="s-active">${current_agent||'…'}</span>`
-    renderAgents(current_agent||'')
+    const pct = Math.max(8, Math.round(((agentIdx>=0?agentIdx:0)+1)/AGENTS.length*92))
+    qs('#progressFill').style.width = `${pct}%`
+    qs('#plStatusMsg').textContent = current_agent ? `${AGENT_DESCS[current_agent]||current_agent}` : '…'
+    renderSteps(current_agent||'')
 
     if(status==='done'){
       qs('#progressFill').style.width='100%'
-      qs('#statusTxt').innerHTML='<span class="s-active">✓ All 8 agents complete!</span>'
-      qs('#agentGrid').innerHTML = AGENTS.map(([icon,name])=>
-        `<span class="agent-chip chip-done">✓ ${icon} ${name}</span>`
-      ).join('')
+      qs('#plStatusMsg').textContent = '✓ All 8 agents complete!'
+      qs('#plSpinner').style.display = 'none'
+      renderSteps('', true)
       qs('#queryHeaderSub').textContent = 'Analysis complete · Scroll down for results'
       qs('#doneBanner').classList.add('visible')
+      // Hide skeleton now that real results are coming
+      const skel = qs('#skeletonSection')
+      if(skel) skel.style.display = 'none'
       break
     }
     if(status==='error'){
@@ -883,6 +1050,9 @@ function showError(msg){
     </div>`
   el.classList.add('visible')
   qs('#queryHeaderSub').textContent = 'Error — see below'
+  qs('#plSpinner').style.display = 'none'
+  const skel = qs('#skeletonSection')
+  if(skel) skel.style.display = 'none'
 }
 
 function renderResults(r){
