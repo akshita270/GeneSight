@@ -626,16 +626,18 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
 
 /* ── Mobile (480px) ── */
 @media(max-width:480px){
-  /* Navbar: stack logo + actions */
+  /* Navbar: stack logo row + actions row */
   .nav-inner{
-    flex-wrap:wrap;height:auto;padding:10px 14px;gap:8px;
+    flex-wrap:wrap;height:auto;padding:10px 14px;gap:0;
+    align-items:center;
   }
-  .nav-logo{font-size:16px}
-  .nav-back{padding:5px 10px;font-size:12px}
-  /* Hide text labels on action buttons, show only icons */
+  /* Row 1: logo takes all remaining space, back button shrinks */
+  .nav-logo{font-size:16px;flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .nav-back{padding:5px 10px;font-size:12px;flex-shrink:0}
+  /* Row 2: action buttons span full width */
   .nav-actions{
     width:100%;display:flex;gap:6px;flex-wrap:wrap;margin-left:0;
-    padding-top:6px;border-top:1px solid var(--border);
+    padding-top:8px;margin-top:8px;border-top:1px solid var(--border);
   }
   .download-btn{padding:7px 10px;font-size:12px}
   .pdf-btn{padding:7px 10px;font-size:12px}
