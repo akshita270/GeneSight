@@ -609,17 +609,107 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
   h2{page-break-before:always}
 }
 
+/* ── Tablet (768px) ── */
 @media(max-width:768px){
   .wrap{padding:0 16px}
-  .nav-inner{padding:0 16px}
+  .nav-inner{padding:0 16px;gap:8px}
   .metric-row{grid-template-columns:repeat(2,1fr)}
   .kg-grid{grid-template-columns:1fr}
-  .pipeline-wrap{padding:20px}
-  .tab-btn{font-size:11px;padding:10px 8px}
+  .pipeline-wrap{padding:20px 18px}
+  .tab-btn{font-size:11px;padding:10px 6px}
+  .nav-actions{gap:6px}
+  .download-btn,.pdf-btn,.compare-btn{padding:7px 12px;font-size:12px}
+  .darkmode-btn{width:32px;height:32px;font-size:14px}
+  .cmp-modal{max-height:95vh}
+  .pl-step-desc{display:none}  /* hide descriptions on tablet to save space */
 }
+
+/* ── Mobile (480px) ── */
 @media(max-width:480px){
-  .metric-row{grid-template-columns:repeat(2,1fr)}
-  .pmid-tooltip{min-width:260px;max-width:calc(100vw - 40px)}
+  /* Navbar: stack logo + actions */
+  .nav-inner{
+    flex-wrap:wrap;height:auto;padding:10px 14px;gap:8px;
+  }
+  .nav-logo{font-size:16px}
+  .nav-back{padding:5px 10px;font-size:12px}
+  /* Hide text labels on action buttons, show only icons */
+  .nav-actions{
+    width:100%;display:flex;gap:6px;flex-wrap:wrap;margin-left:0;
+    padding-top:6px;border-top:1px solid var(--border);
+  }
+  .download-btn{padding:7px 10px;font-size:12px}
+  .pdf-btn{padding:7px 10px;font-size:12px}
+  .compare-btn{padding:7px 10px;font-size:12px}
+  .nav-new-btn{padding:7px 12px;font-size:12px;margin-left:auto}
+
+  /* Query header */
+  .query-header{padding:20px 0 16px}
+  .query-header-text{font-size:18px}
+
+  /* Search bar */
+  .results-search{flex-wrap:wrap;gap:8px}
+  .results-search-input{min-width:0;flex:1}
+  .results-search-btn{width:100%}
+
+  /* Metrics: 2 cols */
+  .metric-row{grid-template-columns:repeat(2,1fr);gap:10px}
+  .metric-card{padding:14px 12px}
+  .metric-num{font-size:24px}
+  .metric-icon{font-size:18px}
+
+  /* Tabs: scroll horizontally */
+  .tab-bar{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tab-btn{white-space:nowrap;font-size:11px;padding:10px 10px;flex:none}
+
+  /* Pipeline step list */
+  .pl-step-desc{display:none}
+  .pl-step-tag{display:none}
+  .pl-step-name{font-size:12px}
+  .pl-step-icon{width:26px;height:26px;font-size:12px}
+  .pipeline-wrap{padding:16px}
+  .pl-title{font-size:16px}
+
+  /* Hypothesis cards */
+  .hyp-card{padding:16px}
+  .hyp-title{font-size:14px}
+  .tag-row{gap:4px}
+  .tag{font-size:10px;padding:3px 8px}
+
+  /* Paper cards */
+  .paper-card{padding:14px}
+  .paper-title{font-size:13px}
+
+  /* KG grid */
+  .kg-grid{grid-template-columns:1fr}
+
+  /* PMID tooltip */
+  .pmid-tooltip{
+    min-width:0;max-width:calc(100vw - 28px);
+    left:50%;transform:translateX(-50%);
+    position:fixed;bottom:16px;top:auto;
+  }
+  .pmid-tooltip::after{display:none}
+
+  /* Similar chips */
+  .similar-chip{font-size:12px;padding:6px 14px}
+
+  /* History panel */
+  .history-panel{min-width:0;max-width:calc(100vw - 28px);right:-14px}
+
+  /* Summary */
+  .summary-card{padding:14px 16px}
+
+  /* Skeleton */
+  .skel-card{padding:14px}
+
+  /* Compare modal */
+  .cmp-modal{border-radius:12px 12px 0 0;position:fixed;bottom:0;left:0;right:0;max-height:90vh;width:100%}
+  .cmp-overlay{align-items:flex-end;padding:0}
+  .cmp-inputs{flex-direction:column}
+  .cmp-vs{padding:0;text-align:center}
+  .cmp-run-btn{width:100%}
+  .cmp-body{padding:16px}
+  .cmp-header{padding:16px}
 }
 </style>
 </head>
