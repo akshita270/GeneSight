@@ -815,6 +815,10 @@ body.dark .logo-chip{background:var(--bg2);border-color:var(--border)}
   .gate-right{display:none}
   .gate-left{max-width:100%;padding:40px 28px}
 }
+/* Clerk sign-in component overrides — keep it flush with our light design */
+#clerkSignIn .cl-card{box-shadow:none!important;border:1px solid #e2e8f0!important;border-radius:12px!important;padding:0!important}
+#clerkSignIn .cl-rootBox{width:100%!important}
+#clerkSignIn .cl-cardBox{box-shadow:none!important;border:1px solid #e2e8f0!important;border-radius:12px!important}
 </style>
 <div id="loginGate">
   <!-- LEFT — sign in form -->
@@ -830,28 +834,13 @@ body.dark .logo-chip{background:var(--bg2);border-color:var(--border)}
     <p style="font-size:15px;color:#64748b;line-height:1.65;margin-bottom:36px;max-width:340px">
       AI-powered genomics research. Mine 33M+ papers, map gene–disease networks, generate novel hypotheses.
     </p>
-    <!-- google button -->
-    <button id="gateSignInBtn" onclick="signIn()" style="
-      display:flex;align-items:center;justify-content:center;gap:12px;
-      width:100%;max-width:340px;
-      padding:13px 20px;
-      background:#fff;color:#0f172a;
-      border:1.5px solid #e2e8f0;border-radius:10px;
-      font-size:14px;font-weight:600;font-family:'Inter',sans-serif;
-      cursor:pointer;transition:border-color .15s,box-shadow .15s;
-      box-shadow:0 1px 3px rgba(0,0,0,0.06);
-      margin-bottom:16px;
-    "
-    onmouseover="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'"
-    onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'"
-    >
-      <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
-      Continue with Google
-    </button>
-    <!-- loading -->
-    <div id="gateLoading" style="display:none;align-items:center;gap:10px;color:#64748b;font-size:13px;max-width:340px">
-      <span style="display:inline-block;width:16px;height:16px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></span>
-      Opening Google sign-in…
+    <!-- Clerk sign-in component mounts here -->
+    <div id="clerkSignIn" style="width:100%;max-width:340px;margin-bottom:8px">
+      <!-- loading skeleton while Clerk initialises -->
+      <div id="gateLoading" style="display:flex;align-items:center;gap:10px;color:#64748b;font-size:13px;padding:14px 0">
+        <span style="display:inline-block;width:16px;height:16px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></span>
+        Loading sign-in…
+      </div>
     </div>
     <p style="font-size:12px;color:#94a3b8;margin-top:20px;max-width:340px">
       Free to start · 3 queries/day · No credit card needed
@@ -1584,8 +1573,16 @@ async function initClerk(){
     showUser(clerk.user)
     fetchUsage()
   } else {
-    // Not logged in — show gate (it's already visible), hide navbar sign-in btn (gate handles it)
+    // Not logged in — mount the real Clerk sign-in component into the gate
     document.getElementById('signInBtn').style.display = 'none'
+    const signInDiv = document.getElementById('clerkSignIn')
+    if(signInDiv){
+      // Hide the loading skeleton
+      const loadingEl = document.getElementById('gateLoading')
+      if(loadingEl) loadingEl.style.display = 'none'
+      // Mount the full Clerk sign-in UI (includes Google, email, etc.)
+      clerk.mountSignIn(signInDiv)
+    }
   }
 
   clerk.addListener(({user}) => {
@@ -1630,14 +1627,14 @@ async function fetchUsage(){
 }
 
 function signIn(){
-  const btn = document.getElementById('gateSignInBtn')
-  const loading = document.getElementById('gateLoading')
-  if(btn) btn.style.display = 'none'
-  if(loading) loading.style.display = 'flex'
-  // Lower gate z-index so Clerk's modal (z-index ~9999) appears on top
+  // Used by navbar sign-in button — shows the gate if it exists, otherwise opens modal
   const gate = document.getElementById('loginGate')
-  if(gate) gate.style.zIndex = '100'
-  clerk.openSignIn({redirectUrl: window.location.href})
+  if(gate){
+    gate.style.display = 'flex'
+    return
+  }
+  // Gate was dismissed (user was signed in before) — use openUserProfile or reload
+  window.location.reload()
 }
 function signOut(){
   clerk.signOut().then(()=> window.location.reload())
@@ -1648,7 +1645,9 @@ const _origGoToResults = goToResults
 window.goToResults = function(query){
   if(!query || !query.trim()) return
   if(clerk && !clerk.user){
-    clerk.openSignIn({redirectUrl: window.location.href + '?q=' + encodeURIComponent(query.trim())})
+    // Show the gate which already has the Clerk sign-in component mounted
+    const gate = document.getElementById('loginGate')
+    if(gate) gate.style.display = 'flex'
     return
   }
   _origGoToResults(query)
