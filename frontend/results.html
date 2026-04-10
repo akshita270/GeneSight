@@ -1939,9 +1939,16 @@ window.fetch = async function(url, opts={}){
   return _origFetch(url, opts)
 }
 
-window.addEventListener('load', () => {
-  if(window.Clerk) initClerk().catch(console.warn)
-})
+// Poll for Clerk (async script may load after window.load)
+function waitForClerk(attempts){
+  if(attempts <= 0) return
+  if(window.Clerk){
+    initClerk().catch(console.warn)
+  } else {
+    setTimeout(() => waitForClerk(attempts - 1), 200)
+  }
+}
+waitForClerk(25)
 </script>
 </body>
 </html>

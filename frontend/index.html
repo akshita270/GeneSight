@@ -1530,10 +1530,17 @@ window.goToResults = function(query){
   _origGoToResults(query)
 }
 
-window.addEventListener('load', () => {
-  if(window.Clerk) initClerk()
-  else document.querySelector('[data-clerk-publishable-key]')?.addEventListener('load', initClerk)
-})
+// Wait for Clerk script to finish loading (it's async so may not be ready at window.load)
+function waitForClerk(attempts){
+  if(attempts <= 0) return
+  if(window.Clerk){
+    initClerk().catch(console.warn)
+  } else {
+    setTimeout(() => waitForClerk(attempts - 1), 200)
+  }
+}
+// Start polling immediately — works whether page is cached or freshly loaded
+waitForClerk(25)
 </script>
 </body>
 </html>
