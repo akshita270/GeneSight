@@ -7,6 +7,8 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<!-- Clerk -->
+<script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_YmVjb21pbmctcGxhdHlwdXMtMTEuY2xlcmsuYWNjb3VudHMuZGV2JA" src="https://becoming-platypus-11.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" type="text/javascript"></script>
 <style>
 /* ── Reset & Base ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -75,6 +77,40 @@ nav{
   box-shadow:0 1px 3px rgba(37,99,235,0.3);
 }
 .nav-query-btn:hover{background:var(--blue-dark);box-shadow:0 4px 12px rgba(37,99,235,0.35)}
+/* ── Auth UI ── */
+.nav-auth-area{margin-left:auto;display:flex;align-items:center;gap:10px}
+.sign-in-btn{
+  padding:8px 18px;font-size:13px;font-weight:600;
+  background:var(--blue);color:#fff;border:none;border-radius:8px;
+  cursor:pointer;font-family:var(--sans);transition:background .15s;
+}
+.sign-in-btn:hover{background:var(--blue-dark)}
+.user-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 12px 5px 5px;border-radius:99px;
+  border:1px solid var(--border);background:var(--bg2);
+  cursor:pointer;transition:border-color .15s;
+}
+.user-pill:hover{border-color:var(--blue-mid)}
+.user-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--blue);color:#fff;
+  font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;flex-shrink:0;
+}
+.user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.user-name{font-size:13px;font-weight:500;color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sign-out-btn{
+  font-size:12px;color:var(--text3);background:none;border:none;
+  cursor:pointer;padding:2px 6px;border-radius:4px;font-family:var(--sans);
+}
+.sign-out-btn:hover{color:var(--text);background:var(--border)}
+/* Usage counter badge */
+.usage-badge{
+  font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;
+  background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid);
+}
 
 /* ── Hero ── */
 .hero{
@@ -766,7 +802,16 @@ body.dark .logo-chip{background:var(--bg2);border-color:var(--border)}
     </div>
     <div class="nav-badge">Hypothesis Engine</div>
     <button class="darkmode-btn" id="darkmodeBtn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
-    <button class="nav-query-btn" onclick="window.location.href='results.html'">Start Research →</button>
+    <!-- Auth area — populated by Clerk JS -->
+    <div class="nav-auth-area" id="navAuthArea">
+      <button class="sign-in-btn" id="signInBtn" onclick="signIn()" style="display:none">Sign in with Google</button>
+      <span class="usage-badge" id="usageBadge" style="display:none"></span>
+      <div class="user-pill" id="userPill" style="display:none" onclick="clerk.openUserProfile()">
+        <div class="user-avatar" id="userAvatar"></div>
+        <span class="user-name" id="userName"></span>
+      </div>
+      <button class="sign-out-btn" id="signOutBtn" style="display:none" onclick="signOut()">Sign out</button>
+    </div>
   </div>
 </nav>
 
@@ -1413,6 +1458,82 @@ const heroStats = document.querySelector('.hero-stats')
 if(heroStats) statsObserver.observe(heroStats)
 
 // ── DNA helix: static premium image ──
+
+// ── Clerk Auth ────────────────────────────────────────────────────────────────
+const CLERK_PK = 'pk_test_YmVjb21pbmctcGxhdHlwdXMtMTEuY2xlcmsuYWNjb3VudHMuZGV2JA'
+const API_URL  = 'https://genesight.onrender.com'
+let clerk = null
+
+async function initClerk(){
+  await window.Clerk.load()
+  clerk = window.Clerk
+
+  if(clerk.user){
+    showUser(clerk.user)
+    fetchUsage()
+  } else {
+    document.getElementById('signInBtn').style.display = 'inline-block'
+  }
+
+  clerk.addListener(({user}) => {
+    if(user){ showUser(user); fetchUsage() }
+    else {
+      document.getElementById('userPill').style.display = 'none'
+      document.getElementById('signOutBtn').style.display = 'none'
+      document.getElementById('usageBadge').style.display = 'none'
+      document.getElementById('signInBtn').style.display = 'inline-block'
+    }
+  })
+}
+
+function showUser(user){
+  document.getElementById('signInBtn').style.display = 'none'
+  // Avatar
+  const avatarEl = document.getElementById('userAvatar')
+  if(user.imageUrl){
+    avatarEl.innerHTML = `<img src="${user.imageUrl}" alt="avatar"/>`
+  } else {
+    const initials = ((user.firstName||'?')[0] + (user.lastName||'?')[0]).toUpperCase()
+    avatarEl.textContent = initials
+  }
+  document.getElementById('userName').textContent = user.firstName || user.emailAddresses?.[0]?.emailAddress || 'User'
+  document.getElementById('userPill').style.display = 'flex'
+  document.getElementById('signOutBtn').style.display = 'inline-block'
+}
+
+async function fetchUsage(){
+  try {
+    const token = await clerk.session.getToken()
+    const r = await fetch(`${API_URL}/usage`, {headers:{Authorization:`Bearer ${token}`}})
+    const d = await r.json()
+    const badge = document.getElementById('usageBadge')
+    badge.textContent = `${d.remaining}/${d.limit} queries left today`
+    badge.style.display = 'inline-block'
+  } catch(e){ console.warn('Could not fetch usage', e) }
+}
+
+function signIn(){
+  clerk.openSignIn({redirectUrl: window.location.href})
+}
+function signOut(){
+  clerk.signOut().then(()=> window.location.reload())
+}
+
+// Intercept goToResults to check login
+const _origGoToResults = goToResults
+window.goToResults = function(query){
+  if(!query || !query.trim()) return
+  if(clerk && !clerk.user){
+    clerk.openSignIn({redirectUrl: window.location.href + '?q=' + encodeURIComponent(query.trim())})
+    return
+  }
+  _origGoToResults(query)
+}
+
+window.addEventListener('load', () => {
+  if(window.Clerk) initClerk()
+  else document.querySelector('[data-clerk-publishable-key]')?.addEventListener('load', initClerk)
+})
 </script>
 </body>
 </html>

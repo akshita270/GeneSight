@@ -20,4 +20,11 @@ class Settings:
     pubmed_max_results: int = int(os.getenv("PUBMED_MAX_RESULTS", "40"))
     hypothesis_max: int = int(os.getenv("HYPOTHESIS_MAX", "5"))
 
+    # Auth + Database
+    clerk_secret_key: str = os.getenv("CLERK_SECRET_KEY", "")
+    database_url: str = os.getenv("DATABASE_URL", "")
+
+    # Rate limit: free queries per user per day
+    free_queries_per_day: int = int(os.getenv("FREE_QUERIES_PER_DAY", "3"))
+
 settings = Settings()

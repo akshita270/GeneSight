@@ -24,3 +24,8 @@ neo4j>=5.20.0
 
 httpx>=0.27.0
 tenacity>=8.3.0
+
+# Auth + Database
+psycopg2-binary>=2.9.9
+PyJWT>=2.8.0
+cryptography>=42.0.0
