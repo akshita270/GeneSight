@@ -276,6 +276,42 @@ nav{
 .summary-lbl{font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
 .summary-text{font-size:14px;color:var(--text);line-height:1.75}
 
+/* ── Quality Card ── */
+.quality-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;
+  display:none;
+}
+.quality-card.visible{display:block}
+.quality-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.quality-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:-0.2px}
+.quality-grade{
+  font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;
+  text-transform:uppercase;letter-spacing:0.5px;
+}
+.quality-grade.grade-excellent{background:#d1fae5;color:#065f46}
+.quality-grade.grade-good{background:#dbeafe;color:#1e40af}
+.quality-grade.grade-fair{background:#fef3c7;color:#92400e}
+.quality-grade.grade-weak{background:#fee2e2;color:#991b1b}
+.quality-score-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.quality-score-num{font-size:32px;font-weight:800;color:var(--text);line-height:1}
+.quality-score-label{font-size:14px;color:var(--text3);font-weight:500;margin-right:6px}
+.quality-track{flex:1;height:8px;background:var(--border);border-radius:99px;overflow:hidden}
+.quality-fill{height:100%;border-radius:99px;width:0%;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.quality-fill.fill-excellent{background:linear-gradient(90deg,#10b981,#34d399)}
+.quality-fill.fill-good{background:linear-gradient(90deg,#3b82f6,#60a5fa)}
+.quality-fill.fill-fair{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.quality-fill.fill-weak{background:linear-gradient(90deg,#ef4444,#f87171)}
+.quality-flags{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.quality-flag{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text2);line-height:1.5}
+.quality-flag-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.quality-verdict{font-size:12px;color:var(--text3);font-style:italic;border-top:1px solid var(--border);padding-top:10px;margin-top:4px}
+body.dark .quality-card{background:var(--bg2)}
+body.dark .quality-grade.grade-excellent{background:#064e3b;color:#6ee7b7}
+body.dark .quality-grade.grade-good{background:#1e3a5f;color:#93c5fd}
+body.dark .quality-grade.grade-fair{background:#451a03;color:#fcd34d}
+body.dark .quality-grade.grade-weak{background:#450a0a;color:#fca5a5}
+
 /* ── Metrics ── */
 .metric-row{display:none;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .metric-row.visible{display:grid}
@@ -598,7 +634,7 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
   .pmid-tooltip,.site-footer,#doneBanner{display:none!important}
   body{font-size:12px;color:#000;background:#fff}
   .wrap{max-width:100%;padding:0 16px}
-  .summary-card,.metric-row,.tabs-wrap{display:block!important}
+  .summary-card,.quality-card,.metric-row,.tabs-wrap{display:block!important}
   .metric-row{display:grid!important;grid-template-columns:repeat(4,1fr)}
   .tab-panel{display:block!important;border:none;padding:0}
   .tab-bar{display:none}
@@ -698,8 +734,11 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
   /* History panel */
   .history-panel{min-width:0;max-width:calc(100vw - 28px);right:-14px}
 
-  /* Summary */
+  /* Summary + Quality */
   .summary-card{padding:14px 16px}
+  .quality-card{padding:14px 16px}
+  .quality-score-num{font-size:26px}
+  .quality-track{height:6px}
 
   /* Skeleton */
   .skel-card{padding:14px}
@@ -868,6 +907,21 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
     <div class="summary-text" id="summaryText"></div>
   </div>
 
+  <!-- ── Quality Report ── -->
+  <div class="quality-card" id="qualityCard">
+    <div class="quality-header">
+      <span class="quality-title">🔍 Pipeline Quality Report</span>
+      <span class="quality-grade" id="qualityGrade"></span>
+    </div>
+    <div class="quality-score-row">
+      <span class="quality-score-num" id="qualityScoreNum">0</span>
+      <span class="quality-score-label">/ 100</span>
+      <div class="quality-track"><div class="quality-fill" id="qualityFill"></div></div>
+    </div>
+    <div class="quality-flags" id="qualityFlags"></div>
+    <div class="quality-verdict" id="qualityVerdict"></div>
+  </div>
+
   <!-- ── Metrics ── -->
   <div class="metric-row" id="metricRow">
     <div class="metric-card"><div class="metric-icon">📄</div><div class="metric-num" id="mPapers">0</div><div class="metric-lbl">Papers</div></div>
@@ -954,7 +1008,7 @@ const API_URL = 'https://genesight.onrender.com';
 const AGENTS = [
   ['🗂','Task Planner'],['📚','Literature Retrieval'],['🔬','Info Extraction'],
   ['🧬','Genomics DB'],  ['🕸','Knowledge Graph'],  ['💡','Hypothesis Generation'],
-  ['✅','Evidence Validation'],['📋','Report Generation']
+  ['✅','Evidence Validation'],['🔍','Evaluating Quality'],['📋','Report Generation']
 ];
 
 function qs(sel){ return document.querySelector(sel) }
@@ -994,6 +1048,7 @@ const AGENT_DESCS = {
   'Knowledge Graph':       'Building gene–disease relationship graph in Neo4j',
   'Hypothesis Generation': 'GPT-4o generating novel gene–disease hypotheses…',
   'Evidence Validation':   'Validating each hypothesis against paper evidence',
+  'Evaluating Quality':    'Scoring pipeline health — gene diversity, evidence coverage, recency…',
   'Report Generation':     'Compiling final ranked report with confidence scores',
 }
 
@@ -1159,6 +1214,7 @@ function renderResults(r){
   const cmpBtn = qs('#compareBtn'); if(cmpBtn) cmpBtn.style.display = 'inline-flex'
 
   if(r.summary){ qs('#summaryText').textContent = r.summary; show(qs('#summaryCard')) }
+  if(r.evaluation){ renderQuality(r.evaluation) }
 
   qs('#mPapers').textContent = papers.length
   qs('#mHyps').textContent = hyps.length
@@ -1179,6 +1235,49 @@ function renderResults(r){
 
   // Scroll smoothly to results
   setTimeout(()=>qs('#metricRow').scrollIntoView({behavior:'smooth',block:'start'}), 200)
+}
+
+// ── Quality Report ──────────────────────────────────────────────────────────
+function renderQuality(ev){
+  if(!ev) return
+  const card = qs('#qualityCard')
+  if(!card) return
+
+  // Grade badge
+  const gradeEl = qs('#qualityGrade')
+  const gradeClass = ev.grade.toLowerCase()
+  gradeEl.textContent = ev.grade
+  gradeEl.className = `quality-grade grade-${gradeClass}`
+
+  // Animated score count-up
+  const scoreEl = qs('#qualityScoreNum')
+  const target = ev.health_score
+  let current = 0
+  const step = Math.ceil(target / 40)
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target)
+    scoreEl.textContent = current
+    if(current >= target) clearInterval(timer)
+  }, 30)
+
+  // Score bar
+  const fill = qs('#qualityFill')
+  fill.className = `quality-fill fill-${gradeClass}`
+  setTimeout(() => { fill.style.width = target + '%' }, 80)
+
+  // Flags
+  const flagIcons = { ok: '✅', warn: '⚠️', tip: '💡' }
+  qs('#qualityFlags').innerHTML = (ev.flags || []).map(f =>
+    `<div class="quality-flag">
+      <span class="quality-flag-icon">${flagIcons[f.level] || '•'}</span>
+      <span>${f.message}</span>
+    </div>`
+  ).join('')
+
+  // Verdict
+  qs('#qualityVerdict').textContent = ev.summary_line || ''
+
+  show(card)
 }
 
 function renderLiterature(papers){

@@ -50,9 +50,20 @@ class Hypothesis(BaseModel):
     supporting_pmids: list[str] = []
     status: str = "Exploratory"  # Strong | Moderate | Exploratory
 
+class QualityFlag(BaseModel):
+    level: str    # "ok" | "warn" | "tip"
+    message: str  # Human-readable flag text
+
+class EvaluationReport(BaseModel):
+    health_score: int          # 0-100
+    grade: str                 # "Excellent" | "Good" | "Fair" | "Weak"
+    flags: list[QualityFlag]   # ✅ ok / ⚠️ warn / 💡 tip items
+    summary_line: str          # One-line verdict
+
 class PipelineResult(BaseModel):
     query: str
     papers: list[Paper]
     graph: KnowledgeGraph
     hypotheses: list[Hypothesis]
     summary: str
+    evaluation: Optional[EvaluationReport] = None

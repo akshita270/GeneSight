@@ -14,6 +14,7 @@ from agents.genomics_db import GenomicsDBAgent
 from agents.knowledge_graph import KnowledgeGraphAgent
 from agents.hypothesis import HypothesisAgent
 from agents.validator import ValidatorAgent
+from agents.evaluator import EvaluatorAgent
 from agents.reporter import ReporterAgent
 from config import settings
 
@@ -78,9 +79,13 @@ async def run_pipeline(job_id: str, query: str):
         validator = ValidatorAgent()
         validated = await validator.run(hypotheses, papers)
 
+        jobs[job_id]["agent"] = "Evaluating Quality"
+        evaluator = EvaluatorAgent()
+        evaluation = await evaluator.run(query, validated, papers, graph)
+
         jobs[job_id]["agent"] = "Report Generation"
         reporter = ReporterAgent()
-        report = await reporter.run(query, validated, graph, papers)
+        report = await reporter.run(query, validated, graph, papers, evaluation)
 
         jobs[job_id].update({"status": "done", "result": report})
         print(f"✓ Pipeline complete for job {job_id}")

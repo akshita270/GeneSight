@@ -1,8 +1,9 @@
 from __future__ import annotations
+from typing import Optional
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from config import settings
-from models.schemas import KnowledgeGraph, Hypothesis, Paper, PipelineResult
+from models.schemas import KnowledgeGraph, Hypothesis, Paper, PipelineResult, EvaluationReport
 
 class ReporterAgent:
     def __init__(self):
@@ -28,6 +29,7 @@ Total hypotheses generated: {hyp_count}
         hypotheses: list[Hypothesis],
         graph: KnowledgeGraph,
         papers: list[dict],
+        evaluation: Optional[EvaluationReport] = None,
     ) -> PipelineResult:
         chain = self.prompt | self.llm
         resp = await chain.ainvoke({
@@ -60,4 +62,5 @@ Total hypotheses generated: {hyp_count}
             graph=graph,
             hypotheses=hypotheses,
             summary=resp.content,
+            evaluation=evaluation,
         )
