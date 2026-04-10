@@ -36,22 +36,27 @@ class EvaluatorAgent:
             flags.append(QualityFlag(level="warn",
                 message=f"Very few papers found ({paper_count}) — results may be limited"))
 
-        # ── 2. Gene diversity (20 pts) ────────────────────────────────────────
-        all_genes: set[str] = set()
-        for h in hypotheses:
-            all_genes.update(g.upper() for g in (h.genes or []))
-        gene_count = len(all_genes)
-        if gene_count >= 5:
+        # ── 2. Gene diversity (20 pts) — count from knowledge graph, not just hypothesis pairs ──
+        graph_gene_count = sum(1 for n in graph.nodes if n.type == "gene")
+        # fallback: if graph has no typed gene nodes, count from hypotheses
+        if graph_gene_count == 0:
+            all_genes: set[str] = set()
+            for h in hypotheses:
+                all_genes.update(g.upper() for g in (h.genes or []))
+            gene_count = len(all_genes)
+        else:
+            gene_count = graph_gene_count
+        if gene_count >= 15:
             score += 20
             flags.append(QualityFlag(level="ok",
-                message=f"{gene_count} unique genes identified — strong biological diversity"))
-        elif gene_count >= 3:
+                message=f"{gene_count} unique genes identified across all papers — strong biological diversity"))
+        elif gene_count >= 7:
             score += 10
             flags.append(QualityFlag(level="warn",
-                message=f"Moderate gene diversity ({gene_count} genes) — hypotheses may overlap"))
+                message=f"Moderate gene diversity ({gene_count} genes extracted) — coverage could be broader"))
         else:
             flags.append(QualityFlag(level="warn",
-                message=f"Low gene diversity — hypotheses cluster around only {gene_count} gene(s)"))
+                message=f"Low gene diversity — only {gene_count} gene(s) found across all papers"))
 
         # ── 3. Hypothesis strength (20 pts) ──────────────────────────────────
         strong_count = sum(1 for h in hypotheses if h.status == "Strong")
