@@ -841,7 +841,7 @@ body.dark .logo-chip{background:var(--bg2);border-color:var(--border)}
     <div class="nav-auth-area" id="navAuthArea">
       <button class="sign-in-btn" id="signInBtn" onclick="signIn()" style="display:none"></button>
       <span class="usage-badge" id="usageBadge" style="display:none"></span>
-      <button class="nav-query-btn" id="runQueryBtn" onclick="document.getElementById('queryModal').style.display='flex'" style="display:none">Run Query</button>
+      <button class="nav-query-btn" id="runQueryBtn" onclick="openModal()" style="display:none">Run Query</button>
       <div class="user-pill" id="userPill" style="display:none" onclick="clerk.openUserProfile()">
         <div class="user-avatar" id="userAvatar"></div>
         <span class="user-name" id="userName"></span>
