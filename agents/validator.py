@@ -153,11 +153,9 @@ PAPERS:
         tiebreak = round((gpt_prior - 70) / 20 * 3)
         conf = float(max(10, min(96, base + tiebreak)))
 
-        if count == 0:
+        if count <= 2:
             return conf, "Exploratory"
-        elif count <= 1:
-            return conf, "Exploratory"
-        elif count <= 5:
+        elif count <= 6:
             return conf, "Moderate"
         else:
             return conf, "Strong"
