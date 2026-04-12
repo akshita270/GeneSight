@@ -10,6 +10,8 @@
 <!-- Clerk -->
 <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_YmVjb21pbmctcGxhdHlwdXMtMTEuY2xlcmsuYWNjb3VudHMuZGV2JA" src="https://becoming-platypus-11.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" type="text/javascript"></script>
 <style>
+/* Hide page until Clerk confirms auth — prevents flash of main content */
+body{visibility:hidden}
 /* ── Reset & Base ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1473,10 +1475,11 @@ async function initClerk(){
   clerk = window.Clerk
 
   if(clerk.user){
+    document.body.style.visibility = 'visible'
     showUser(clerk.user)
     fetchUsage()
   } else {
-    // Not signed in — go straight to Clerk's sign-in page, come back after
+    // Not signed in — redirect immediately, body stays hidden so nothing flashes
     clerk.redirectToSignIn({ redirectUrl: window.location.href })
   }
 
