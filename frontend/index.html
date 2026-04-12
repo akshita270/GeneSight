@@ -5,6 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>GeneSight · Hypothesis Engine</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>"/>
+<!-- Instant auth gate: runs synchronously before page renders.
+     Clerk sets a __session cookie when signed in.
+     If absent → redirect to Clerk sign-in immediately, zero delay. -->
+<script>
+(function(){
+  var hasSession = document.cookie.split(';').some(function(c){
+    return c.trim().startsWith('__session=') || c.trim().startsWith('__client_uat=')
+  })
+  if(!hasSession){
+    window.location.replace(
+      'https://becoming-platypus-11.clerk.accounts.dev/sign-in?redirect_url=' +
+      encodeURIComponent(window.location.href)
+    )
+  }
+})()
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <!-- Clerk -->
