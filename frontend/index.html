@@ -794,85 +794,6 @@ body.dark .logo-chip{background:var(--bg2);border-color:var(--border)}
 <body>
 
 <!-- ── Login Gate ── -->
-<style>
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes gateFadeOut{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(1.015);pointer-events:none}}
-@keyframes blobDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.05)}}
-@keyframes cardIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-#loginGate.hiding{animation:gateFadeOut .4s ease forwards}
-#loginGate{
-  position:fixed;inset:0;z-index:2000;
-  background:linear-gradient(135deg,#060b18 0%,#0d1526 55%,#080f1f 100%);
-  display:flex;align-items:center;justify-content:center;padding:24px;
-  overflow:hidden;
-}
-.gate-blob{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
-.gate-card{
-  position:relative;z-index:1;
-  background:#fff;border-radius:22px;
-  width:100%;max-width:420px;
-  box-shadow:0 30px 100px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.04);
-  animation:cardIn .5s cubic-bezier(.22,1,.36,1) both;
-  overflow:hidden;
-}
-.gate-card-top{padding:36px 36px 28px}
-.gate-card-divider{height:1px;background:#f1f4f8;margin:0 36px}
-.gate-card-bottom{padding:18px 36px 28px}
-.gate-clerk-wrap{width:100%}
-.gate-pill{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
-  color:#2563eb;background:#eff4ff;border:1px solid #dbeafe;
-  border-radius:20px;padding:3px 10px;margin-bottom:20px;
-}
-.gate-title{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;line-height:1.25;margin-bottom:6px}
-.gate-sub{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:24px}
-.gate-stats{display:flex;gap:0;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:0}
-.gate-stat{flex:1;padding:10px 0;text-align:center;border-right:1px solid #e2e8f0}
-.gate-stat:last-child{border-right:none}
-.gate-stat-n{font-size:14px;font-weight:800;color:#0f172a}
-.gate-stat-l{font-size:10px;color:#94a3b8;margin-top:1px}
-#gateLoading{display:flex;align-items:center;justify-content:center;gap:10px;color:#94a3b8;font-size:13px;padding:28px 0}
-.gate-footer-txt{font-size:11px;color:#94a3b8;text-align:center;margin-top:16px}
-@media(max-width:480px){
-  .gate-card-top,.gate-card-bottom{padding-left:24px;padding-right:24px}
-  .gate-card-divider{margin:0 24px}
-}
-</style>
-
-<div id="loginGate">
-  <!-- ambient glow blobs -->
-  <div class="gate-blob" style="width:600px;height:600px;top:-150px;left:-150px;background:rgba(37,99,235,0.18);animation:blobDrift 9s ease-in-out infinite"></div>
-  <div class="gate-blob" style="width:500px;height:500px;bottom:-120px;right:-120px;background:rgba(124,58,237,0.14);animation:blobDrift 12s ease-in-out infinite reverse"></div>
-  <div class="gate-blob" style="width:350px;height:350px;top:40%;left:55%;background:rgba(14,165,233,0.1);animation:blobDrift 15s ease-in-out infinite"></div>
-
-  <div class="gate-card">
-    <!-- top: branding + stats -->
-    <div class="gate-card-top">
-      <div class="gate-pill">🧬 GeneSight &nbsp;·&nbsp; Beta</div>
-      <div class="gate-title">Sign in to continue</div>
-      <div class="gate-sub">AI-powered genomics research — mine 33M+ papers, map gene–disease networks, generate novel hypotheses.</div>
-      <div class="gate-stats">
-        <div class="gate-stat"><div class="gate-stat-n">33M+</div><div class="gate-stat-l">Papers</div></div>
-        <div class="gate-stat"><div class="gate-stat-n">9</div><div class="gate-stat-l">AI Agents</div></div>
-        <div class="gate-stat"><div class="gate-stat-n">4</div><div class="gate-stat-l">Databases</div></div>
-      </div>
-    </div>
-
-    <div class="gate-card-divider"></div>
-
-    <!-- bottom: Clerk sign-in mounts here -->
-    <div class="gate-card-bottom">
-      <div class="gate-clerk-wrap" id="clerkSignIn">
-        <div id="gateLoading">
-          <span style="width:16px;height:16px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;display:inline-block"></span>
-          Loading…
-        </div>
-      </div>
-      <div class="gate-footer-txt">Free to start · 3 queries/day · No credit card needed</div>
-    </div>
-  </div>
-</div>
 
 <!-- ── Navbar ── -->
 <nav>
@@ -1547,77 +1468,25 @@ const CLERK_PK = 'pk_test_YmVjb21pbmctcGxhdHlwdXMtMTEuY2xlcmsuYWNjb3VudHMuZGV2JA
 const API_URL  = 'https://genesight.onrender.com'
 let clerk = null
 
-function dismissGate(){
-  const gate = document.getElementById('loginGate')
-  if(!gate) return
-  gate.classList.add('hiding')
-  setTimeout(() => gate.remove(), 420)
-}
-
 async function initClerk(){
   await window.Clerk.load()
   clerk = window.Clerk
 
   if(clerk.user){
-    dismissGate()
     showUser(clerk.user)
     fetchUsage()
   } else {
-    document.getElementById('signInBtn').style.display = 'none'
-    const loadingEl = document.getElementById('gateLoading')
-    if(loadingEl) loadingEl.style.display = 'none'
-    // Mount Clerk sign-in component directly — styled to match our white card
-    clerk.mountSignIn(document.getElementById('clerkSignIn'), {
-      appearance: {
-        variables: {
-          colorPrimary: '#2563eb',
-          colorText: '#0f172a',
-          colorTextSecondary: '#64748b',
-          colorBackground: '#ffffff',
-          colorInputBackground: '#f8f9fb',
-          colorInputText: '#0f172a',
-          colorInputPlaceholder: '#94a3b8',
-          borderRadius: '10px',
-          fontFamily: "'Inter', sans-serif",
-          fontSize: '14px',
-          spacingUnit: '18px',
-        },
-        elements: {
-          rootBox: { width: '100%' },
-          card: { boxShadow: 'none', border: 'none', padding: '0', borderRadius: '0' },
-          header: { display: 'none' },
-          footer: { background: 'transparent' },
-          socialButtonsBlockButton: {
-            border: '1.5px solid #e2e8f0',
-            borderRadius: '10px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            fontWeight: '600',
-          },
-          formButtonPrimary: {
-            background: '#2563eb',
-            borderRadius: '10px',
-            fontWeight: '600',
-            boxShadow: '0 1px 3px rgba(37,99,235,0.3)',
-          },
-          formFieldInput: {
-            borderRadius: '9px',
-            border: '1.5px solid #e2e8f0',
-          },
-        }
-      }
-    })
+    // Not signed in — go straight to Clerk's sign-in page, come back after
+    clerk.redirectToSignIn({ redirectUrl: window.location.href })
   }
 
-  // Track whether user was signed in so we only reload on actual sign-out (not initial load)
   let wasSignedIn = !!clerk.user
   clerk.addListener(({user}) => {
     if(user){
       wasSignedIn = true
-      dismissGate()
       showUser(user)
       fetchUsage()
     } else if(wasSignedIn){
-      // User was signed in and just signed out — reload to reset
       window.location.reload()
     }
   })
@@ -1625,7 +1494,6 @@ async function initClerk(){
 
 function showUser(user){
   document.getElementById('signInBtn').style.display = 'none'
-  // Avatar
   const avatarEl = document.getElementById('userAvatar')
   if(user.imageUrl){
     avatarEl.innerHTML = `<img src="${user.imageUrl}" alt="avatar"/>`
@@ -1650,14 +1518,6 @@ async function fetchUsage(){
 }
 
 function signIn(){
-  // Show loading state on button
-  const btn = document.getElementById('gateSignInBtn')
-  if(btn){
-    btn.style.opacity = '0.6'
-    btn.style.pointerEvents = 'none'
-    btn.innerHTML = '<span style="display:inline-block;width:15px;height:15px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite"></span> Redirecting…'
-  }
-  // redirectToSignIn is the most reliable method for vanilla HTML — sends to Clerk hosted page and back
   clerk.redirectToSignIn({ redirectUrl: window.location.href })
 }
 function signOut(){
@@ -1675,16 +1535,11 @@ window.goToResults = function(query){
   _origGoToResults(query)
 }
 
-// Wait for Clerk script to finish loading (it's async so may not be ready at window.load)
 function waitForClerk(attempts){
   if(attempts <= 0) return
-  if(window.Clerk){
-    initClerk().catch(console.warn)
-  } else {
-    setTimeout(() => waitForClerk(attempts - 1), 200)
-  }
+  if(window.Clerk){ initClerk().catch(console.warn) }
+  else { setTimeout(() => waitForClerk(attempts - 1), 200) }
 }
-// Start polling immediately — works whether page is cached or freshly loaded
 waitForClerk(25)
 </script>
 </body>
