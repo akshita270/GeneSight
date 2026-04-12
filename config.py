@@ -17,7 +17,7 @@ class Settings:
     neo4j_password: str = os.getenv("NEO4J_PASSWORD", "")
 
     # Pipeline settings
-    pubmed_max_results: int = int(os.getenv("PUBMED_MAX_RESULTS", "100"))
+    pubmed_max_results: int = int(os.getenv("PUBMED_MAX_RESULTS", "60"))
     hypothesis_max: int = int(os.getenv("HYPOTHESIS_MAX", "5"))
 
     # Auth + Database
