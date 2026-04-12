@@ -62,7 +62,7 @@ Example:
 
         diseases = [n.id for n in graph.nodes if n.type == "disease"]
         pathways = [n.id for n in graph.nodes if n.type == "pathway"]
-        abstracts = "\n\n".join(p.get("abstract", "")[:300] for p in papers[:3])
+        abstracts = "\n\n".join(p.get("abstract", "")[:300] for p in papers[:8])
 
         chain = self.prompt | self.llm
         resp = await chain.ainvoke({

@@ -79,13 +79,15 @@ Read each paper below (PMID | Title | Abstract excerpt) and decide whether it pr
 GENUINE POSITIVE EVIDENCE supporting the hypothesis above.
 
 Rules for counting a paper as SUPPORTING:
-- The paper must study or report findings about the genes mentioned in the hypothesis
-- The paper must find a POSITIVE relationship (association, regulation, mechanism, risk)
-  between those genes and the disease/pathway in the hypothesis
-- Papers that CONTRADICT the hypothesis (no association, not significant, failed to show)
-  must NOT be counted as supporting
-- Papers that are only tangentially related (mention the gene but study something unrelated)
-  must NOT be counted
+- The paper must study AT LEAST ONE of the genes mentioned in the hypothesis
+- The paper must find a POSITIVE relationship (association, regulation, mechanism, risk factor,
+  expression change, mutation effect) between that gene and the disease or biological pathway
+  in the hypothesis — even if only one gene is studied, not both together
+- Papers that CONTRADICT the hypothesis (no association, not significant, protective effect
+  when harm is hypothesised) must NOT be counted
+- Papers studying the gene in a completely unrelated disease/context must NOT be counted
+- Be INCLUSIVE: independent evidence for each gene in the disease context all counts,
+  because multiple genes each linked to the same disease strongly supports the hypothesis
 
 Return ONLY a raw JSON object like this — no explanation, no markdown:
 {{"supporting_pmids": ["12345678", "23456789"]}}
@@ -99,7 +101,7 @@ PAPERS:
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
-            max_tokens=800,
+            max_tokens=1500,
         )
 
         raw = resp.choices[0].message.content.strip()
@@ -131,31 +133,31 @@ PAPERS:
         so hypotheses with equal paper counts are ordered sensibly.
 
         Scale (count → base confidence):
-          0  →  15   Exploratory
-          1  →  38   Exploratory
-          2  →  48   Exploratory
-          3  →  58   Moderate
-          4  →  65   Moderate
-          5  →  70   Moderate
-          6  →  75   Moderate
-          7  →  80   Strong
-          8  →  84   Strong
-          9  →  88   Strong
-          10+ →  92   Strong
+          0  →  30   Exploratory
+          1  →  55   Exploratory
+          2  →  65   Moderate
+          3  →  72   Moderate
+          4  →  77   Moderate
+          5  →  81   Moderate
+          6  →  84   Strong
+          7  →  87   Strong
+          8  →  90   Strong
+          9  →  92   Strong
+          10+ →  94   Strong
         """
-        BASE = {0: 15, 1: 38, 2: 48, 3: 58, 4: 65,
-                5: 70, 6: 75, 7: 80, 8: 84, 9: 88}
-        base = BASE.get(count, 92 if count >= 10 else 15)
+        BASE = {0: 30, 1: 55, 2: 65, 3: 72, 4: 77,
+                5: 81, 6: 84, 7: 87, 8: 90, 9: 92}
+        base = BASE.get(count, 94 if count >= 10 else 30)
 
-        # GPT prior maps 50–90 → -4..+4 tiebreaker
-        tiebreak = round((gpt_prior - 70) / 20 * 4)  # normalise around 70
-        conf = float(max(10, min(95, base + tiebreak)))
+        # GPT prior maps 50–90 → -3..+3 tiebreaker
+        tiebreak = round((gpt_prior - 70) / 20 * 3)
+        conf = float(max(10, min(96, base + tiebreak)))
 
         if count == 0:
             return conf, "Exploratory"
-        elif count <= 2:
+        elif count <= 1:
             return conf, "Exploratory"
-        elif count <= 6:
+        elif count <= 5:
             return conf, "Moderate"
         else:
             return conf, "Strong"
