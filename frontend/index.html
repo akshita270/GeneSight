@@ -404,6 +404,13 @@ nav{
 
 /* Example pills */
 .ex-label{font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.3px;margin-bottom:10px}
+.ex-pill{
+  font-size:12px;font-weight:500;color:var(--text2);
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:5px 14px;cursor:pointer;
+  font-family:var(--sans);transition:border-color .15s,background .15s;
+}
+.ex-pill:hover{border-color:var(--blue);background:var(--blue-light);color:var(--blue)}
 .ex-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
 .ex-btn{
   border-radius:20px;padding:6px 14px;font-size:12px;font-weight:500;
@@ -827,6 +834,31 @@ body.dark .logo-chip{background:var(--bg2);border-color:var(--border)}
   </div>
 </div>
 <style>@keyframes authSpin{to{transform:rotate(360deg)}}</style>
+
+<!-- ── Query Modal ── -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <div class="modal-eyebrow">🔬 Research Query</div>
+      <div class="modal-title">What do you want to explore?</div>
+      <div class="modal-sub">Enter a gene, disease, or research question</div>
+    </div>
+    <div class="input-wrap">
+      <span class="input-icon">🧬</span>
+      <input class="query-input" id="queryInput" type="text" placeholder="e.g. TP53 mutation lung cancer chemotherapy resistance" autocomplete="off"/>
+    </div>
+    <div id="errorBox" style="color:var(--red);font-size:13px;margin-bottom:12px;display:none"></div>
+    <div class="ex-label">Try an example:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+      <button class="ex-pill" onclick="setQuery(this)">BRCA1 breast cancer</button>
+      <button class="ex-pill" onclick="setQuery(this)">APOE4 Alzheimer's</button>
+      <button class="ex-pill" onclick="setQuery(this)">TP53 lung cancer resistance</button>
+      <button class="ex-pill" onclick="setQuery(this)">PTEN glioblastoma</button>
+    </div>
+    <button class="run-btn" onclick="runPipeline()">Run Analysis →</button>
+  </div>
+</div>
 
 <!-- ── Navbar ── -->
 <nav>
