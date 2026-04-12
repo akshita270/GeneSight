@@ -155,7 +155,7 @@ PAPERS:
 
         if count <= 2:
             return conf, "Exploratory"
-        elif count <= 6:
+        elif count <= 5:
             return conf, "Moderate"
         else:
             return conf, "Strong"
