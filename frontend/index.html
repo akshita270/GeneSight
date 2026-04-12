@@ -836,13 +836,12 @@ body.dark .logo-chip{background:var(--bg2);border-color:var(--border)}
       <span>GeneSight</span>
     </div>
     <div class="nav-badge">Hypothesis Engine</div>
-    <button class="nav-query-btn" onclick="document.getElementById('queryModal').style.display='flex'" title="Run a new query">+ New Query</button>
     <button class="darkmode-btn" id="darkmodeBtn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
     <!-- Auth area — populated by Clerk JS -->
     <div class="nav-auth-area" id="navAuthArea">
-      <!-- sign-in handled by login gate -->
       <button class="sign-in-btn" id="signInBtn" onclick="signIn()" style="display:none"></button>
       <span class="usage-badge" id="usageBadge" style="display:none"></span>
+      <button class="nav-query-btn" id="runQueryBtn" onclick="document.getElementById('queryModal').style.display='flex'" style="display:none">Run Query</button>
       <div class="user-pill" id="userPill" style="display:none" onclick="clerk.openUserProfile()">
         <div class="user-avatar" id="userAvatar"></div>
         <span class="user-name" id="userName"></span>
@@ -1539,6 +1538,7 @@ function showUser(user){
   document.getElementById('userName').textContent = user.firstName || user.emailAddresses?.[0]?.emailAddress || 'User'
   document.getElementById('userPill').style.display = 'flex'
   document.getElementById('signOutBtn').style.display = 'inline-block'
+  document.getElementById('runQueryBtn').style.display = 'inline-block'
 }
 
 async function fetchUsage(){
