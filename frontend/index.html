@@ -1592,16 +1592,16 @@ async function initClerk(){
     if(btn) btn.style.display = 'flex'
   }
 
+  // Track whether user was signed in so we only reload on actual sign-out (not initial load)
+  let wasSignedIn = !!clerk.user
   clerk.addListener(({user}) => {
     if(user){
+      wasSignedIn = true
       dismissGate()
       showUser(user)
       fetchUsage()
-    } else {
-      document.getElementById('userPill').style.display = 'none'
-      document.getElementById('signOutBtn').style.display = 'none'
-      document.getElementById('usageBadge').style.display = 'none'
-      // Show gate again if signed out
+    } else if(wasSignedIn){
+      // User was signed in and just signed out — reload to reset
       window.location.reload()
     }
   })
