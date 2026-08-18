@@ -1,9 +1,10 @@
 from __future__ import annotations
+import asyncio
+import logging
 from Bio import Entrez
 from config import settings
 from utils.retry import with_network_retry
-import asyncio
-import logging
+from utils.circuit_breaker import ncbi_breaker
 
 Entrez.email = settings.entrez_email
 Entrez.api_key = settings.entrez_api_key
@@ -11,9 +12,17 @@ logger = logging.getLogger("genesight")
 
 class LiteratureAgent:
     async def run(self, search_terms: list[str]) -> list[dict]:
+        if ncbi_breaker.is_open():
+            raise RuntimeError("NCBI circuit breaker is OPEN — too many recent failures")
         query = " OR ".join(f'"{t}"' for t in search_terms)
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self._fetch_with_retry, query)
+        try:
+            result = await loop.run_in_executor(None, self._fetch_with_retry, query)
+            ncbi_breaker.record_success()
+            return result
+        except Exception:
+            ncbi_breaker.record_failure()
+            raise
 
     def _fetch_with_retry(self, query: str) -> list[dict]:
         """Sync wrapper — tenacity works on sync functions too when called from executor."""

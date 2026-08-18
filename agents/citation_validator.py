@@ -2,25 +2,19 @@
 Citation validation — two checks on hypothesis citations, run after HallucinationGuard.
 
 1. PMID provenance  — every supporting_pmid must come from the retrieved paper set.
-                      LLMs sometimes invent plausible-looking PMIDs that don't exist
-                      or were never fetched. Penalty: -10% confidence per bad PMID.
+2. Citation support — each cited paper must mention at least one hypothesis gene.
 
-2. Citation support — for each valid PMID, the cited paper must mention at least one
-                      hypothesis gene (word-boundary, case-insensitive).
-                      A paper that never mentions the gene can't support the claim.
-                      Penalty: -5% per unsupported citation.
-
-Neither check drops hypotheses; both append to the audit_log so results stay auditable.
+Neither check drops hypotheses; both append to the audit_log.
 """
 from __future__ import annotations
-import re
 import logging
 from models.schemas import Hypothesis
+from utils.text import corpus_words
 
 logger = logging.getLogger("genesight")
 
-_HALLUCINATED_PMID_PENALTY = 10  # per PMID not in retrieved set
-_UNSUPPORTED_CITE_PENALTY  =  5  # per citation whose paper doesn't mention the genes
+_HALLUCINATED_PMID_PENALTY = 10
+_UNSUPPORTED_CITE_PENALTY  =  5
 
 
 class CitationValidator:
@@ -30,10 +24,6 @@ class CitationValidator:
         hypotheses: list[Hypothesis],
         papers: list[dict],
     ) -> tuple[list[Hypothesis], list[str]]:
-        """
-        Returns (updated_hypotheses, citation_flags).
-        citation_flags should be appended to the job's audit_log.
-        """
         paper_by_pmid: dict[str, dict] = {
             str(p.get("pmid", "")): p for p in papers if p.get("pmid")
         }
@@ -42,7 +32,7 @@ class CitationValidator:
         citation_flags: list[str] = []
 
         for hyp in hypotheses:
-            raw = getattr(hyp, "supporting_pmids", None) or []
+            raw       = getattr(hyp, "supporting_pmids", None) or []
             supporting = [str(pid) for pid in raw if pid]
 
             if not supporting:
@@ -57,25 +47,18 @@ class CitationValidator:
                 )
                 citation_flags.append(msg)
                 logger.warning(msg)
-                penalty = len(hallucinated) * _HALLUCINATED_PMID_PENALTY
-                hyp.confidence = max(10.0, hyp.confidence - penalty)
+                hyp.confidence = max(10.0, hyp.confidence - len(hallucinated) * _HALLUCINATED_PMID_PENALTY)
 
             # ── 2. Citation support ──────────────────────────────────────────
-            valid_pmids = [pid for pid in supporting if pid in retrieved_pmids]
-            genes_upper = [g.upper() for g in (hyp.genes or [])]
+            valid_pmids  = [pid for pid in supporting if pid in retrieved_pmids]
+            genes_upper  = [g.upper() for g in (hyp.genes or [])]
 
             if valid_pmids and genes_upper:
                 unsupported = []
                 for pid in valid_pmids:
-                    paper = paper_by_pmid[pid]
-                    corpus = (
-                        paper.get("title", "") + " " + paper.get("abstract", "")
-                    ).upper()
-                    mentioned = any(
-                        re.search(r"\b" + re.escape(g) + r"\b", corpus)
-                        for g in genes_upper
-                    )
-                    if not mentioned:
+                    # Build word set for this single paper and check membership
+                    paper_words = corpus_words([paper_by_pmid[pid]])
+                    if not any(g in paper_words for g in genes_upper):
                         unsupported.append(pid)
 
                 if unsupported:
@@ -86,8 +69,7 @@ class CitationValidator:
                     )
                     citation_flags.append(msg)
                     logger.warning(msg)
-                    penalty = len(unsupported) * _UNSUPPORTED_CITE_PENALTY
-                    hyp.confidence = max(10.0, hyp.confidence - penalty)
+                    hyp.confidence = max(10.0, hyp.confidence - len(unsupported) * _UNSUPPORTED_CITE_PENALTY)
 
         if citation_flags:
             logger.warning(

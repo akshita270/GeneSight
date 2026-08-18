@@ -1,13 +1,15 @@
 from __future__ import annotations
+import logging
+import uuid
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from openai import AsyncOpenAI
 from config import settings
 from models.schemas import KnowledgeGraph, Hypothesis
 from utils.llm_utils import parse_json_with_retry
-import json
-import uuid
-import re
+from utils.text import strip_md_fences
+
+logger = logging.getLogger("genesight")
 
 class HypothesisAgent:
     def __init__(self):
@@ -87,8 +89,8 @@ Example:
             try:
                 chain = self.prompt | llm
                 resp = await chain.ainvoke(invoke_args)
-                content = resp.content.strip()
-                print(f"Hypothesis Agent raw response (model attempt {attempt+1}):", repr(content[:300]))
+                content = strip_md_fences(resp.content)
+                logger.info("HypothesisAgent raw response (attempt %d): %s", attempt + 1, repr(content[:200]))
                 break
             except Exception as e:
                 if attempt == 0:

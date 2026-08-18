@@ -97,3 +97,21 @@ class CircuitBreaker:
 openai_breaker = CircuitBreaker("openai", failure_threshold=5, recovery_time=60)
 ncbi_breaker   = CircuitBreaker("ncbi",   failure_threshold=8, recovery_time=30)
 neo4j_breaker  = CircuitBreaker("neo4j",  failure_threshold=3, recovery_time=120)
+
+
+async def guarded(breaker: "CircuitBreaker", coro):
+    """
+    Run an awaitable under circuit-breaker protection.
+
+    Usage:
+        result = await guarded(openai_breaker, client.chat.completions.create(...))
+    """
+    if breaker.is_open():
+        raise RuntimeError(f"Circuit breaker [{breaker.name}] is OPEN — too many recent failures")
+    try:
+        result = await coro
+        breaker.record_success()
+        return result
+    except Exception:
+        breaker.record_failure()
+        raise

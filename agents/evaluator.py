@@ -4,13 +4,7 @@ from models.schemas import EvaluationReport, QualityFlag, Hypothesis, KnowledgeG
 
 
 class EvaluatorAgent:
-    """
-    Rule-based pipeline quality checker — no GPT call needed.
-    Scores the run out of 100 across 5 dimensions and returns
-    human-readable flags for the results page.
-    """
-
-    CURRENT_YEAR = datetime.now().year
+    """Rule-based pipeline quality checker — no GPT call. Scores 0-100 across 5 dimensions."""
 
     async def run(
         self,
@@ -75,7 +69,7 @@ class EvaluatorAgent:
 
         # ── 4. Literature recency (20 pts) ────────────────────────────────────
         if papers:
-            cutoff = self.CURRENT_YEAR - 10
+            cutoff = datetime.now().year - 10
             recent = sum(1 for p in papers if isinstance(p, dict) and p.get("year", 0) >= cutoff)
             recency_pct = recent / len(papers) * 100
             if recency_pct >= 50:

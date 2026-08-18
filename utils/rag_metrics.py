@@ -12,6 +12,7 @@ All scores are floats in [0.0, 1.0]. Higher is better.
 from __future__ import annotations
 import re
 import math
+from utils.text import paper_text, corpus_words
 
 
 def context_relevance(papers: list[dict], query: str) -> float:
@@ -32,12 +33,7 @@ def context_relevance(papers: list[dict], query: str) -> float:
         return 0.0
 
     N = len(papers)
-    # Pre-build lowercased paper texts and compile patterns once — avoids
-    # re-compiling the same regex inside the inner loop on every call.
-    paper_texts = [
-        (p.get("title", "") + " " + p.get("abstract", "")).lower()
-        for p in papers
-    ]
+    paper_texts = [paper_text(p).lower() for p in papers]
     token_scores: list[float] = []
     for tok in set(query_tokens):
         pat = re.compile(r"\b" + re.escape(tok) + r"\b")
@@ -64,12 +60,7 @@ def answer_groundedness(hypotheses: list[dict], papers: list[dict]) -> float:
     if not hypotheses or not papers:
         return 0.0
 
-    # Build a word set once — O(corpus) — then lookup is O(1) per gene.
-    # Gene symbols are short uppercase tokens so word-boundary splitting works.
-    corpus_words: set[str] = set()
-    for p in papers:
-        text = (p.get("title", "") + " " + p.get("abstract", "")).upper()
-        corpus_words.update(re.findall(r"\b[A-Z][A-Z0-9]{1,9}\b", text))
+    words = corpus_words(papers)
 
     all_genes: list[str] = []
     for h in hypotheses:
@@ -78,7 +69,7 @@ def answer_groundedness(hypotheses: list[dict], papers: list[dict]) -> float:
     if not all_genes:
         return 0.0
 
-    grounded = sum(1 for g in all_genes if g in corpus_words)
+    grounded = sum(1 for g in all_genes if g in words)
     return round(grounded / len(all_genes), 4)
 
 

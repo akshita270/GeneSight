@@ -1,10 +1,14 @@
 from __future__ import annotations
 import asyncio
 import json
-import re
+import logging
 from openai import AsyncOpenAI
 from config import settings
 from models.schemas import Hypothesis
+from utils.text import strip_md_fences
+from utils.circuit_breaker import openai_breaker, guarded
+
+logger = logging.getLogger("genesight")
 
 
 class ValidatorAgent:
@@ -29,7 +33,7 @@ class ValidatorAgent:
 
         for hyp, res in zip(hypotheses, results):
             if isinstance(res, Exception):
-                print(f"Validator error for '{hyp.title}': {res}")
+                logger.error("Validator error for '%s': %s", hyp.title[:60], res)
                 # Fallback: keep GPT's prior confidence, status Exploratory
                 hyp.evidence_count   = 0
                 hyp.supporting_pmids = []
@@ -42,8 +46,10 @@ class ValidatorAgent:
                 hyp.confidence, hyp.status = self._calc_confidence(
                     count, total, float(hyp.confidence)
                 )
-                print(f"  '{hyp.title}' → {count}/{total} papers, "
-                      f"conf={hyp.confidence:.0f}%, status={hyp.status}")
+                logger.info(
+                    "'%s' → %d/%d papers, conf=%.0f%%, status=%s",
+                    hyp.title[:60], count, total, hyp.confidence, hyp.status,
+                )
 
         return sorted(hypotheses, key=lambda h: h.confidence, reverse=True)
 
@@ -97,18 +103,18 @@ If no papers support the hypothesis, return: {{"supporting_pmids": []}}
 PAPERS:
 {papers_block}"""
 
-        resp = await self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0,
-            max_tokens=1500,
+        resp = await guarded(
+            openai_breaker,
+            self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0,
+                max_tokens=1500,
+            ),
         )
 
-        raw = resp.choices[0].message.content.strip()
-        print(f"\n  [{hyp.title[:40]}] GPT validator raw: {raw[:120]}")
-
-        # Strip markdown fences if present
-        raw = re.sub(r"```json|```", "", raw).strip()
+        raw = strip_md_fences(resp.choices[0].message.content)
+        logger.debug("[%s] GPT validator raw: %s", hyp.title[:40], raw[:120])
 
         try:
             data = json.loads(raw)
@@ -118,7 +124,7 @@ PAPERS:
             pmids = [pid for pid in pmids if pid in valid_pmids_set]
             return pmids, len(pmids)
         except (json.JSONDecodeError, KeyError) as e:
-            print(f"  Validator JSON parse error: {e} | raw={raw[:200]}")
+            logger.warning("Validator JSON parse error: %s | raw=%s", e, raw[:200])
             return [], 0
 
     # ── Evidence-based confidence calculation ─────────────────────────────────

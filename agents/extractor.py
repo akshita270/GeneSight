@@ -1,5 +1,9 @@
 from __future__ import annotations
 import re
+import logging
+from utils.text import paper_text
+
+logger = logging.getLogger("genesight")
 
 # ── No spaCy — pure regex extraction to stay within Render free memory ──
 
@@ -136,7 +140,7 @@ class ExtractionAgent:
         diseases: set[str] = set()
 
         for p in papers:
-            text = p.get("title", "") + " " + p.get("abstract", "")
+            text = paper_text(p)
             genes.update(extract_genes(text))
             diseases.update(extract_diseases(text))
 
@@ -148,8 +152,7 @@ class ExtractionAgent:
         genes = set(list(genes)[:30])
         diseases = set(list(diseases)[:20])
 
-        print(f"Extracted genes:    {genes}")
-        print(f"Extracted diseases: {diseases}")
+        logger.info("Extracted %d genes, %d diseases", len(genes), len(diseases))
 
         return {
             "genes":    list(genes),

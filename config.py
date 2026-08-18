@@ -1,30 +1,31 @@
-from dotenv import load_dotenv
-import os
+from pydantic_settings import BaseSettings
 
-load_dotenv()
 
-class Settings:
+class Settings(BaseSettings):
     # OpenAI
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    openai_api_key: str = ""
 
     # NCBI Entrez
-    entrez_email: str = os.getenv("ENTREZ_EMAIL", "")
-    entrez_api_key: str = os.getenv("ENTREZ_API_KEY", "")
+    entrez_email: str = ""
+    entrez_api_key: str = ""
 
     # Neo4j
-    neo4j_uri: str = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-    neo4j_user: str = os.getenv("NEO4J_USER", "neo4j")
-    neo4j_password: str = os.getenv("NEO4J_PASSWORD", "")
+    neo4j_uri: str = "bolt://localhost:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = ""
 
-    # Pipeline settings
-    pubmed_max_results: int = int(os.getenv("PUBMED_MAX_RESULTS", "60"))
-    hypothesis_max: int = int(os.getenv("HYPOTHESIS_MAX", "5"))
+    # Pipeline
+    pubmed_max_results: int = 60
+    hypothesis_max: int = 5
 
     # Auth + Database
-    clerk_secret_key: str = os.getenv("CLERK_SECRET_KEY", "")
-    database_url: str = os.getenv("DATABASE_URL", "")
+    clerk_secret_key: str = ""
+    database_url: str = ""
 
-    # Rate limit: free queries per user per day
-    free_queries_per_day: int = int(os.getenv("FREE_QUERIES_PER_DAY", "3"))
+    # Rate limiting
+    free_queries_per_day: int = 3
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
 
 settings = Settings()
