@@ -6,6 +6,7 @@ colorTo: green
 sdk: gradio
 sdk_version: 4.44.1
 app_port: 7860
+hardware: cpu-basic
 pinned: false
 ---
 

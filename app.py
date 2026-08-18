@@ -2,12 +2,13 @@ from __future__ import annotations
 import sys
 import types
 
-# Gradio 4.x imports @spaces.GPU; on CPU Spaces there are none so HF errors.
-# Pre-populate sys.modules with a no-op stub before Gradio loads.
+# Gradio 4.x + HF ZeroGPU: if no @spaces.GPU functions exist, startup errors.
+# Force-replace spaces.GPU with a no-op whether or not spaces was pre-imported.
 if "spaces" not in sys.modules:
     _mock_spaces = types.ModuleType("spaces")
-    _mock_spaces.GPU = lambda fn=None, **kw: fn if fn else (lambda f: f)
     sys.modules["spaces"] = _mock_spaces
+_spaces_mod = sys.modules["spaces"]
+_spaces_mod.GPU = lambda fn=None, **kw: fn if fn else (lambda f: f)
 
 # Gradio 4.x oauth.py does `from huggingface_hub import HfFolder` which was
 # removed in huggingface_hub>=0.21.0. Add a no-op stub; we use Clerk auth.
