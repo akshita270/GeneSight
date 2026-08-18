@@ -3,7 +3,7 @@ title: GeneSight API
 emoji: 🧬
 colorFrom: blue
 colorTo: green
-sdk: docker
+sdk: gradio
 app_port: 7860
 pinned: false
 ---
