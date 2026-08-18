@@ -26,3 +26,9 @@ services:
         value: "5"
       - key: FRONTEND_ORIGIN
         sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: FREE_QUERIES_PER_DAY
+        value: "3"

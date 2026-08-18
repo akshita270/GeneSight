@@ -1,16 +1,32 @@
 from __future__ import annotations
 from Bio import Entrez
 from config import settings
+from utils.retry import with_network_retry
 import asyncio
+import logging
 
 Entrez.email = settings.entrez_email
 Entrez.api_key = settings.entrez_api_key
+logger = logging.getLogger("genesight")
 
 class LiteratureAgent:
     async def run(self, search_terms: list[str]) -> list[dict]:
         query = " OR ".join(f'"{t}"' for t in search_terms)
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self._fetch, query)
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._fetch_with_retry, query)
+
+    def _fetch_with_retry(self, query: str) -> list[dict]:
+        """Sync wrapper — tenacity works on sync functions too when called from executor."""
+        from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
+        @retry(
+            stop=stop_after_attempt(3),
+            wait=wait_exponential(multiplier=1, min=2, max=8),
+            before_sleep=before_sleep_log(logger, logging.WARNING),
+            reraise=True,
+        )
+        def _inner():
+            return self._fetch(query)
+        return _inner()
 
     def _fetch(self, query: str) -> list[dict]:
         search_handle = Entrez.esearch(db="pubmed", term=query,

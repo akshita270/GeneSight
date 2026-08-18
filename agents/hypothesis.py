@@ -1,8 +1,10 @@
 from __future__ import annotations
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
+from openai import AsyncOpenAI
 from config import settings
 from models.schemas import KnowledgeGraph, Hypothesis
+from utils.llm_utils import parse_json_with_retry
 import json
 import uuid
 import re
@@ -12,8 +14,15 @@ class HypothesisAgent:
         self.llm = ChatOpenAI(
             model="gpt-4o",
             api_key=settings.openai_api_key,
-            temperature=0.4
+            temperature=0.4,
         )
+        # Fallback to cheaper/faster model if primary fails
+        self.llm_fallback = ChatOpenAI(
+            model="gpt-4o-mini",
+            api_key=settings.openai_api_key,
+            temperature=0.4,
+        )
+        self._openai = AsyncOpenAI(api_key=settings.openai_api_key)
         self.prompt = ChatPromptTemplate.from_template("""
 You are a genomics research scientist generating novel hypotheses.
 
@@ -64,34 +73,33 @@ Example:
         pathways = [n.id for n in graph.nodes if n.type == "pathway"]
         abstracts = "\n\n".join(p.get("abstract", "")[:300] for p in papers[:8])
 
-        chain = self.prompt | self.llm
-        resp = await chain.ainvoke({
+        invoke_args = {
             "query": query,
             "genes": genes,
             "diseases": diseases,
             "pathways": pathways,
             "abstracts": abstracts,
             "n": settings.hypothesis_max,
-        })
+        }
 
-        content = resp.content.strip()
-        print("Hypothesis Agent raw response:", repr(content[:300]))
+        # Try primary model, fall back to gpt-4o-mini on failure
+        for attempt, llm in enumerate([self.llm, self.llm_fallback]):
+            try:
+                chain = self.prompt | llm
+                resp = await chain.ainvoke(invoke_args)
+                content = resp.content.strip()
+                print(f"Hypothesis Agent raw response (model attempt {attempt+1}):", repr(content[:300]))
+                break
+            except Exception as e:
+                if attempt == 0:
+                    print(f"Hypothesis primary model failed ({e}), falling back to gpt-4o-mini")
+                else:
+                    raise
 
-        # Strip markdown fences
-        content = re.sub(r"```json|```", "", content).strip()
-
-        # Extract JSON array even if there's surrounding text
-        match = re.search(r"\[.*\]", content, re.DOTALL)
-        if match:
-            content = match.group(0)
-
-        if not content:
-            raise ValueError("OpenAI returned empty response for hypothesis generation.")
-
-        try:
-            raw = json.loads(content)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Could not parse hypothesis response as JSON: {content[:300]}") from e
+        # Use JSON retry helper — asks GPT-4o-mini to fix malformed JSON automatically
+        raw = await parse_json_with_retry(
+            content, "hypothesis generation", self._openai
+        )
 
         return [Hypothesis(
             id=str(uuid.uuid4()),

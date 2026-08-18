@@ -1,16 +1,14 @@
 from __future__ import annotations
 from neo4j import GraphDatabase
-from dotenv import load_dotenv
-import os
+from config import settings
 
-load_dotenv()
 
 class Neo4jClient:
     def __init__(self):
-        uri      = os.getenv("NEO4J_URI")
-        user     = os.getenv("NEO4J_USER")
-        password = os.getenv("NEO4J_PASSWORD")
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+        uri = settings.neo4j_uri
+        if not uri:
+            raise RuntimeError("NEO4J_URI is not configured")
+        self.driver = GraphDatabase.driver(uri, auth=(settings.neo4j_user, settings.neo4j_password))
 
     def merge_node(self, label: str, name: str, props: dict = None):
         props = props or {}

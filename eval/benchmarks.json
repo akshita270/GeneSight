@@ -1,0 +1,52 @@
+[
+  {
+    "id": "brca1_breast_cancer",
+    "query": "BRCA1 and breast cancer risk",
+    "expected_genes": ["BRCA1", "BRCA2", "TP53", "PALB2", "ATM"],
+    "expected_disease_keywords": ["breast cancer", "breast", "mammary", "carcinoma"],
+    "min_papers": 5,
+    "min_hypotheses": 2,
+    "min_confidence": 55,
+    "expected_status_distribution": {"Strong": 0, "Moderate": 1, "Exploratory": 0}
+  },
+  {
+    "id": "apoe4_alzheimers",
+    "query": "APOE4 Alzheimer's disease neurodegeneration",
+    "expected_genes": ["APOE", "TREM2", "APP", "PSEN1", "CLU"],
+    "expected_disease_keywords": ["alzheimer", "dementia", "neurodegeneration", "amyloid"],
+    "min_papers": 5,
+    "min_hypotheses": 2,
+    "min_confidence": 50,
+    "expected_status_distribution": {"Strong": 0, "Moderate": 1, "Exploratory": 0}
+  },
+  {
+    "id": "tp53_lung_cancer",
+    "query": "TP53 mutation lung cancer chemotherapy resistance",
+    "expected_genes": ["TP53", "KRAS", "EGFR", "MDM2"],
+    "expected_disease_keywords": ["lung cancer", "lung", "chemotherapy", "resistance"],
+    "min_papers": 5,
+    "min_hypotheses": 2,
+    "min_confidence": 50,
+    "expected_status_distribution": {"Strong": 0, "Moderate": 1, "Exploratory": 0}
+  },
+  {
+    "id": "pten_glioblastoma",
+    "query": "PTEN loss glioblastoma PI3K signaling",
+    "expected_genes": ["PTEN", "PIK3CA", "AKT1", "EGFR"],
+    "expected_disease_keywords": ["glioblastoma", "glioma", "brain tumor", "brain cancer"],
+    "min_papers": 4,
+    "min_hypotheses": 2,
+    "min_confidence": 45,
+    "expected_status_distribution": {"Strong": 0, "Moderate": 0, "Exploratory": 1}
+  },
+  {
+    "id": "type2_diabetes_insulin",
+    "query": "Type 2 diabetes insulin resistance genetic factors",
+    "expected_genes": ["TCF7L2", "PPARG", "KCNJ11", "INS"],
+    "expected_disease_keywords": ["diabetes", "insulin", "glucose", "pancreatic"],
+    "min_papers": 5,
+    "min_hypotheses": 2,
+    "min_confidence": 45,
+    "expected_status_distribution": {"Strong": 0, "Moderate": 0, "Exploratory": 1}
+  }
+]

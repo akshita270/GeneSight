@@ -4,6 +4,13 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>GeneSight · Results</title>
+<meta name="description" content="GeneSight AI research results — gene-disease hypotheses ranked by confidence, sourced from PubMed and NCBI."/>
+<meta property="og:title" content="GeneSight · Genomics Research Results"/>
+<meta property="og:description" content="AI-generated gene-disease hypotheses ranked by confidence, with supporting PubMed evidence and knowledge graph."/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="GeneSight · Genomics Results"/>
+<meta name="twitter:description" content="AI-generated gene-disease hypotheses from 33M+ PubMed papers."/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -261,16 +268,6 @@ nav{
 .done-banner.visible{display:flex}
 .done-banner-icon{font-size:24px}
 .done-banner-title{font-size:15px;font-weight:700;color:var(--green)}
-
-/* ── Done banner ── */
-.done-banner{
-  background:var(--green-light);border:1px solid #bbf7d0;
-  border-radius:12px;padding:16px 20px;margin-top:20px;
-  display:flex;align-items:center;gap:14px;display:none;
-}
-.done-banner.visible{display:flex}
-.done-banner-icon{font-size:24px}
-.done-banner-title{font-size:15px;font-weight:700;color:var(--green)}
 .done-banner-sub{font-size:12px;color:var(--text2);margin-top:2px}
 
 /* ── Error box ── */
@@ -297,6 +294,18 @@ nav{
   border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;
   display:none;
 }
+/* Quality ring gauge */
+.quality-ring-row{display:flex;align-items:center;gap:24px;margin-bottom:16px}
+.quality-ring-svg{flex-shrink:0;overflow:visible}
+.quality-ring-label{text-align:center;margin-top:6px}
+.quality-ring-num{font-size:26px;font-weight:800;color:var(--text);line-height:1}
+.quality-ring-sub{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px}
+.quality-ring-info{flex:1}
+.quality-ring-grade{display:inline-block;font-size:14px;font-weight:700;padding:4px 16px;border-radius:20px;margin-bottom:10px}
+.quality-ring-verdict{font-size:13px;color:var(--text2);line-height:1.6}
+/* Old score row hidden (replaced by ring) */
+.quality-score-row{display:none}
+.quality-track{display:none}
 .quality-card.visible{display:block}
 .quality-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .quality-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:-0.2px}
@@ -544,6 +553,17 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
 }
 .compare-btn:hover{background:#ede9fe;border-color:#c4b5fd}
 
+/* ── Copy link button ── */
+.copy-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 16px;font-size:13px;font-weight:600;
+  background:var(--bg2);color:var(--text2);
+  border:1px solid var(--border);border-radius:8px;cursor:pointer;
+  font-family:var(--sans);transition:all .15s;
+}
+.copy-btn:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
+.copy-btn.copied{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
+
 /* ── Comparison Modal ── */
 .cmp-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
@@ -642,6 +662,101 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
   border-radius:10px;padding:16px;color:var(--red);font-size:13px;
 }
 
+/* ── D3 graph improvements ── */
+#geneGraph{
+  width:100%;height:460px;border-radius:12px;
+  background:var(--bg2);border:1px solid var(--border);
+  overflow:hidden;margin-bottom:16px;position:relative;cursor:grab;
+}
+#geneGraph:active{cursor:grabbing}
+.graph-legend{
+  display:flex;gap:16px;align-items:center;
+  font-size:11px;color:var(--text2);margin-bottom:12px;flex-wrap:wrap;
+}
+.graph-legend-item{display:inline-flex;align-items:center;gap:5px}
+.graph-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.graph-tooltip{
+  position:fixed;background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;padding:10px 14px;font-size:12px;
+  box-shadow:var(--shadow-md);pointer-events:none;z-index:9999;
+  max-width:200px;display:none;
+}
+.graph-tooltip.visible{display:block}
+.graph-tooltip-title{font-weight:700;color:var(--text);margin-bottom:3px}
+.graph-tooltip-type{font-size:10px;text-transform:uppercase;letter-spacing:0.4px;color:var(--text3)}
+
+/* ── Hypothesis card entrance ── */
+@keyframes hypSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.hyp-card{animation:hypSlideIn .4s cubic-bezier(.16,1,.3,1) both}
+.hyp-card:nth-child(2){animation-delay:.06s}
+.hyp-card:nth-child(3){animation-delay:.12s}
+.hyp-card:nth-child(4){animation-delay:.18s}
+.hyp-card:nth-child(5){animation-delay:.24s}
+/* Gradient conf bar */
+.conf-fill{background:linear-gradient(90deg,var(--cfill-start,#16a34a),var(--cfill-end,#34d399))!important}
+.conf-track{height:5px;border-radius:5px}
+/* Better hyp card border */
+.hyp-card{border-radius:16px;transition:box-shadow .18s,transform .18s,border-color .18s}
+.hyp-card:hover{transform:translateY(-2px);border-color:#bfdbfe;box-shadow:0 8px 24px rgba(37,99,235,0.1)}
+
+/* ── Collapsible paper abstract ── */
+.paper-abs-text{
+  font-size:13px;color:var(--text2);line-height:1.7;
+  overflow:hidden;max-height:60px;
+  transition:max-height .35s ease;
+  position:relative;
+}
+.paper-abs-text.expanded{max-height:600px}
+.paper-abs-text:not(.expanded)::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:28px;
+  background:linear-gradient(transparent,var(--bg));
+}
+.paper-abs-toggle{
+  font-size:11px;font-weight:600;color:var(--blue);
+  background:none;border:none;cursor:pointer;
+  font-family:var(--sans);padding:4px 0;margin-top:4px;
+  display:block;
+}
+.paper-abs-toggle:hover{text-decoration:underline}
+
+/* ── Metric count-up ── */
+.metric-num{
+  font-size:30px;font-weight:700;color:var(--blue);line-height:1;
+  transition:transform .1s;
+}
+.metric-card{
+  border-radius:var(--radius);padding:20px;text-align:center;
+  box-shadow:var(--shadow);transition:box-shadow .18s,transform .18s;
+  position:relative;overflow:hidden;
+}
+.metric-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--blue),#7c3aed);
+  opacity:0;transition:opacity .2s;
+}
+.metric-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.metric-card:hover::after{opacity:1}
+
+/* ── Toast notification ── */
+.toast{
+  position:fixed;bottom:28px;right:28px;z-index:9999;
+  background:var(--text);color:var(--bg);
+  border-radius:12px;padding:14px 20px;font-size:13px;font-weight:600;
+  box-shadow:0 8px 32px rgba(0,0,0,0.2);
+  display:flex;align-items:center;gap:10px;
+  transform:translateY(80px);opacity:0;
+  transition:transform .4s cubic-bezier(.16,1,.3,1),opacity .4s;
+  max-width:320px;
+}
+.toast.show{transform:none;opacity:1}
+.toast-icon{font-size:18px;flex-shrink:0}
+
+/* ── Done banner enhanced ── */
+.done-banner{
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--green-light),#dcfce7)!important;
+}
+
 /* ── Print styles ── */
 @media print{
   nav,.results-search,.pipeline-wrap,.empty-state,
@@ -669,7 +784,7 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
   .pipeline-wrap{padding:20px 18px}
   .tab-btn{font-size:11px;padding:10px 6px}
   .nav-actions{gap:6px}
-  .download-btn,.pdf-btn,.compare-btn{padding:7px 12px;font-size:12px}
+  .download-btn,.pdf-btn,.compare-btn,.copy-btn{padding:7px 12px;font-size:12px}
   .darkmode-btn{width:32px;height:32px;font-size:14px}
   .cmp-modal{max-height:95vh}
   .pl-step-desc{display:none}  /* hide descriptions on tablet to save space */
@@ -690,9 +805,7 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
     width:100%;display:flex;gap:6px;flex-wrap:wrap;margin-left:0;
     padding-top:8px;margin-top:8px;border-top:1px solid var(--border);
   }
-  .download-btn{padding:7px 10px;font-size:12px}
-  .pdf-btn{padding:7px 10px;font-size:12px}
-  .compare-btn{padding:7px 10px;font-size:12px}
+  .download-btn,.pdf-btn,.compare-btn,.copy-btn{padding:7px 10px;font-size:12px}
   .nav-new-btn{padding:7px 12px;font-size:12px;margin-left:auto}
 
   /* Query header */
@@ -793,6 +906,7 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
           <div class="history-list" id="historyList"></div>
         </div>
       </div>
+      <button class="copy-btn" id="copyLinkBtn" onclick="copyLink()" style="display:none" title="Copy shareable link">🔗 Share</button>
       <button class="compare-btn" id="compareBtn" onclick="openCompare()" style="display:none">⚖️ Compare</button>
       <span class="usage-pill" id="usagePill" style="display:none"></span>
       <div class="user-avatar-sm" id="navAvatar" style="display:none" title="Your account"></div>
@@ -1015,12 +1129,27 @@ body.dark .pipeline-wrap,body.dark .summary-card{background:var(--bg2)}
   </div>
 </div>
 
+<!-- Toast notification -->
+<div class="toast" id="toastEl">
+  <span class="toast-icon" id="toastIcon"></span>
+  <span id="toastMsg"></span>
+</div>
+
 <footer class="site-footer">
   <div class="footer-text">GeneSight · AI-Powered Genomics Research · Built with GPT-4o, PubMed, Neo4j</div>
 </footer>
 
 <script>
-const API_URL = 'https://genesight.onrender.com';
+const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const API_URL = IS_LOCAL ? 'http://localhost:8001' : 'https://REPLACE_WITH_HF_SPACE_URL.hf.space';
+
+function showToast(icon, msg, duration=4000){
+  const t = document.getElementById('toastEl')
+  document.getElementById('toastIcon').textContent = icon
+  document.getElementById('toastMsg').textContent = msg
+  t.classList.add('show')
+  setTimeout(()=>t.classList.remove('show'), duration)
+}
 
 const AGENTS = [
   ['🗂','Task Planner'],['📚','Literature Retrieval'],['🔬','Info Extraction'],
@@ -1055,6 +1184,9 @@ function fillEmpty(btn){
 }
 qs('#emptySearchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runEmptySearch() })
 qs('#newQueryInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runNewQuery() })
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeCompare()
+})
 
 // ── Agent step descriptions (shown in the step list) ──
 const AGENT_DESCS = {
@@ -1137,7 +1269,8 @@ async function main(){
   }, 4000)
 
   // Submit query
-  let job_id
+  let job_id, isCached = false
+  window._isCachedResult = false
   try{
     const r = await fetch(`${API_URL}/query`,{
       method:'POST',
@@ -1145,47 +1278,37 @@ async function main(){
       body:JSON.stringify({query})
     })
     if(!r.ok) throw new Error(`HTTP ${r.status}`)
-    job_id = (await r.json()).job_id
+    const resp = await r.json()
+    job_id = resp.job_id
+    isCached = !!resp.cached
+    window._isCachedResult = isCached
+    // Stamp job_id into URL so streaming summary can read it
+    history.replaceState(null, '', `?q=${encodeURIComponent(query)}&j=${job_id}`)
     clearInterval(warmupInterval)
-    qs('#plStatusMsg').textContent = 'Query received — agents starting…'
-    qs('#progressFill').style.width = '8%'
+
+    if(isCached){
+      // Skip pipeline animation — result already available
+      qs('#progressFill').style.width = '100%'
+      qs('#plStatusMsg').textContent = '⚡ Cached result — loading instantly…'
+      qs('#plSpinner').style.display = 'none'
+      renderSteps('', true)
+      qs('#queryHeaderSub').textContent = 'Cached result · Instant load'
+      const skel = qs('#skeletonSection')
+      if(skel) skel.style.display = 'none'
+    } else {
+      qs('#plStatusMsg').textContent = 'Query received — agents starting…'
+      qs('#progressFill').style.width = '8%'
+    }
   }catch(e){
     clearInterval(warmupInterval)
     showError(`Could not reach backend: ${e.message}`)
     return
   }
 
-  // Poll status
-  while(true){
-    await new Promise(r=>setTimeout(r,2000))
-    let s
-    try{
-      s = await (await fetch(`${API_URL}/status/${job_id}`)).json()
-    }catch(e){ showError(`Polling error: ${e.message}`); break }
-
-    const {status, current_agent, error} = s
-    const agentIdx = AGENTS.findIndex(a=>a[1]===current_agent)
-    const pct = Math.max(8, Math.round(((agentIdx>=0?agentIdx:0)+1)/AGENTS.length*92))
-    qs('#progressFill').style.width = `${pct}%`
-    qs('#plStatusMsg').textContent = current_agent ? `${AGENT_DESCS[current_agent]||current_agent}` : '…'
-    renderSteps(current_agent||'')
-
-    if(status==='done'){
-      qs('#progressFill').style.width='100%'
-      qs('#plStatusMsg').textContent = '✓ All 8 agents complete!'
-      qs('#plSpinner').style.display = 'none'
-      renderSteps('', true)
-      qs('#queryHeaderSub').textContent = 'Analysis complete · Scroll down for results'
-      qs('#doneBanner').classList.add('visible')
-      // Hide skeleton now that real results are coming
-      const skel = qs('#skeletonSection')
-      if(skel) skel.style.display = 'none'
-      break
-    }
-    if(status==='error'){
-      showError(error||'Unknown pipeline error')
-      return
-    }
+  // Wait for pipeline — use SSE if supported, fall back to polling
+  if(!isCached){
+    const pipelineDone = await waitForPipeline(job_id)
+    if(!pipelineDone) return  // error already shown
   }
 
   // Fetch & render results
@@ -1194,10 +1317,126 @@ async function main(){
     if(!res.ok) throw new Error(`Server returned ${res.status}`)
     const result = await res.json()
     if(!result || typeof result !== 'object') throw new Error('Empty response')
+    if(isCached){
+      qs('#doneBanner').classList.add('visible')
+      showToast('⚡', 'Cached result loaded instantly!')
+    }
     renderResults(result)
   }catch(e){
     showError(`Failed to fetch results: ${e.message}`)
   }
+}
+
+// ── Pipeline waiter: SSE with polling fallback ────────────────────────────────
+function waitForPipeline(job_id){
+  return new Promise(resolve => {
+    // Try SSE first (EventSource)
+    if(typeof EventSource !== 'undefined'){
+      const es = new EventSource(`${API_URL}/stream/${job_id}`)
+      let settled = false
+
+      es.addEventListener('progress', e => {
+        try{
+          const d = JSON.parse(e.data)
+          const {status, agent} = d
+          const agentIdx = AGENTS.findIndex(a => a[1] === agent)
+          const pct = Math.max(8, Math.round(((agentIdx >= 0 ? agentIdx : 0) + 1) / AGENTS.length * 92))
+          qs('#progressFill').style.width = `${pct}%`
+          qs('#plStatusMsg').textContent = agent ? (AGENT_DESCS[agent] || agent) : '…'
+          renderSteps(agent || '')
+        }catch(_){}
+      })
+
+      es.addEventListener('done', () => {
+        if(settled) return
+        settled = true
+        es.close()
+        qs('#progressFill').style.width = '100%'
+        qs('#plStatusMsg').textContent = '✓ All 8 agents complete!'
+        qs('#plSpinner').style.display = 'none'
+        renderSteps('', true)
+        qs('#queryHeaderSub').textContent = 'Analysis complete · Scroll down for results'
+        qs('#doneBanner').classList.add('visible')
+        const skel = qs('#skeletonSection')
+        if(skel) skel.style.display = 'none'
+        showToast('✅', 'Analysis complete! Scroll down for results.')
+        resolve(true)
+      })
+
+      es.addEventListener('error', e => {
+        if(settled) return
+        settled = true
+        es.close()
+        try{
+          const d = JSON.parse(e.data || '{}')
+          showError(d.message || 'Pipeline error')
+        }catch(_){ showError('Pipeline error') }
+        resolve(false)
+      })
+
+      // Fallback: if SSE stalls for >10s without any event, switch to polling
+      const sseTimeout = setTimeout(() => {
+        if(!settled){
+          es.close()
+          _pollStatus(job_id, resolve)
+        }
+      }, 10000)
+
+      es.addEventListener('progress', () => clearTimeout(sseTimeout))
+      es.addEventListener('done',     () => clearTimeout(sseTimeout))
+
+    } else {
+      // No EventSource support — fall back to polling
+      _pollStatus(job_id, resolve)
+    }
+  })
+}
+
+async function _pollStatus(job_id, resolve){
+  while(true){
+    await new Promise(r => setTimeout(r, 2000))
+    let s
+    try{ s = await (await fetch(`${API_URL}/status/${job_id}`)).json() }
+    catch(e){ showError(`Polling error: ${e.message}`); resolve(false); return }
+
+    const {status, current_agent, error} = s
+    const agentIdx = AGENTS.findIndex(a => a[1] === current_agent)
+    const pct = Math.max(8, Math.round(((agentIdx >= 0 ? agentIdx : 0) + 1) / AGENTS.length * 92))
+    qs('#progressFill').style.width = `${pct}%`
+    qs('#plStatusMsg').textContent = current_agent ? (AGENT_DESCS[current_agent] || current_agent) : '…'
+    renderSteps(current_agent || '')
+
+    if(status === 'done'){
+      qs('#progressFill').style.width = '100%'
+      qs('#plStatusMsg').textContent = '✓ All 8 agents complete!'
+      qs('#plSpinner').style.display = 'none'
+      renderSteps('', true)
+      qs('#queryHeaderSub').textContent = 'Analysis complete · Scroll down for results'
+      qs('#doneBanner').classList.add('visible')
+      const skel = qs('#skeletonSection')
+      if(skel) skel.style.display = 'none'
+      showToast('✅', 'Analysis complete! Scroll down for results.')
+      resolve(true)
+      return
+    }
+    if(status === 'error'){
+      showError(error || 'Unknown pipeline error')
+      resolve(false)
+      return
+    }
+  }
+}
+
+// ── Streaming summary renderer ────────────────────────────────────────────────
+function streamSummary(job_id, targetEl){
+  if(typeof EventSource === 'undefined' || !job_id) return
+  targetEl.textContent = ''
+  const es = new EventSource(`${API_URL}/stream/summary/${job_id}`)
+  es.addEventListener('token', e => {
+    try{ targetEl.textContent += JSON.parse(e.data).token }catch(_){}
+  })
+  es.addEventListener('done',  () => es.close())
+  es.addEventListener('error', () => es.close())
 }
 
 function showError(msg){
@@ -1224,20 +1463,37 @@ function renderResults(r){
   const papers = r.papers||[], hyps = r.hypotheses||[]
   const nodes = (r.graph?.nodes)||[], edges = (r.graph?.edges)||[]
 
-  // Show download button now that we have results
+  // Show action buttons now that we have results
   const dlBtn = qs('#downloadBtn')
   if(dlBtn) dlBtn.style.display = 'inline-flex'
   const pdfBtnEl = qs('#pdfBtn'); if(pdfBtnEl) pdfBtnEl.style.display = 'inline-flex'
   const cmpBtn = qs('#compareBtn'); if(cmpBtn) cmpBtn.style.display = 'inline-flex'
+  const copyBtn = qs('#copyLinkBtn'); if(copyBtn) copyBtn.style.display = 'inline-flex'
 
-  if(r.summary){ qs('#summaryText').textContent = r.summary; show(qs('#summaryCard')) }
+  if(r.summary){
+    const summaryEl = qs('#summaryText')
+    show(qs('#summaryCard'))
+    // Stream the summary token-by-token if we have a job_id, else show static text
+    const jid = new URLSearchParams(location.search).get('j')
+    if(jid && !window._isCachedResult){
+      streamSummary(jid, summaryEl)
+    } else {
+      summaryEl.textContent = r.summary
+    }
+  }
   if(r.evaluation){ renderQuality(r.evaluation) }
 
-  qs('#mPapers').textContent = papers.length
-  qs('#mHyps').textContent = hyps.length
-  qs('#mNodes').textContent = nodes.length
-  qs('#mEdges').textContent = edges.length
+  // Animated count-up for metrics
   show(qs('#metricRow'))
+  ;[['#mPapers',papers.length],['#mHyps',hyps.length],['#mNodes',nodes.length],['#mEdges',edges.length]]
+    .forEach(([sel,target],di)=>{
+      const el = qs(sel)
+      el.textContent = 0
+      setTimeout(()=>{
+        let cur=0; const step=Math.max(1,Math.ceil(target/40))
+        const t = setInterval(()=>{ cur=Math.min(cur+step,target); el.textContent=cur; if(cur>=target) clearInterval(t) }, 28)
+      }, di*80)
+    })
 
   document.querySelectorAll('.tab-btn')[0].textContent=`📄 Literature (${papers.length})`
   document.querySelectorAll('.tab-btn')[1].textContent=`🕸 Knowledge Graph (${nodes.length} nodes)`
@@ -1260,39 +1516,64 @@ function renderQuality(ev){
   const card = qs('#qualityCard')
   if(!card) return
 
-  // Grade badge
-  const gradeEl = qs('#qualityGrade')
   const gradeClass = ev.grade.toLowerCase()
-  gradeEl.textContent = ev.grade
-  gradeEl.className = `quality-grade grade-${gradeClass}`
-
-  // Animated score count-up
-  const scoreEl = qs('#qualityScoreNum')
   const target = ev.health_score
-  let current = 0
-  const step = Math.ceil(target / 40)
-  const timer = setInterval(() => {
-    current = Math.min(current + step, target)
-    scoreEl.textContent = current
-    if(current >= target) clearInterval(timer)
-  }, 30)
+  const gradeColors = {excellent:'#10b981',good:'#3b82f6',fair:'#f59e0b',weak:'#ef4444'}
+  const gradeColor = gradeColors[gradeClass] || '#3b82f6'
 
-  // Score bar
-  const fill = qs('#qualityFill')
-  fill.className = `quality-fill fill-${gradeClass}`
-  setTimeout(() => { fill.style.width = target + '%' }, 80)
+  // Build ring gauge SVG + info
+  const R = 44, C = 2*Math.PI*R, pct = target/100
+  const badgeBg = {excellent:'#f0fdf4',good:'#eff4ff',fair:'#fffbeb',weak:'#fef2f2'}
+  const badgeTxt = {excellent:'#16a34a',good:'#2563eb',fair:'#d97706',weak:'#dc2626'}
 
-  // Flags
-  const flagIcons = { ok: '✅', warn: '⚠️', tip: '💡' }
-  qs('#qualityFlags').innerHTML = (ev.flags || []).map(f =>
+  qs('#qualityCard').innerHTML = `
+    <div class="quality-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <span class="quality-title">🔍 Pipeline Quality Report</span>
+    </div>
+    <div class="quality-ring-row">
+      <div>
+        <svg class="quality-ring-svg" width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="9"/>
+          <circle id="qRingFill" cx="55" cy="55" r="${R}" fill="none"
+            stroke="${gradeColor}" stroke-width="9" stroke-linecap="round"
+            stroke-dasharray="${C}" stroke-dashoffset="${C}"
+            transform="rotate(-90 55 55)"
+            style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)"/>
+          <text x="55" y="51" text-anchor="middle" font-size="20" font-weight="800" fill="var(--text)" font-family="Inter,sans-serif" id="qRingNum">0</text>
+          <text x="55" y="65" text-anchor="middle" font-size="9" fill="var(--text3)" font-family="Inter,sans-serif" text-transform="uppercase" letter-spacing="0.4">/100</text>
+        </svg>
+      </div>
+      <div class="quality-ring-info">
+        <div class="quality-ring-grade" style="background:${badgeBg[gradeClass]||'#eff4ff'};color:${badgeTxt[gradeClass]||'#2563eb'}">${ev.grade}</div>
+        <div class="quality-ring-verdict">${ev.summary_line||''}</div>
+      </div>
+    </div>
+    <div class="quality-flags" id="qualityFlags"></div>
+    <div class="quality-score-row" style="display:none"><span class="quality-score-num" id="qualityScoreNum"></span></div>
+    <div class="quality-track" style="display:none"><div class="quality-fill" id="qualityFill"></div></div>
+    <div class="quality-verdict" id="qualityVerdict"></div>`
+
+  // Animate ring
+  setTimeout(()=>{
+    const offset = C * (1 - pct)
+    document.getElementById('qRingFill').style.strokeDashoffset = offset
+    // Count-up
+    let cur = 0
+    const step = Math.ceil(target/50)
+    const t = setInterval(()=>{
+      cur = Math.min(cur+step, target)
+      document.getElementById('qRingNum').textContent = cur
+      if(cur>=target) clearInterval(t)
+    }, 24)
+  }, 120)
+
+  const flagIcons = {ok:'✅',warn:'⚠️',tip:'💡'}
+  qs('#qualityFlags').innerHTML = (ev.flags||[]).map(f=>
     `<div class="quality-flag">
-      <span class="quality-flag-icon">${flagIcons[f.level] || '•'}</span>
+      <span class="quality-flag-icon">${flagIcons[f.level]||'•'}</span>
       <span>${f.message}</span>
     </div>`
   ).join('')
-
-  // Verdict
-  qs('#qualityVerdict').textContent = ev.summary_line || ''
 
   show(card)
 }
@@ -1301,37 +1582,54 @@ function renderLiterature(papers){
   if(!papers.length){ qs('#tabLit').innerHTML='<p style="color:var(--text3)">No papers retrieved.</p>'; return }
   qs('#tabLit').innerHTML = `
     <div class="section-lbl">${papers.length} PubMed papers analysed</div>
-    ${papers.map(p=>{
+    ${papers.map((p,i)=>{
       const authors = (p.authors||[]).slice(0,2).join(', ')+(p.authors?.length>2?` +${p.authors.length-2}`:'')
       const rel = Math.round((p.relevance_score||0.9)*100)
+      const absText = String(p.abstract||'')
+      const short = absText.length>280
       return `
-      <div class="paper-card">
+      <div class="paper-card" style="animation:hypSlideIn .4s cubic-bezier(.16,1,.3,1) ${i*0.04}s both">
         <div class="paper-journal">${esc(p.journal||'').substring(0,50)}</div>
         <div class="paper-title">${esc(p.title||'N/A')}</div>
         <div class="paper-meta">${esc(authors)} · ${esc(p.year||'')} · <a href="https://pubmed.ncbi.nlm.nih.gov/${esc(p.pmid)}/" target="_blank">PMID ${esc(p.pmid)} ↗</a></div>
-        <div class="paper-abs">${esc(String(p.abstract||'').substring(0,380))}…</div>
+        <div class="paper-abs" style="border-top:1px solid var(--border2);padding-top:10px;margin-top:8px">
+          <div class="paper-abs-text" id="abs-${i}">${esc(absText)}</div>
+          ${short?`<button class="paper-abs-toggle" onclick="toggleAbs(${i},this)">Show more ↓</button>`:''}
+        </div>
         <div class="rel-row">
           <span class="rel-label">Relevance</span>
-          <div class="rel-track"><div class="rel-fill" style="width:${rel}%"></div></div>
+          <div class="rel-track" style="height:4px"><div class="rel-fill" style="width:${rel}%;background:linear-gradient(90deg,var(--blue),#7c3aed);border-radius:4px"></div></div>
           <span class="rel-label">${rel}%</span>
         </div>
       </div>`
     }).join('')}`
 }
 
+function toggleAbs(i, btn){
+  const el = document.getElementById('abs-'+i)
+  const expanded = el.classList.toggle('expanded')
+  btn.textContent = expanded ? 'Show less ↑' : 'Show more ↓'
+}
+
 function renderGraph(nodes, edges){
   if(!nodes.length){ qs('#tabKG').innerHTML='<p style="color:var(--text3);padding:16px">No graph data.</p>'; return }
-  const genes = nodes.filter(n=>n.type==='gene')
+  const genes    = nodes.filter(n=>n.type==='gene')
   const diseases = nodes.filter(n=>n.type==='disease')
   const proteins = nodes.filter(n=>n.type==='protein')
 
   qs('#tabKG').innerHTML = `
+  <div class="graph-legend">
+    <span class="graph-legend-item"><span class="graph-legend-dot" style="background:#16a34a"></span>Gene (${genes.length})</span>
+    <span class="graph-legend-item"><span class="graph-legend-dot" style="background:#dc2626"></span>Disease (${diseases.length})</span>
+    <span class="graph-legend-item"><span class="graph-legend-dot" style="background:#7c3aed"></span>Protein (${proteins.length})</span>
+    <span style="margin-left:auto;font-size:11px;color:var(--text3)">Drag nodes · Scroll to zoom · Click to pin</span>
+  </div>
   <div id="geneGraph"></div>
-  <div class="kg-grid">
+  <div class="kg-grid" style="margin-top:16px">
     <div>
       <div class="section-lbl">Statistics</div>
       ${[['🧬','Gene nodes',genes.length],['🦠','Disease nodes',diseases.length],
-         ['🔩','Protein nodes',proteins.length],['🔗','Edges',edges.length]].map(([ic,lb,ct])=>`
+         ['🔩','Protein nodes',proteins.length],['🔗','Relationships',edges.length]].map(([ic,lb,ct])=>`
       <div class="kg-stat"><span class="kg-stat-icon">${ic}</span>
         <div><div class="kg-stat-val">${ct}</div><div class="kg-stat-lbl">${lb}</div></div>
       </div>`).join('')}
@@ -1341,7 +1639,7 @@ function renderGraph(nodes, edges){
       ${diseases.length?`<div class="section-lbl">Disease Nodes</div><div style="margin-bottom:16px">${diseases.map(n=>`<span class="node-chip nc-disease">🦠 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
       ${proteins.length?`<div class="section-lbl">Protein Nodes</div><div style="margin-bottom:16px">${proteins.map(n=>`<span class="node-chip nc-protein">🔩 ${esc(n.label||n.id)}</span>`).join('')}</div>`:''}
       ${edges.length?`<div class="section-lbl">Relationships</div>
-        ${edges.slice(0,15).map(e=>`
+        ${edges.slice(0,12).map(e=>`
         <div class="edge-row">
           <span class="node-chip nc-gene" style="margin:0">🧬 ${esc(e.source)}</span>
           <span class="edge-arrow">── ${esc(e.relation||'ASSOCIATED_WITH')} ──▶</span>
@@ -1351,58 +1649,117 @@ function renderGraph(nodes, edges){
     </div>
   </div>`
 
-  // D3 force graph
+  // Create floating tooltip
+  let tooltip = document.querySelector('.graph-tooltip')
+  if(!tooltip){
+    tooltip = document.createElement('div')
+    tooltip.className = 'graph-tooltip'
+    document.body.appendChild(tooltip)
+  }
+
   try{
     const container = document.getElementById('geneGraph')
-    const W = container.clientWidth || 600
-    const H = 420
-    const colorMap = {gene:'#16a34a', disease:'#dc2626', protein:'#7c3aed'}
+    const W = container.clientWidth || 640, H = 460
+    const colorMap   = {gene:'#16a34a', disease:'#dc2626', protein:'#7c3aed'}
+    const fillOpMap  = {gene:0.12, disease:0.14, protein:0.12}
+    const radiusMap  = {gene:18, disease:24, protein:16}
+    const glowMap    = {gene:'rgba(22,163,74,0.25)', disease:'rgba(220,38,38,0.3)', protein:'rgba(124,58,237,0.25)'}
+
     const d3nodes = nodes.map(n=>({id:n.id||n.label, label:n.label||n.id, type:n.type||'gene'}))
     const nodeIds = new Set(d3nodes.map(n=>n.id))
     const d3links = edges.filter(e=>nodeIds.has(e.source)&&nodeIds.has(e.target))
                          .map(e=>({source:e.source, target:e.target, rel:e.relation||''}))
 
     const svg = d3.select('#geneGraph').append('svg')
-      .attr('width','100%').attr('height',H)
+      .attr('width','100%').attr('height',H).style('display','block')
 
-    // Arrow marker
-    svg.append('defs').append('marker')
-      .attr('id','arr').attr('viewBox','0 -5 10 10').attr('refX',18).attr('refY',0)
-      .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
-      .append('path').attr('d','M0,-5L10,0L0,5').attr('fill','#94a3b8')
+    // Defs: glow filter + arrow marker
+    const defs = svg.append('defs')
+    ;['gene','disease','protein'].forEach(t=>{
+      const f = defs.append('filter').attr('id',`glow-${t}`).attr('x','-50%').attr('y','-50%').attr('width','200%').attr('height','200%')
+      f.append('feGaussianBlur').attr('stdDeviation','3').attr('result','blur')
+      const m = f.append('feMerge')
+      m.append('feMergeNode').attr('in','blur')
+      m.append('feMergeNode').attr('in','SourceGraphic')
+    })
+    defs.append('marker')
+      .attr('id','arr2').attr('viewBox','0 -5 10 10').attr('refX',2).attr('refY',0)
+      .attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto')
+      .append('path').attr('d','M0,-5L10,0L0,5').attr('fill','#94a3b8').attr('fill-opacity','0.5')
+
+    // Zoom & pan
+    const zoom = d3.zoom().scaleExtent([0.3,4]).on('zoom',(e)=>{ g.attr('transform',e.transform) })
+    svg.call(zoom).on('dblclick.zoom',null)
+
+    const g = svg.append('g')
 
     const sim = d3.forceSimulation(d3nodes)
-      .force('link', d3.forceLink(d3links).id(d=>d.id).distance(90))
-      .force('charge', d3.forceManyBody().strength(-200))
+      .force('link', d3.forceLink(d3links).id(d=>d.id).distance(d=>{
+        const isDisease = (n)=>n.type==='disease'
+        return (isDisease(d.source)||isDisease(d.target)) ? 110 : 80
+      }))
+      .force('charge', d3.forceManyBody().strength(-320))
       .force('center', d3.forceCenter(W/2, H/2))
-      .force('collision', d3.forceCollide(28))
+      .force('collision', d3.forceCollide(d=>radiusMap[d.type]||18 + 10))
 
-    const link = svg.append('g').selectAll('line').data(d3links).join('line')
-      .attr('stroke','#94a3b8').attr('stroke-width',1.5).attr('stroke-opacity',0.6)
-      .attr('marker-end','url(#arr)')
+    const link = g.append('g').selectAll('line').data(d3links).join('line')
+      .attr('stroke','var(--border)')
+      .attr('stroke-width',1.5)
+      .attr('stroke-opacity',0.7)
+      .attr('marker-end','url(#arr2)')
 
-    const node = svg.append('g').selectAll('g').data(d3nodes).join('g')
-      .attr('class','graph-node').call(
-        d3.drag()
-          .on('start',(e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y })
-          .on('drag', (e,d)=>{ d.fx=e.x; d.fy=e.y })
-          .on('end',  (e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null })
+    const node = g.append('g').selectAll('g').data(d3nodes).join('g')
+      .attr('class','graph-node')
+      .style('cursor','pointer')
+      .call(d3.drag()
+        .on('start',(e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y })
+        .on('drag', (e,d)=>{ d.fx=e.x; d.fy=e.y })
+        .on('end',  (e,d)=>{ if(!e.active) sim.alphaTarget(0) })
       )
+      .on('mouseover',(e,d)=>{
+        tooltip.innerHTML = `<div class="graph-tooltip-title">${d.label}</div><div class="graph-tooltip-type">${d.type}</div>`
+        tooltip.classList.add('visible')
+      })
+      .on('mousemove',(e)=>{
+        tooltip.style.left = (e.clientX+14)+'px'
+        tooltip.style.top  = (e.clientY-36)+'px'
+      })
+      .on('mouseout',()=>{ tooltip.classList.remove('visible') })
+      .on('click',(e,d)=>{
+        if(d.fx != null){ d.fx=null; d.fy=null } // unpin
+        else { d.fx=d.x; d.fy=d.y }              // pin
+        sim.alphaTarget(0.1).restart()
+      })
 
-    node.append('circle').attr('r',16)
+    // Outer glow circle
+    node.append('circle')
+      .attr('r',d=>(radiusMap[d.type]||18)+6)
+      .attr('fill',d=>glowMap[d.type]||'rgba(59,130,246,0.15)')
+      .attr('fill-opacity',0.4)
+      .attr('stroke','none')
+      .attr('filter',d=>`url(#glow-${d.type})`)
+
+    // Main circle
+    node.append('circle')
+      .attr('r',d=>radiusMap[d.type]||18)
       .attr('fill',d=>colorMap[d.type]||'#3b82f6')
-      .attr('fill-opacity',0.15)
+      .attr('fill-opacity',d=>fillOpMap[d.type]||0.12)
       .attr('stroke',d=>colorMap[d.type]||'#3b82f6')
       .attr('stroke-width',2)
 
-    node.append('text').attr('text-anchor','middle').attr('dy','0.35em')
-      .attr('font-size','10px').attr('fill',d=>colorMap[d.type]||'#3b82f6')
+    // Label inside
+    node.append('text')
+      .attr('text-anchor','middle').attr('dy','0.35em')
+      .attr('font-size',d=>d.type==='disease'?'9px':'10px')
+      .attr('fill',d=>colorMap[d.type]||'#3b82f6')
       .attr('font-weight','700')
+      .attr('font-family','Inter,sans-serif')
       .text(d=>d.label.length>8?d.label.slice(0,7)+'…':d.label)
 
     sim.on('tick',()=>{
-      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
-          .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y)
+      link
+        .attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+        .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y)
       node.attr('transform',d=>`translate(${d.x},${d.y})`)
     })
   }catch(err){ console.warn('D3 graph error:', err) }
@@ -1419,7 +1776,8 @@ function renderHypotheses(hyps, papers){
       const badgeCls = {Strong:'b-str',Moderate:'b-mod',Exploratory:'b-exp'}[status]||'b-exp'
       const conf = Math.round(h.confidence||50)
       const cpCls = conf>=75?'cp-high':conf>=55?'cp-mid':'cp-low'
-      const cfill = conf>=75?'var(--green)':conf>=55?'var(--amber)':'var(--red)'
+      const cfillStart = conf>=75?'#10b981':conf>=55?'#f59e0b':'#ef4444'
+      const cfillEnd   = conf>=75?'#34d399':conf>=55?'#fbbf24':'#f87171'
       const gTags = (h.genes||[]).map(g=>`<span class="tag tag-g">🧬 ${esc(g)}</span>`).join('')
       const pTag = h.pathway?`<span class="tag tag-p">🔬 ${esc(h.pathway)}</span>`:''
       const eTags = `<span class="tag tag-e">📄 ${h.evidence_count||0} supporting papers</span>`
@@ -1452,7 +1810,7 @@ function renderHypotheses(hyps, papers){
         </div>
         <div class="hyp-title">${esc(h.title||'')}</div>
         <div class="hyp-stmt">${esc(h.statement||'')}</div>
-        <div class="conf-track"><div class="conf-fill" style="width:${conf}%;background:${cfill}"></div></div>
+        <div class="conf-track"><div class="conf-fill" style="width:${conf}%;background:linear-gradient(90deg,${cfillStart},${cfillEnd})"></div></div>
         <div class="tag-row">${gTags}${pTag}${eTags}${mTag}</div>
       </div>`
     }).join('')}`
@@ -1477,23 +1835,52 @@ function clearHistory(){
   localStorage.removeItem(HISTORY_KEY)
   renderHistoryPanel()
 }
-function renderHistoryPanel(){
-  const h = getHistory()
-  const badge = qs('#historyCount')
-  if(badge) badge.textContent = h.length ? `(${h.length})` : ''
+async function renderHistoryPanel(){
   const list = qs('#historyList')
   if(!list) return
-  if(!h.length){
+
+  // Try API history for logged-in users
+  let apiItems = []
+  if(typeof clerk !== 'undefined' && clerk?.session){
+    try{
+      const token = await clerk.session.getToken()
+      const r = await fetch(`${API_URL}/history`, {headers:{Authorization:`Bearer ${token}`}})
+      if(r.ok){
+        const d = await r.json()
+        apiItems = (d.history||[]).map(i=>({
+          query: i.query,
+          ts: new Date(i.created_at).getTime(),
+          hyp_count: i.hyp_count,
+          paper_count: i.paper_count,
+          health_score: i.health_score,
+          fromApi: true,
+        }))
+      }
+    }catch(e){ /* fall through to localStorage */ }
+  }
+
+  // Merge with localStorage (dedupe by query)
+  const localItems = getHistory()
+  const seen = new Set(apiItems.map(i=>i.query.toLowerCase()))
+  const merged = [...apiItems, ...localItems.filter(i=>!seen.has(i.query.toLowerCase()))]
+  merged.sort((a,b)=>b.ts-a.ts)
+
+  const badge = qs('#historyCount')
+  if(badge) badge.textContent = merged.length ? `(${merged.length})` : ''
+  if(!merged.length){
     list.innerHTML = '<div class="history-empty">No searches yet</div>'
     return
   }
-  list.innerHTML = h.map(item=>{
+  list.innerHTML = merged.map(item=>{
     const ago = timeAgo(item.ts)
+    const meta = item.fromApi
+      ? `${ago} · ${item.hyp_count||0} hypotheses · ${item.paper_count||0} papers`
+      : ago
     return `<div class="history-item" onclick="goHistory('${encodeURIComponent(item.query)}')">
       <span class="history-item-icon">🔬</span>
       <div class="history-item-text">
         <div class="history-item-q">${esc(item.query)}</div>
-        <div class="history-item-meta">${ago}</div>
+        <div class="history-item-meta">${meta}</div>
       </div>
       <span class="history-item-arrow">→</span>
     </div>`
@@ -1617,6 +2004,27 @@ function downloadReport(){
   a.download = `genesight-${query.replace(/[^a-z0-9]/gi,'-').toLowerCase().slice(0,40)}-${Date.now()}.html`
   a.click()
   URL.revokeObjectURL(url)
+}
+
+// ── Copy shareable link ──
+function copyLink(){
+  const url = window.location.href
+  const btn = qs('#copyLinkBtn')
+  navigator.clipboard.writeText(url).then(()=>{
+    btn.textContent = '✓ Copied!'
+    btn.classList.add('copied')
+    setTimeout(()=>{ btn.textContent = '🔗 Share'; btn.classList.remove('copied') }, 2000)
+  }).catch(()=>{
+    // Fallback for browsers without clipboard API
+    const ta = document.createElement('textarea')
+    ta.value = url; ta.style.cssText='position:fixed;top:-9999px'
+    document.body.appendChild(ta); ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+    btn.textContent = '✓ Copied!'
+    btn.classList.add('copied')
+    setTimeout(()=>{ btn.textContent = '🔗 Share'; btn.classList.remove('copied') }, 2000)
+  })
 }
 
 // ── Dark Mode ──
