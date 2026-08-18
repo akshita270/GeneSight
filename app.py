@@ -1,16 +1,6 @@
-import sys
-
-# Prevent HF Spaces ZeroGPU detector from erroring on a CPU-only space
-class _MockSpaces:
-    def GPU(self, func=None, **kwargs):
-        return func if func is not None else (lambda f: f)
-    def __getattr__(self, _):
-        return lambda *a, **k: None
-
-sys.modules.setdefault("spaces", _MockSpaces())
-
 import gradio as gr
-from main import app  # existing FastAPI app
+import uvicorn
+from main import app as fastapi_app
 
 with gr.Blocks(title="GeneSight API") as demo:
     gr.Markdown(
@@ -19,8 +9,8 @@ with gr.Blocks(title="GeneSight API") as demo:
         "[gene-sight-seven.vercel.app](https://gene-sight-seven.vercel.app)"
     )
 
-app = gr.mount_gradio_app(app, demo, path="/ui")
+# Mount Gradio at /ui; all FastAPI routes (/query, /result, /stream, …) stay at root.
+fastapi_app = gr.mount_gradio_app(fastapi_app, demo, path="/ui")
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=7860)
+    uvicorn.run(fastapi_app, host="0.0.0.0", port=7860)
