@@ -48,14 +48,17 @@ def _cache_key(query: str) -> str:
 
 # ── Clerk JWT verification ────────────────────────────────────────────────────
 _clerk_jwks: dict | None = None
+_clerk_jwks_fetched_at: float = 0.0
 _clerk_jwks_lock = asyncio.Lock()
+_JWKS_TTL = 3600.0  # refresh hourly — JWKS keys rotate periodically
 
 async def _get_jwks() -> dict:
-    global _clerk_jwks
-    if _clerk_jwks:
+    global _clerk_jwks, _clerk_jwks_fetched_at
+    now = time.monotonic()
+    if _clerk_jwks and now - _clerk_jwks_fetched_at < _JWKS_TTL:
         return _clerk_jwks
     async with _clerk_jwks_lock:
-        if _clerk_jwks:  # re-check after acquiring lock
+        if _clerk_jwks and now - _clerk_jwks_fetched_at < _JWKS_TTL:
             return _clerk_jwks
         async with httpx.AsyncClient() as client:
             r = await client.get(
@@ -64,6 +67,7 @@ async def _get_jwks() -> dict:
             )
             r.raise_for_status()
             _clerk_jwks = r.json()
+            _clerk_jwks_fetched_at = time.monotonic()
     return _clerk_jwks
 
 async def verify_clerk_token(
@@ -169,6 +173,12 @@ def _evict_old_jobs():
     ]
     for jid in to_delete:
         del jobs[jid]
+    # Prune IP rate-limit entries whose window has fully expired to prevent
+    # unbounded growth from unique IPs accumulating over the server lifetime.
+    for ip in list(_ip_timestamps.keys()):
+        _ip_timestamps[ip] = [t for t in _ip_timestamps[ip] if now - t < IP_RATE_WINDOW_S]
+        if not _ip_timestamps[ip]:
+            del _ip_timestamps[ip]
 
 
 async def run_pipeline(job_id: str, query: str, clerk_id: str | None = None):
@@ -194,13 +204,13 @@ async def _run_pipeline(job_id: str, query: str, clerk_id: str | None = None):
             # ── Task Planner ─────────────────────────────────────────────────
             t = tracer.start("Task Planner", f"query={query[:80]}")
             jobs[job_id]["agent"] = "Task Planner"
-            subtasks = await TaskPlannerAgent().run(query)
+            subtasks = await _task_planner.run(query)
             t.finish(f"search_terms={subtasks.get('search_terms', [])[:3]}")
 
             # ── Literature Retrieval ──────────────────────────────────────────
             t = tracer.start("Literature Retrieval", f"terms={subtasks['search_terms']}")
             jobs[job_id]["agent"] = "Literature Retrieval"
-            papers = await LiteratureAgent().run(subtasks["search_terms"])
+            papers = await _literature.run(subtasks["search_terms"])
             t.finish(f"{len(papers)} papers retrieved")
 
             # ── Paper Sanitisation ────────────────────────────────────────────
@@ -211,13 +221,13 @@ async def _run_pipeline(job_id: str, query: str, clerk_id: str | None = None):
             # ── Info Extraction ───────────────────────────────────────────────
             t = tracer.start("Info Extraction", f"{len(papers)} papers")
             jobs[job_id]["agent"] = "Info Extraction"
-            entities = await ExtractionAgent().run(papers)
+            entities = await _extraction.run(papers)
             t.finish(f"{len(entities.get('genes', []))} genes, {len(entities.get('diseases', []))} diseases")
 
             # ── Genomics DB ───────────────────────────────────────────────────
             t = tracer.start("Genomics DB", f"genes={entities.get('genes', [])[:5]}")
             jobs[job_id]["agent"] = "Genomics DB"
-            db_data = await GenomicsDBAgent().run(entities["genes"])
+            db_data = await _genomics_db.run(entities["genes"])
             verified = [d["gene"] for d in db_data if isinstance(d, dict) and d.get("ncbi_id")]
             t.finish(
                 f"{len(verified)}/{len(db_data)} genes verified in NCBI",
@@ -228,44 +238,46 @@ async def _run_pipeline(job_id: str, query: str, clerk_id: str | None = None):
             # ── Knowledge Graph ───────────────────────────────────────────────
             t = tracer.start("Knowledge Graph", f"{len(db_data)} enriched genes")
             jobs[job_id]["agent"] = "Knowledge Graph"
-            graph = await KnowledgeGraphAgent().run(entities, db_data)
+            graph = await _kg.run(entities, db_data)
             t.finish(f"{len(graph.nodes)} nodes, {len(graph.edges)} edges")
 
             # ── Hypothesis Generation ─────────────────────────────────────────
             t = tracer.start("Hypothesis Generation", f"graph={len(graph.nodes)} nodes")
             jobs[job_id]["agent"] = "Hypothesis Generation"
-            hypotheses = await HypothesisAgent().run(query, graph, papers)
+            hypotheses = await _hypothesis.run(query, graph, papers)
             t.finish(f"{len(hypotheses)} hypotheses generated")
 
             # ── Hallucination + Faithfulness Guard ────────────────────────────
-            guard = HallucinationGuard()
-            hypotheses, audit_log = guard.run(hypotheses, db_data, papers)
+            hypotheses, audit_log = _guard.run(hypotheses, db_data, papers)
             if audit_log:
                 jobs[job_id]["audit_log"] = audit_log
 
             # ── Citation Validation ───────────────────────────────────────────
-            hypotheses, citation_flags = CitationValidator().run(hypotheses, papers)
+            hypotheses, citation_flags = _citation_val.run(hypotheses, papers)
             if citation_flags:
                 jobs[job_id].setdefault("audit_log", []).extend(citation_flags)
 
             # ── Evidence Validation ───────────────────────────────────────────
             t = tracer.start("Evidence Validation", f"{len(hypotheses)} hypotheses, {len(papers)} papers")
             jobs[job_id]["agent"] = "Evidence Validation"
-            validated = await ValidatorAgent().run(hypotheses, papers)
+            validated = await _validator.run(hypotheses, papers)
             strong = sum(1 for h in validated if h.status == "Strong")
             t.finish(f"{strong} strong, {len(validated)-strong} exploratory/moderate")
 
-            # ── Quality Evaluation ────────────────────────────────────────────
-            t = tracer.start("Evaluating Quality")
-            jobs[job_id]["agent"] = "Evaluating Quality"
-            evaluation = await EvaluatorAgent().run(query, validated, papers, graph)
-            t.finish(f"score={evaluation.health_score}/100 grade={evaluation.grade}")
-
-            # ── Report Generation ─────────────────────────────────────────────
-            t = tracer.start("Report Generation")
-            jobs[job_id]["agent"] = "Report Generation"
-            report = await ReporterAgent().run(query, validated, graph, papers, evaluation)
-            t.finish("report built")
+            # ── Quality Evaluation + Report Generation (parallel) ─────────────
+            # EvaluatorAgent is rule-based (no LLM); ReporterAgent calls GPT-4o.
+            # Running them together saves the full evaluator latency (~100ms) off
+            # the critical path — net gain ≈ evaluator wall time per pipeline.
+            t_eval = tracer.start("Evaluating Quality")
+            t_rep  = tracer.start("Report Generation")
+            jobs[job_id]["agent"] = "Evaluating Quality + Report"
+            evaluation, report = await asyncio.gather(
+                _evaluator.run(query, validated, papers, graph),
+                _reporter.run(query, validated, graph, papers),
+            )
+            report.evaluation = evaluation
+            t_eval.finish(f"score={evaluation.health_score}/100 grade={evaluation.grade}")
+            t_rep.finish("report built")
 
             # ── RAG Metrics ───────────────────────────────────────────────────
             hyps_as_dicts = [
@@ -281,6 +293,7 @@ async def _run_pipeline(job_id: str, query: str, clerk_id: str | None = None):
             jobs[job_id].update({
                 "status": "done",
                 "result": report,
+                "cached_summary": report.summary,   # avoid re-calling LLM in /stream/summary
                 "finished_at": time.monotonic(),
                 "trace": tracer.to_dict(),
                 "total_tokens": tracer.total_tokens,
@@ -321,7 +334,20 @@ async def _run_pipeline(job_id: str, query: str, clerk_id: str | None = None):
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
-_guardrail = InputGuardrail()
+# Module-level singletons — agents are stateless between calls so one instance
+# per process is safe and avoids repeated LangChain/OpenAI client construction.
+_guardrail      = InputGuardrail()
+_task_planner   = TaskPlannerAgent()
+_literature     = LiteratureAgent()
+_extraction     = ExtractionAgent()
+_genomics_db    = GenomicsDBAgent()
+_kg             = KnowledgeGraphAgent()
+_hypothesis     = HypothesisAgent()
+_validator      = ValidatorAgent()
+_evaluator      = EvaluatorAgent()
+_reporter       = ReporterAgent()
+_guard          = HallucinationGuard()
+_citation_val   = CitationValidator()
 
 @app.post("/query", response_model=dict)
 async def start_query(
@@ -480,17 +506,21 @@ async def stream_summary(job_id: str):
     if job["status"] != "done":
         raise HTTPException(400, f"Job not complete — status: {job['status']}")
 
-    result = job["result"]
-    hypotheses = result.hypotheses if hasattr(result, "hypotheses") else []
-    papers_raw = [p.model_dump() for p in result.papers] if hasattr(result, "papers") else []
-    query = result.query if hasattr(result, "query") else ""
+    # Stream the summary that was already generated during the pipeline run —
+    # avoids a second GPT-4o call and its associated latency + token cost.
+    cached_summary = job.get("cached_summary") or (
+        job["result"].summary if hasattr(job.get("result"), "summary") else ""
+    )
 
     async def token_gen():
         try:
-            reporter = ReporterAgent()
-            async for token in reporter.stream_summary(query, hypotheses, papers_raw):
-                payload = json.dumps({"token": token})
-                yield f"event: token\ndata: {payload}\n\n"
+            # Emit word-by-word for a natural streaming feel without an LLM call.
+            import re as _re
+            words = _re.split(r"(\s+)", cached_summary)
+            for word in words:
+                if word:
+                    yield f"event: token\ndata: {json.dumps({'token': word})}\n\n"
+                    await asyncio.sleep(0.018)  # ~55 words/sec
             yield f"event: done\ndata: {{}}\n\n"
         except Exception as e:
             yield f"event: error\ndata: {json.dumps({'message': str(e)[:200]})}\n\n"

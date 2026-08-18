@@ -32,27 +32,24 @@ def context_relevance(papers: list[dict], query: str) -> float:
         return 0.0
 
     N = len(papers)
+    # Pre-build lowercased paper texts and compile patterns once — avoids
+    # re-compiling the same regex inside the inner loop on every call.
+    paper_texts = [
+        (p.get("title", "") + " " + p.get("abstract", "")).lower()
+        for p in papers
+    ]
     token_scores: list[float] = []
     for tok in set(query_tokens):
-        doc_freq = sum(
-            1 for p in papers
-            if re.search(
-                r"\b" + re.escape(tok) + r"\b",
-                (p.get("title", "") + " " + p.get("abstract", "")).lower(),
-            )
-        )
-        # IDF: log(N / (df + 1)) — avoid log(0)
+        pat = re.compile(r"\b" + re.escape(tok) + r"\b")
+        doc_freq = sum(1 for text in paper_texts if pat.search(text))
         idf = math.log(N / (doc_freq + 1) + 1)
-        # Presence ratio weighted by IDF
         presence_ratio = doc_freq / N
         token_scores.append(presence_ratio * idf)
 
     if not token_scores:
         return 0.0
 
-    # Normalise to [0, 1]
     raw = sum(token_scores) / len(token_scores)
-    # idf for a token present in every doc ≈ log(2) ≈ 0.69, max ~log(N+1)
     max_possible = math.log(N + 1) if N > 0 else 1.0
     return round(min(1.0, raw / max_possible), 4)
 
@@ -67,10 +64,12 @@ def answer_groundedness(hypotheses: list[dict], papers: list[dict]) -> float:
     if not hypotheses or not papers:
         return 0.0
 
-    corpus = " ".join(
-        (p.get("title", "") + " " + p.get("abstract", "")).upper()
-        for p in papers
-    )
+    # Build a word set once — O(corpus) — then lookup is O(1) per gene.
+    # Gene symbols are short uppercase tokens so word-boundary splitting works.
+    corpus_words: set[str] = set()
+    for p in papers:
+        text = (p.get("title", "") + " " + p.get("abstract", "")).upper()
+        corpus_words.update(re.findall(r"\b[A-Z][A-Z0-9]{1,9}\b", text))
 
     all_genes: list[str] = []
     for h in hypotheses:
@@ -79,10 +78,7 @@ def answer_groundedness(hypotheses: list[dict], papers: list[dict]) -> float:
     if not all_genes:
         return 0.0
 
-    grounded = sum(
-        1 for g in all_genes
-        if re.search(r"\b" + re.escape(g) + r"\b", corpus)
-    )
+    grounded = sum(1 for g in all_genes if g in corpus_words)
     return round(grounded / len(all_genes), 4)
 
 

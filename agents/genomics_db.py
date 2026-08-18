@@ -40,13 +40,16 @@ class GenomicsDBAgent:
 
     async def run(self, genes: list[str]) -> list[dict]:
         genes = genes[:15]  # cap to avoid rate limits
+        # Fire all NCBI + UniProt requests in a single gather — saves one full
+        # round-trip latency vs two sequential gathers.
         async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-            ncbi_results = await asyncio.gather(
-                *[self._ncbi_gene(client, g) for g in genes], return_exceptions=True
+            all_results = await asyncio.gather(
+                *[self._ncbi_gene(client, g) for g in genes],
+                *[self._uniprot(client, g) for g in genes],
+                return_exceptions=True,
             )
-            uni_results = await asyncio.gather(
-                *[self._uniprot(client, g) for g in genes], return_exceptions=True
-            )
+        ncbi_results = all_results[:len(genes)]
+        uni_results  = all_results[len(genes):]
         merged = {}
         for n in ncbi_results:
             if isinstance(n, dict):
