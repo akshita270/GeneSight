@@ -30,5 +30,8 @@ psycopg2-binary>=2.9.9
 PyJWT>=2.8.0
 cryptography>=42.0.0
 
+# HF Spaces
+gradio>=4.0.0
+
 # Eval CLI
 aiohttp>=3.9.0
