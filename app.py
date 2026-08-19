@@ -14,24 +14,6 @@ if not hasattr(_hf, "HfFolder"):
         def delete_token(cls): pass
     _hf.HfFolder = _HfFolder
 
-# ── ZeroGPU compat ───────────────────────────────────────────────────────────
-# Must use literal `import spaces` + `@spaces.GPU` — HF Spaces static scanner
-# looks for this exact pattern before running Python. Also register BEFORE
-# Gradio loads so the runtime registry check is satisfied too.
-try:
-    import spaces
-    _has_spaces = True
-except Exception:
-    _has_spaces = False
-
-if _has_spaces:
-    @spaces.GPU
-    def _noop_gpu():
-        return ""
-else:
-    def _noop_gpu():
-        return ""
-
 import gradio as gr
 import uvicorn
 from main import app as fastapi_app
@@ -42,10 +24,6 @@ with gr.Blocks(title="GeneSight API") as demo:
         "Backend service — use the frontend at "
         "[gene-sight-seven.vercel.app](https://gene-sight-seven.vercel.app)"
     )
-    # Hidden element: its click handler is the @spaces.GPU fn the check needs
-    _btn = gr.Button(visible=False)
-    _out = gr.Textbox(visible=False)
-    _btn.click(fn=_noop_gpu, inputs=[], outputs=[_out])
 
 fastapi_app = gr.mount_gradio_app(fastapi_app, demo, path="/ui")
 
