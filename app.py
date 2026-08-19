@@ -2,16 +2,27 @@ from __future__ import annotations
 import sys
 import types
 
-# Gradio 4.x + HF ZeroGPU: if no @spaces.GPU functions exist, startup errors.
-# Force-replace spaces.GPU with a no-op whether or not spaces was pre-imported.
-if "spaces" not in sys.modules:
-    _mock_spaces = types.ModuleType("spaces")
-    sys.modules["spaces"] = _mock_spaces
-_spaces_mod = sys.modules["spaces"]
-_spaces_mod.GPU = lambda fn=None, **kw: fn if fn else (lambda f: f)
+# ── ZeroGPU startup check ─────────────────────────────────────────────────────
+# HF Spaces ZeroGPU requires at least one @spaces.GPU-decorated function.
+# Register a no-op dummy via the REAL decorator so the internal registry is
+# non-empty when the startup check fires. Then replace spaces.GPU with a safe
+# passthrough so Gradio internals can call it freely without GPU allocation.
+try:
+    import spaces as _sp
+    @_sp.GPU
+    def _noop_gpu_fn():
+        pass
+except Exception:
+    # spaces not available — install a minimal stub
+    if "spaces" not in sys.modules:
+        _m = types.ModuleType("spaces")
+        sys.modules["spaces"] = _m
 
-# Gradio 4.x oauth.py does `from huggingface_hub import HfFolder` which was
-# removed in huggingface_hub>=0.21.0. Add a no-op stub; we use Clerk auth.
+sys.modules["spaces"].GPU = lambda fn=None, **kw: fn if fn else (lambda f: f)
+
+# ── HfFolder compat ───────────────────────────────────────────────────────────
+# Gradio 4.x oauth.py imports HfFolder removed in huggingface_hub>=0.21.0.
+# Inject a no-op class before `import gradio` so the import chain succeeds.
 import huggingface_hub as _hf
 if not hasattr(_hf, "HfFolder"):
     class _HfFolder:
